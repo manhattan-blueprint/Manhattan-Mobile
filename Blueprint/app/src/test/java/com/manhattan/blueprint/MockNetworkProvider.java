@@ -1,4 +1,4 @@
-package com.manhattan.blueprint.Model.Network;
+package com.manhattan.blueprint;
 
 import com.google.gson.Gson;
 import com.manhattan.blueprint.Model.API.Request.AddToInventoryEndpoint;
@@ -8,6 +8,9 @@ import com.manhattan.blueprint.Model.API.Request.FetchInventoryEndpoint;
 import com.manhattan.blueprint.Model.API.Request.FetchResourcesEndpoint;
 import com.manhattan.blueprint.Model.API.Request.RefreshEndpoint;
 import com.manhattan.blueprint.Model.MockData;
+import com.manhattan.blueprint.Model.Network.NetworkProvider;
+import com.manhattan.blueprint.Model.Network.NetworkResponse;
+
 import java.util.HashMap;
 import java.util.Map;
 
