@@ -2,12 +2,10 @@ package com.manhattan.blueprint.Model.API.Request;
 
 import com.manhattan.blueprint.Model.TokenPair;
 
-import java.util.Optional;
-
 public class RefreshEndpoint extends Endpoint {
-    private Optional<TokenPair> tokenPair;
+    private TokenPair tokenPair;
 
-    public RefreshEndpoint(Optional<TokenPair> tokenPair){
+    public RefreshEndpoint(TokenPair tokenPair){
         this.tokenPair = tokenPair;
     }
 
@@ -23,6 +21,7 @@ public class RefreshEndpoint extends Endpoint {
 
     @Override
     public String body() {
+        //TODO: Add
         return "";
     }
 

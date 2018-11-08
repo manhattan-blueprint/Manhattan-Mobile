@@ -1,12 +1,12 @@
 package com.manhattan.blueprint.Model.API.Request;
 
-public class AuthenticateEndpoint extends Endpoint {
-    private String username;
-    private String password;
+import com.manhattan.blueprint.Model.UserCredentials;
 
-    public AuthenticateEndpoint(String username, String password){
-        this.username = username;
-        this.password = password;
+public class AuthenticateEndpoint extends Endpoint {
+    private UserCredentials credentials;
+
+    public AuthenticateEndpoint(UserCredentials credientials){
+        this.credentials = credientials;
     }
 
     @Override
@@ -21,6 +21,7 @@ public class AuthenticateEndpoint extends Endpoint {
 
     @Override
     public String body() {
+        // TODO: Add body
         return "";
     }
 

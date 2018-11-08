@@ -1,14 +1,12 @@
 package com.manhattan.blueprint;
 
-import android.content.Context;
-
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
-import com.manhattan.blueprint.Model.DAO.DAO;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.InventoryItem;
 import com.manhattan.blueprint.Model.Location;
 import com.manhattan.blueprint.Model.MockData;
+import com.manhattan.blueprint.Model.Network.MockNetworkProvider;
 import com.manhattan.blueprint.Model.ResourceSet;
 
 import org.junit.Before;

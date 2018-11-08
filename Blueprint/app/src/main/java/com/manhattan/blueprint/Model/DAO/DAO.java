@@ -10,13 +10,13 @@ public class DAO {
     private DAO() { }
 
     // MARK: - TokenPair
-    public Optional<TokenPair> getCurrentToken(){
+    public TokenPair getCurrentToken(){
         // TODO: Implement
-        return Optional.empty();
+        return null;
     }
 
     public void setCurrentToken(TokenPair tokenPair){
         // TODO: Persist
     }
-
 }
+

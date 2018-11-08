@@ -1,7 +1,5 @@
 package com.manhattan.blueprint.Model.API.Request;
 
-import java.util.HashMap;
-
 public class FetchInventoryEndpoint extends Endpoint {
     @Override
     public String path() {
@@ -15,6 +13,7 @@ public class FetchInventoryEndpoint extends Endpoint {
 
     @Override
     public String body() {
+        //TODO: Add
         return "";
     }
 }

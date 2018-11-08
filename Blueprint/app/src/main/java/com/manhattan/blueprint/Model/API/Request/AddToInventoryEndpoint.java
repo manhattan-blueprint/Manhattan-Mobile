@@ -1,5 +1,6 @@
 package com.manhattan.blueprint.Model.API.Request;
 
+import com.google.gson.Gson;
 import com.manhattan.blueprint.Model.InventoryItem;
 
 public class AddToInventoryEndpoint extends Endpoint {
@@ -21,6 +22,11 @@ public class AddToInventoryEndpoint extends Endpoint {
 
     @Override
     public String body() {
-        return "";
+        if (item == null){
+            return "";
+        }
+
+        Gson gson = new Gson();
+        return gson.toJson(item);
     }
 }

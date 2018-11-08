@@ -1,4 +1,4 @@
-package com.manhattan.blueprint;
+package com.manhattan.blueprint.Model.Network;
 
 import com.google.gson.Gson;
 import com.manhattan.blueprint.Model.API.Request.AddToInventoryEndpoint;
@@ -24,7 +24,6 @@ public class MockNetworkProvider extends NetworkProvider {
         make(endpoint, new HashMap<>(), callback);
     }
 
-    // TODO: refactor to use dynamic dispatch?
     @Override
     public void make(Endpoint endpoint, Map<String, String> headers, NetworkResponse callback){
         if (endpoint instanceof AddToInventoryEndpoint) {

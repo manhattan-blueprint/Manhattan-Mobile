@@ -16,8 +16,7 @@ public class NetworkProvider {
     }
 
     public void make(Endpoint endpoint, Map<String, String> headers,  NetworkResponse callback){
-        System.out.println("Making real request");
-        Request.Builder builder = new Request.Builder().url(endpoint.baseURL.concat("/").concat(endpoint.path()));
+        Request.Builder builder = new Request.Builder().url(endpoint.baseURL().concat("/").concat(endpoint.path()));
 
         for (String key : headers.keySet()){
             builder.addHeader(key, headers.get(key));
@@ -26,19 +25,33 @@ public class NetworkProvider {
         switch (endpoint.requestType()){
             case GET:
                 builder = builder.get();
+                break;
             case PUT:
                 builder = builder.put(RequestBody.create(JSON, endpoint.body()));
+                break;
             case POST:
                 builder = builder.post(RequestBody.create(JSON, endpoint.body()));
+                break;
             case DELETE:
                 builder = builder.delete(RequestBody.create(JSON, endpoint.body()));
+                break;
         }
 
-        // TODO: Deal with response
         try {
-            Response response = client.newCall(builder.build()).execute();
+            Request request = builder.build();
+            Response response = client.newCall(request).execute();
+            switch (response.code()) {
+            case 200:
+            case 201:
+            case 202:
+                callback.success(response.body().string());
+                break;
+            default:
+                callback.error(response.code(), response.message());
+                break;
+            }
         } catch (Exception e){
-
+            callback.error(-1, e.getMessage());
         }
     }
 

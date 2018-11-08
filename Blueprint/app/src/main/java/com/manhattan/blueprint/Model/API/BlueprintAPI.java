@@ -12,14 +12,14 @@ import com.manhattan.blueprint.Model.DAO.DAO;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.InventoryItem;
 import com.manhattan.blueprint.Model.Location;
+import com.manhattan.blueprint.Model.Network.MockNetworkProvider;
 import com.manhattan.blueprint.Model.Network.NetworkProvider;
 import com.manhattan.blueprint.Model.Network.NetworkResponse;
 import com.manhattan.blueprint.Model.ResourceSet;
 import com.manhattan.blueprint.Model.TokenPair;
-
+import com.manhattan.blueprint.Model.UserCredentials;
 
 import java.util.HashMap;
-import java.util.Optional;
 
 public final class BlueprintAPI {
     private Gson gson;
@@ -27,7 +27,8 @@ public final class BlueprintAPI {
 
 
     public BlueprintAPI() {
-        this(new NetworkProvider());
+        // TODO: Replace this with real provider once API is ready
+        this(new MockNetworkProvider());
     }
 
     public BlueprintAPI(NetworkProvider provider) {
@@ -35,8 +36,8 @@ public final class BlueprintAPI {
         networkProvider = provider;
     }
 
-    public void authenticate(String username, String password, APICallback<Boolean> callback){
-        makeRequest(new AuthenticateEndpoint(username, password), new NetworkResponse() {
+    public void authenticate(UserCredentials credentials, APICallback<Boolean> callback){
+        makeRequest(new AuthenticateEndpoint(credentials), new NetworkResponse() {
             @Override
             public void success(String response) {
                 TokenPair tokenPair = gson.fromJson(response, TokenPair.class);
@@ -97,7 +98,10 @@ public final class BlueprintAPI {
     // MARK: - Handler for auth token calls
     private void makeRequest(Endpoint endpoint, NetworkResponse callback){
         HashMap<String, String> headers = new HashMap<>();
-        DAO.instance.getCurrentToken().ifPresent(x -> headers.put("Authorization", "Bearer " + x.getAccessToken()));
+        TokenPair token =  DAO.instance.getCurrentToken();
+        if (token != null){
+            headers.put("Authorization", "Bearer " + token.getAccessToken());
+        }
 
         // Wrap the request in a repeat handler triggered if auth token has expired
         networkProvider.make(endpoint, headers, new NetworkResponse() {
@@ -119,7 +123,7 @@ public final class BlueprintAPI {
 
     // Refresh token, repeat original request and callback
     private void refreshAuthToken(Endpoint endpoint, NetworkResponse callback){
-        Optional<TokenPair> tokenPair = DAO.instance.getCurrentToken();
+        TokenPair tokenPair = DAO.instance.getCurrentToken();
         networkProvider.make(new RefreshEndpoint(tokenPair), new NetworkResponse() {
             @Override
             public void success(String response) {
