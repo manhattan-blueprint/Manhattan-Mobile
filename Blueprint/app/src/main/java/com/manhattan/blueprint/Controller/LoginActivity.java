@@ -48,7 +48,7 @@ public class LoginActivity extends AppCompatActivity {
             api.authenticate(credentials, new APICallback<Boolean>() {
                 @Override
                 public void success(Boolean response) {
-                    // TODO: Add main game menu
+                    // TODO: Add main game menu)
                     // setContentView(R.layout.game_menu);
                     Log.d("loginMsg","Login Success!");
                 }
