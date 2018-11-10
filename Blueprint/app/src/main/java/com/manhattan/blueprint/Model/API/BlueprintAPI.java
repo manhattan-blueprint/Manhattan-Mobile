@@ -36,7 +36,7 @@ public final class BlueprintAPI {
         networkProvider = provider;
     }
 
-    public void authenticate(UserCredentials credentials, APICallback<Boolean> callback){
+    public void authenticate(UserCredentials credentials, APICallback<Boolean> callback) {
         makeRequest(new AuthenticateEndpoint(credentials), new NetworkResponse() {
             @Override
             public void success(String response) {
