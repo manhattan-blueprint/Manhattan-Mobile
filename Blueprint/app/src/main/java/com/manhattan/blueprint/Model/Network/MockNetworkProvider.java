@@ -29,7 +29,7 @@ public class MockNetworkProvider extends NetworkProvider {
         if (endpoint instanceof AddToInventoryEndpoint) {
             callback.success(endpoint.body());
         } else if (endpoint instanceof AuthenticateEndpoint) {
-            callback.success(new Gson().toJson(MockData.tokenPair));
+            callback.error(123,"This is the error");
         } else if (endpoint instanceof FetchInventoryEndpoint) {
             callback.success(new Gson().toJson(MockData.inventory));
         } else if (endpoint instanceof FetchResourcesEndpoint) {

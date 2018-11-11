@@ -1,5 +1,6 @@
 package com.manhattan.blueprint.Controller;
 
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -7,6 +8,7 @@ import android.view.Window;
 import android.widget.EditText;
 import android.widget.Button;
 import android.widget.*;
+import android.content.DialogInterface;
 import android.util.Log;
 
 import com.manhattan.blueprint.Model.API.APICallback;
@@ -26,7 +28,7 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    public void onLoginClick(View view) {
+    protected void onLoginClick(View view) {
         loginButton   = findViewById(R.id.loginButton);
         usernameInput = findViewById(R.id.usernameInput);
         passwordInput = findViewById(R.id.passwordInput);
@@ -48,15 +50,28 @@ public class LoginActivity extends AppCompatActivity {
             api.authenticate(credentials, new APICallback<Boolean>() {
                 @Override
                 public void success(Boolean response) {
-                    // TODO: Add main game menu)
-                    // setContentView(R.layout.game_menu);
+                    // OK - launch map view
+                    setContentView(R.layout.activity_map_view);
                     Log.d("loginMsg","Login Success!");
                 }
 
                 @Override
                 public void failure(String error) {
+                    AlertDialog.Builder failedLoginDlg = new AlertDialog.Builder(LoginActivity.this);
+
+                    failedLoginDlg.setTitle("Login failed!");
+                    failedLoginDlg.setMessage(error);
+                    failedLoginDlg.setPositiveButton("OK", null);
+                    failedLoginDlg.setCancelable(true);
+                    failedLoginDlg.create().show();
                     loginButton.setEnabled(true);
-                    Log.d("loginMsg","Error: " + error);
+
+                    failedLoginDlg.setPositiveButton("Ok",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
                 }
             });
         }
