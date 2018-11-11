@@ -18,31 +18,29 @@ import com.manhattan.blueprint.R;
 
 public class LoginActivity extends AppCompatActivity {
 
-    EditText usernameInput, passwordInput;
+    EditText usernameInput;
+    EditText passwordInput;
     Button   loginButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
-    }
-
-    protected void onLoginClick(View view) {
         loginButton   = findViewById(R.id.loginButton);
         usernameInput = findViewById(R.id.usernameInput);
         passwordInput = findViewById(R.id.passwordInput);
+    }
+
+    protected void onLoginClick(View view) {
         String usernameText = usernameInput.getText().toString();
         String passwordText = passwordInput.getText().toString();
 
         // check for empty / null username or password
-        if( usernameText.equals(null) || usernameText.equals("") ) {
+        if(        usernameText == null || usernameText.equals("") ) {
             usernameInput.setError("Empty username");
-        }
-        else if( passwordText.equals(null) || passwordText.equals("") ) {
+        } else if( passwordText == null || passwordText.equals("") ) {
             passwordInput.setError("Empty password");
-        }
-        else {
+        } else {
             loginButton.setEnabled(false);
             UserCredentials credentials = new UserCredentials(usernameText, passwordText);
 
@@ -66,12 +64,7 @@ public class LoginActivity extends AppCompatActivity {
                     failedLoginDlg.create().show();
                     loginButton.setEnabled(true);
 
-                    failedLoginDlg.setPositiveButton("Ok",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            });
+                    failedLoginDlg.setPositiveButton("Ok", (dialog, which) -> dialog.dismiss());
                 }
             });
         }
