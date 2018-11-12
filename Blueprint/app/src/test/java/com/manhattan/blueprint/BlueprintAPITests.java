@@ -8,6 +8,7 @@ import com.manhattan.blueprint.Model.Location;
 import com.manhattan.blueprint.Model.MockData;
 import com.manhattan.blueprint.Model.Network.MockNetworkProvider;
 import com.manhattan.blueprint.Model.ResourceSet;
+import com.manhattan.blueprint.Model.UserCredentials;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +40,7 @@ public class BlueprintAPITests {
 
     @Test
     public void testAuthenticate() {
-        api.authenticate("foo", "bar", new APICallback<Boolean>() {
+        api.authenticate(new UserCredentials("foo", "bar"), new APICallback<Boolean>() {
             @Override
             public void success(Boolean response) {
                 assertTrue(response);

@@ -25,7 +25,6 @@ public final class BlueprintAPI {
     private Gson gson;
     private NetworkProvider networkProvider;
 
-
     public BlueprintAPI() {
         // TODO: Replace this with real provider once API is ready
         this(new MockNetworkProvider());

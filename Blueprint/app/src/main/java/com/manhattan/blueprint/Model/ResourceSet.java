@@ -12,6 +12,10 @@ public class ResourceSet {
         this.items = items;
     }
 
+    public ArrayList<Resource> getItems() {
+        return items;
+    }
+
     @Override
     public boolean equals(Object obj) {
         boolean eq = false;

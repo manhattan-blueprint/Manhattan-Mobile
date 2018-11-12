@@ -14,6 +14,19 @@ public class Location {
         this.longitude = longitude;
     }
 
+    public Location(android.location.Location location){
+        this.latitude = location.getLatitude();
+        this.longitude = location.getLongitude();
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
     @Override
     public boolean equals(Object obj) {
         boolean result = false;
