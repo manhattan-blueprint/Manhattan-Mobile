@@ -1,5 +1,6 @@
 package com.manhattan.blueprint.Controller;
 
+import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -49,8 +50,9 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void success(Boolean response) {
                     // OK - launch map view
-                    setContentView(R.layout.activity_map_view);
-                    Log.d("loginMsg","Login Success!");
+                    Intent toMapView = new Intent(LoginActivity.this, MapViewActivity.class);
+                    startActivity(toMapView);
+                    finish();
                 }
 
                 @Override

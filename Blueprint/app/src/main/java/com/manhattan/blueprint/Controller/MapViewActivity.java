@@ -60,7 +60,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         mapView.getMapAsync(this);
     }
 
-    //region OnMapReadyCallback
+    // region OnMapReadyCallback
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
