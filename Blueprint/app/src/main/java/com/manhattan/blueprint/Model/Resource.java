@@ -14,6 +14,14 @@ public class Resource {
         this.location = location;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
     @Override
     public boolean equals(Object obj) {
         boolean result = false;

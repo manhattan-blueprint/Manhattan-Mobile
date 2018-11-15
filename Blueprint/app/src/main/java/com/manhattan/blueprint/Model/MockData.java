@@ -9,9 +9,9 @@ public class MockData {
     private static InventoryItem itemC = new InventoryItem("String", 1);
     private static InventoryItem[] items = new InventoryItem[]{itemA, itemB, itemC};
 
-    private static Resource resourceA = new Resource("Foo", new Location(23.123, 22.122));
-    private static Resource resourceB = new Resource("Bar", new Location(122.222, 123.123));
-    private static Resource resourceC = new Resource("Baz", new Location(1.123, 2.234));
+    private static Resource resourceA = new Resource("Foo", new Location(51.456, -2.602));
+    private static Resource resourceB = new Resource("Bar", new Location(51.457, -2.603));
+    private static Resource resourceC = new Resource("Baz", new Location(51.458, -2.604));
     private static Resource[] resources = new Resource[]{resourceA, resourceB, resourceC};
 
     public static TokenPair tokenPair = new TokenPair("refreshingToMeetYou", "helloWorld");
