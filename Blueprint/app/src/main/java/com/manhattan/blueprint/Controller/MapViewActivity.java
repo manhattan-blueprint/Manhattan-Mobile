@@ -18,6 +18,7 @@ import com.manhattan.blueprint.Model.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.Model.ResourceSet;
 import com.manhattan.blueprint.R;
+import android.support.design.internal.BottomNavigationMenuView;
 import com.mapbox.android.gestures.StandardScaleGestureDetector;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
