@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Blueprint</string>
     <string name="mapbox_map_style" translatable="false">mapbox://styles/jaylees/cjo8kdzej10ew2rl2e91ovdim</string>
-    <string name="user_location_permission_explanation">This app needs location permissions in order to show its functionality.</string>
-    <string name="user_location_permission_not_granted">You didn\'t grant location permissions.</string>
+    <string name="permission_location_title">Location Permission</string>
+    <string name="permission_location_description">Access to your location is required to show resources near you.</string>
+    <string name="permission_camera_title">Camera Permission</string>
+    <string name="permission_camera_description">Access to your camera is required to show resources in Augmented Reality.</string>
 </resources>
