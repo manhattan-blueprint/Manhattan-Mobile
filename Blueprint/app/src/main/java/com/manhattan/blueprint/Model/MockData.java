@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MockData {
-    private static InventoryItem itemA = new InventoryItem("Sand", 100);
-    private static InventoryItem itemB = new InventoryItem("Metal", 300);
-    private static InventoryItem itemC = new InventoryItem("String", 1);
-    private static InventoryItem[] items = new InventoryItem[]{itemA, itemB, itemC};
+    public static InventoryItem   itemA = new InventoryItem("Sand",  100);
+    public static InventoryItem   itemB = new InventoryItem("Metal", 300);
+    public static InventoryItem   itemC = new InventoryItem("String",1);
+    public static InventoryItem[] items = new InventoryItem[]{itemA, itemB, itemC};
 
     private static Resource resourceA = new Resource("Foo", new Location(51.456, -2.602));
     private static Resource resourceB = new Resource("Bar", new Location(51.457, -2.603));

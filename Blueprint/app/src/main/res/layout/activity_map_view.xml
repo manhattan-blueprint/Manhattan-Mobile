@@ -24,9 +24,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="@color/colorPrimary"
-        mapbox:itemIconTint="@color/white"
-        mapbox:itemTextColor="@color/red"
+        android:background="@color/white"
+        mapbox:itemIconTint="@color/colorPrimary"
+        mapbox:itemTextColor="@color/colorPrimary"
         mapbox:layout_constraintBottom_toBottomOf="parent"
         mapbox:menu="@menu/map_view_menu"
         />

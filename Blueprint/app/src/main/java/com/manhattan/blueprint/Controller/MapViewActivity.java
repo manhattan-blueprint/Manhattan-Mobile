@@ -18,7 +18,12 @@ import com.manhattan.blueprint.Model.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.Model.ResourceSet;
 import com.manhattan.blueprint.R;
-import android.support.design.internal.BottomNavigationMenuView;
+import android.support.design.internal.*;
+import android.support.design.widget.*;
+import android.view.MenuItem;
+import android.content.Intent;
+import android.widget.TextView;
+
 import com.mapbox.android.gestures.StandardScaleGestureDetector;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
@@ -35,10 +40,12 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 
-public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMarkerClickListener, MapboxMap.OnScaleListener {
+public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMarkerClickListener, MapboxMap.OnScaleListener, BottomNavigationView.OnNavigationItemSelectedListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private BlueprintAPI blueprintAPI;
+
+    private BottomNavigationView bottomView;
 
     // Camera configuration
     private int minZoom = 17;
@@ -80,6 +87,13 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         Intent intent = new Intent(MapViewActivity.this, OnboardingActivity.class);
         startActivity(intent);
         finish();
+        
+        // Configure MapView
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
+
+        bottomView = findViewById(R.id.bottom_menu);
+        bottomView.setOnNavigationItemSelectedListener(this);
     }
 
     //region OnMapReadyCallback
@@ -120,6 +134,31 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         addResources(mapboxMap.getLocationComponent().getLastKnownLocation());
     }
     //endregion
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int mMenuId = item.getItemId();
+        for (int i = 0; i < bottomView.getMenu().size(); i++) {
+            MenuItem menuItem = bottomView.getMenu().getItem(i);
+            boolean isChecked = menuItem.getItemId() == item.getItemId();
+            menuItem.setChecked(isChecked);
+        }
+
+        switch (item.getItemId()) {
+            case R.id.inventory:
+                Log.d(" x ", "inventory selected");
+                Intent toInventory = new Intent(MapViewActivity.this, InventoryActivity.class);
+                startActivity(toInventory);
+                break;
+            case R.id.shopping_list:
+                Log.d(" x ", "shopping_list selected");
+                break;
+            case R.id.settings:
+                Log.d(" x ", "settings selected");
+                break;
+        }
+        return true;
+    }
 
     private void addResources(android.location.Location location){
         Location blueprintLocation = new Location(location);
@@ -186,6 +225,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         super.onResume();
         mapView.onResume();
     }
+<<<<<<< HEAD
 
     @Override
     protected void onPause() {
@@ -217,4 +257,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         mapView.onDestroy();
     }
     //endregion
+=======
+>>>>>>> Add inventory list
 }
