@@ -26,7 +26,6 @@ public class LoginFragment extends Fragment {
         loginButton = fragment.findViewById(R.id.loginButton);
         usernameInput = fragment.findViewById(R.id.usernameInput);
         passwordInput = fragment.findViewById(R.id.passwordInput);
-
         loginButton.setOnClickListener(onClickListener);
 
         return fragment;
@@ -44,12 +43,11 @@ public class LoginFragment extends Fragment {
         return passwordInput.getText().toString();
     }
 
-
     public void setUsernameInvalid(String description){
-
+        usernameInput.setError(description);
     }
 
     public void setPasswordInvalid(String description){
-
+        passwordInput.setError(description);
     }
 }

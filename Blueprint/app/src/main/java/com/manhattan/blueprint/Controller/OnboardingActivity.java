@@ -8,7 +8,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.view.View;
@@ -24,15 +23,15 @@ import com.manhattan.blueprint.View.PermissionFragment;
 import com.manhattan.blueprint.View.WelcomeFragment;
 
 public class OnboardingActivity extends FragmentActivity {
-    private static final int pageCount = 4;
-    private static final int locationItemID = 1;
-    private static final int cameraItemID = 2;
+    private static final int PAGE_COUNT = 4;
+    private static final int LOCATION_PERMISSION_ID = 1;
+    private static final int CAMERA_PERMISSION_ID = 2;
 
     private ViewPager pager;
-    private PagerAdapter pagerAdapter;
     private PermissionManager locationPermissionManager;
     private PermissionManager cameraPermissionManager;
     private LoginFragment loginFragment;
+    private BlueprintAPI api;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,11 +39,11 @@ public class OnboardingActivity extends FragmentActivity {
         setContentView(R.layout.activity_onboarding);
 
         pager = findViewById(R.id.pager);
-        pagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
-        pager.setAdapter(pagerAdapter);
+        pager.setAdapter(new ScreenSlidePagerAdapter(getSupportFragmentManager()));
+        api = new BlueprintAPI();
 
-        locationPermissionManager = new PermissionManager(locationItemID, Manifest.permission.ACCESS_FINE_LOCATION);
-        cameraPermissionManager = new PermissionManager(cameraItemID, Manifest.permission.CAMERA);
+        locationPermissionManager = new PermissionManager(LOCATION_PERMISSION_ID, Manifest.permission.ACCESS_FINE_LOCATION);
+        cameraPermissionManager = new PermissionManager(CAMERA_PERMISSION_ID, Manifest.permission.CAMERA);
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
@@ -67,7 +66,7 @@ public class OnboardingActivity extends FragmentActivity {
                     locationFragment.setConfiguration("🗺",
                             getString(R.string.permission_location_title),
                             getString(R.string.permission_location_description),
-                            locationPermissionClick());
+                            permissionClick(locationPermissionManager));
                     return locationFragment;
 
                 // Camera Permission
@@ -76,7 +75,7 @@ public class OnboardingActivity extends FragmentActivity {
                     cameraFragment.setConfiguration("📷",
                             getString(R.string.permission_camera_title),
                             getString(R.string.permission_camera_description),
-                            cameraPermissionClick());
+                            permissionClick(cameraPermissionManager));
                     return cameraFragment;
 
                 // Login Fragment
@@ -92,28 +91,18 @@ public class OnboardingActivity extends FragmentActivity {
 
         @Override
         public int getCount() {
-            return pageCount;
+            return PAGE_COUNT;
         }
     }
 
 
     // OnClickHandlers
-    private View.OnClickListener locationPermissionClick(){
+    private View.OnClickListener permissionClick(PermissionManager permissionManager){
         return v -> {
-            if (locationPermissionManager.hasPermission(this)) {
+            if (permissionManager.hasPermission(this)) {
                 pager.setCurrentItem(pager.getCurrentItem() + 1);
             } else {
-                locationPermissionManager.requestPermission(OnboardingActivity.this);
-            }
-        };
-    }
-
-    private View.OnClickListener cameraPermissionClick(){
-        return v -> {
-            if (cameraPermissionManager.hasPermission(this)) {
-                pager.setCurrentItem(pager.getCurrentItem() + 1);
-            } else {
-                cameraPermissionManager.requestPermission(OnboardingActivity.this);
+                permissionManager.requestPermission(OnboardingActivity.this);
             }
         };
     }
@@ -132,9 +121,7 @@ public class OnboardingActivity extends FragmentActivity {
                 return;
             }
 
-            UserCredentials credentials = new UserCredentials(usernameText, passwordText);
-            BlueprintAPI api = new BlueprintAPI();
-            api.authenticate(credentials, new APICallback<Boolean>() {
+            api.authenticate(new UserCredentials(usernameText, passwordText), new APICallback<Boolean>() {
                 @Override
                 public void success(Boolean response) {
                     // Launch Map View
@@ -159,7 +146,7 @@ public class OnboardingActivity extends FragmentActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode){
-        case locationItemID:
+        case LOCATION_PERMISSION_ID:
             if (locationPermissionManager.hasPermission(this)){
                 pager.setCurrentItem(pager.getCurrentItem() + 1);
             } else if (!locationPermissionManager.shouldShowRequestPermissionRationale(this)) {
@@ -169,7 +156,7 @@ public class OnboardingActivity extends FragmentActivity {
                 Toast.makeText(this, "Location permissions are needed to run this application", Toast.LENGTH_LONG).show();
             }
             break;
-        case cameraItemID:
+        case CAMERA_PERMISSION_ID:
             if (cameraPermissionManager.hasPermission(this)){
                 pager.setCurrentItem(pager.getCurrentItem() + 1);
             } else if (!cameraPermissionManager.shouldShowRequestPermissionRationale(this)) {
