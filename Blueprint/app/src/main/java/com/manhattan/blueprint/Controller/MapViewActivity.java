@@ -2,6 +2,7 @@ package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
 import android.content.Intent;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -49,23 +50,35 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_view);
 
-        // If haven't logged in yet, redirect
+        mapView = findViewById(R.id.mapView);
+        Mapbox.getInstance(this, BuildConfig.MapboxAPIKey);
+        mapView.onCreate(savedInstanceState);
+
+        // If haven't logged in yet, or have revoked location, redirect
+        PermissionManager locationManager = new PermissionManager(0, Manifest.permission.ACCESS_FINE_LOCATION);
         LoginManager loginManager = new LoginManager(this);
         if (!loginManager.isLoggedIn()){
-            Intent intent = new Intent(MapViewActivity.this, OnboardingActivity.class);
-            startActivity(intent);
-            finish();
+            toOnboarding();
+        } else if (!locationManager.hasPermission(this)){
+            AlertDialog.Builder dialog = new AlertDialog.Builder(MapViewActivity.this);
+            dialog.setTitle("Location required");
+            dialog.setMessage("Please grant access to your location so Blueprint can show resources around you.");
+            dialog.setPositiveButton("Ok", (d, which) -> {
+                d.dismiss();
+                loginManager.setLoggedIn(false);
+                toOnboarding();
+            });
+            dialog.create().show();
+        } else {
+            blueprintAPI = new BlueprintAPI();
+            mapView.getMapAsync(this);
         }
+    }
 
-
-        blueprintAPI = new BlueprintAPI();
-        Mapbox.getInstance(this, BuildConfig.MapboxAPIKey);
-
-        mapView = findViewById(R.id.mapView);
-
-        // Configure MapView
-        mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
+    private void toOnboarding(){
+        Intent intent = new Intent(MapViewActivity.this, OnboardingActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     //region OnMapReadyCallback
@@ -158,5 +171,49 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     @Override
     public void onScaleEnd(@NonNull StandardScaleGestureDetector detector) { }
+    //endregion
+
+    //region Mapbox overrides
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mapView.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        mapView.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
     //endregion
 }

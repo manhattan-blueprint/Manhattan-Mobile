@@ -58,7 +58,7 @@ public class OnboardingActivity extends FragmentActivity {
                 // Welcome
                 case 0:
                     WelcomeFragment welcomeFragment = new WelcomeFragment();
-                    welcomeFragment.setConfiguration(v -> pager.setCurrentItem(pager.getCurrentItem() + 1));
+                    welcomeFragment.setConfiguration(welcomeClick());
                     return welcomeFragment;
 
                 // Location Permission
@@ -98,6 +98,22 @@ public class OnboardingActivity extends FragmentActivity {
 
 
     // OnClickHandlers
+    private View.OnClickListener welcomeClick(){
+        return v -> {
+            // Restore state where user left off
+            if (locationPermissionManager.hasPermission(OnboardingActivity.this) && cameraPermissionManager.hasPermission(OnboardingActivity.this)) {
+                // To login
+                pager.setCurrentItem(PAGE_COUNT - 1);
+            } else if (locationPermissionManager.hasPermission(OnboardingActivity.this)) {
+                // To camera permissions
+                pager.setCurrentItem(CAMERA_PERMISSION_ID);
+            } else {
+                // To location permissions
+                pager.setCurrentItem(pager.getCurrentItem() + 1);
+            }
+        };
+    }
+
     private View.OnClickListener permissionClick(PermissionManager permissionManager){
         return v -> {
             if (permissionManager.hasPermission(this)) {
@@ -140,8 +156,8 @@ public class OnboardingActivity extends FragmentActivity {
                     failedLoginDlg.setTitle("Login failed.");
                     failedLoginDlg.setMessage(error);
                     failedLoginDlg.setCancelable(true);
-                    failedLoginDlg.create().show();
                     failedLoginDlg.setPositiveButton("Ok", (dialog, which) -> dialog.dismiss());
+                    failedLoginDlg.create().show();
                 }
             });
         };
@@ -152,7 +168,9 @@ public class OnboardingActivity extends FragmentActivity {
         switch (requestCode){
         case LOCATION_PERMISSION_ID:
             if (locationPermissionManager.hasPermission(this)){
-                pager.setCurrentItem(pager.getCurrentItem() + 1);
+                // If we somehow already have camera permissions, we can skip it
+                int offset = cameraPermissionManager.hasPermission(this) ? 2 : 1;
+                pager.setCurrentItem(pager.getCurrentItem() + offset);
             } else if (!locationPermissionManager.shouldShowRequestPermissionRationale(this)) {
                 // If tapped "Do not show again"
                 locationPermissionManager.launchPermissionSettings(this);
