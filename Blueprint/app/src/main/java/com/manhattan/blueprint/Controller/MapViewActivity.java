@@ -12,6 +12,7 @@ import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.Location;
+import com.manhattan.blueprint.Model.LoginManager;
 import com.manhattan.blueprint.Model.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.Model.ResourceSet;
@@ -48,10 +49,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_view);
 
-        // If haven't got location yet, redirect
-        // TODO: Also if haven't logged in yet
-        PermissionManager locationPermissionManager = new PermissionManager(100, Manifest.permission.ACCESS_FINE_LOCATION);
-        if (!locationPermissionManager.hasPermission(this)){
+        // If haven't logged in yet, redirect
+        LoginManager loginManager = new LoginManager(this);
+        if (!loginManager.isLoggedIn()){
             Intent intent = new Intent(MapViewActivity.this, OnboardingActivity.class);
             startActivity(intent);
             finish();

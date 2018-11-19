@@ -8,16 +8,17 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.LoginManager;
 import com.manhattan.blueprint.Model.PermissionManager;
 import com.manhattan.blueprint.Model.UserCredentials;
 import com.manhattan.blueprint.R;
+import com.manhattan.blueprint.View.ControlledViewPager;
 import com.manhattan.blueprint.View.LoginFragment;
 import com.manhattan.blueprint.View.PermissionFragment;
 import com.manhattan.blueprint.View.WelcomeFragment;
@@ -27,7 +28,7 @@ public class OnboardingActivity extends FragmentActivity {
     private static final int LOCATION_PERMISSION_ID = 1;
     private static final int CAMERA_PERMISSION_ID = 2;
 
-    private ViewPager pager;
+    private ControlledViewPager pager;
     private PermissionManager locationPermissionManager;
     private PermissionManager cameraPermissionManager;
     private LoginFragment loginFragment;
@@ -124,6 +125,9 @@ public class OnboardingActivity extends FragmentActivity {
             api.authenticate(new UserCredentials(usernameText, passwordText), new APICallback<Boolean>() {
                 @Override
                 public void success(Boolean response) {
+                    LoginManager loginManager = new LoginManager(OnboardingActivity.this);
+                    loginManager.setLoggedIn(true);
+
                     // Launch Map View
                     Intent toMapView = new Intent(OnboardingActivity.this, MapViewActivity.class);
                     startActivity(toMapView);
