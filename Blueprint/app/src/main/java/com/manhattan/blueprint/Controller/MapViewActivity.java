@@ -183,7 +183,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     //region OnMarkerClickListener
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
-        Log.d("MARKER", "MARKER: " + marker.getTitle() + " tapped");
+        Intent intent = new Intent(MapViewActivity.this, ARActivity.class);
+        startActivity(intent);
         return false;
     }
     //endregion
