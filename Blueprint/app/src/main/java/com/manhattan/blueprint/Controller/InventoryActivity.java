@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.transition.*;
 import android.util.Log;
@@ -20,9 +21,9 @@ import com.manhattan.blueprint.R;
 
 public class InventoryActivity extends AppCompatActivity {
 
-    RecyclerView inventoryView;
-    InventoryAdapter inventoryListAdapter;
-    List<InventoryItem> inventory = new ArrayList<>();
+    private RecyclerView inventoryView;
+    private InventoryAdapter inventoryListAdapter;
+    private List<InventoryItem> inventory = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,9 +31,7 @@ public class InventoryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_inventory);
 
         // set an enter transition
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setEnterTransition(new Slide());
-        }
+        getWindow().setEnterTransition(new Slide());
 
         inventoryView = (RecyclerView) findViewById(R.id.inventoryListView);
         inventoryListAdapter = new InventoryAdapter(inventory);
@@ -56,6 +55,15 @@ public class InventoryActivity extends AppCompatActivity {
 
             @Override
             public void failure(String error) {
+                AlertDialog.Builder failedLoginDlg = new AlertDialog.Builder(InventoryActivity.this);
+                failedLoginDlg.setTitle("Failed to retrieve inventory");
+                failedLoginDlg.setMessage(error);
+                failedLoginDlg.setCancelable(true);
+                failedLoginDlg.setPositiveButton("Ok", (dialog, which) -> {
+                    dialog.dismiss();
+                    finish();
+                });
+                failedLoginDlg.create().show();
 
             }
         });
