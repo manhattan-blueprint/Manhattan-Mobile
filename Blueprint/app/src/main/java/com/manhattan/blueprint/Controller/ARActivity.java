@@ -5,15 +5,22 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.widget.Toast;
 
+import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
+import com.google.ar.core.HitResult;
+import com.google.ar.core.Plane;
 import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
+import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
+import com.google.ar.sceneform.ux.TransformableNode;
 import com.manhattan.blueprint.Model.PermissionManager;
 import com.manhattan.blueprint.R;
 
@@ -21,7 +28,7 @@ public class ARActivity extends AppCompatActivity {
     private ArFragment arFragment;
 
     private boolean userRequestedARInstall = false;
-    private ModelRenderable ManhattanRenderable;
+    private ModelRenderable manhattanRenderable;
     private ViewRenderable testViewRenderable;
 
     @Override
@@ -53,6 +60,26 @@ public class ARActivity extends AppCompatActivity {
                             .setView(this, R.layout.planets)
                             .build()
                             .thenAccept(renderable -> testViewRenderable = renderable);
+
+                    arFragment.setOnTapArPlaneListener(
+                            (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
+                                if (testViewRenderable == null) {
+                                    Log.d("NULL", "Renderable is null");
+                                    return;
+                                }
+
+                                Log.d("NULL", "Renderable is not null");
+                                // Create the Anchor.
+                                Anchor anchor = hitResult.createAnchor();
+                                AnchorNode anchorNode = new AnchorNode(anchor);
+                                anchorNode.setParent(arFragment.getArSceneView().getScene());
+
+                                // Create the transformable andy and add it to the anchor.
+                                TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
+                                andy.setParent(anchorNode);
+                                andy.setRenderable(testViewRenderable);
+                                andy.select();
+                            });
 
                 case INSTALL_REQUESTED:
                     // Ensures next call of request install returns INSTALLED or throws
