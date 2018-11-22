@@ -5,7 +5,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.manhattan.blueprint"
-        minSdkVersion 21
+        minSdkVersion 24 // TODO: too high?
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -49,4 +49,15 @@ dependencies {
     implementation 'com.google.ar:core:1.5.0'
     testImplementation 'org.mockito:mockito-core:1.10.19'
     implementation 'com.android.support:design:28.0.0'
+
+    // Provides ARCore Session and related resources.
+    implementation 'com.google.ar:core:1.5.0'
+
+    // Provides ArFragment, and other UX resources.
+    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.5.1'
+
+    // Alternatively, use ArSceneView without the UX dependency.
+    implementation 'com.google.ar.sceneform:core:1.5.1'
 }
+
+
