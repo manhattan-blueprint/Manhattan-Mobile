@@ -3,12 +3,10 @@ package com.manhattan.blueprint.Controller;
 import java.util.List;
 import java.util.ArrayList;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.transition.*;
-import android.util.Log;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,6 +16,7 @@ import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.InventoryItem;
 import com.manhattan.blueprint.R;
+import com.manhattan.blueprint.View.InventoryAdapter;
 
 public class InventoryActivity extends AppCompatActivity {
 

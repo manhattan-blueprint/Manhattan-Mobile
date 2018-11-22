@@ -27,6 +27,7 @@
         </activity>
         <activity android:name=".Controller.OnboardingActivity"></activity>
         <activity android:name=".Controller.InventoryActivity"></activity>
+        <activity android:name=".Controller.ARActivity"></activity>
 
         <meta-data android:name="com.google.ar.core" android:value="required" />
     </application>
