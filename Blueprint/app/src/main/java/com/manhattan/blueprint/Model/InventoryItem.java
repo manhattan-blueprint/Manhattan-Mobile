@@ -31,4 +31,12 @@ public class InventoryItem {
         }
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "InventoryItem{" +
+                "id='" + id + '\'' +
+                ", quantity=" + quantity +
+                '}';
+    }
 }

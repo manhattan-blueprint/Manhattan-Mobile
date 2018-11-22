@@ -21,6 +21,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".Controller.OnboardingActivity"></activity>
+
+        <activity android:name=".Controller.InventoryActivity">
+
+        </activity>
     </application>
 
 </manifest>

@@ -28,6 +28,7 @@ android {
 }
 
 repositories {
+    google()
     mavenCentral()
     maven { url 'https://mapbox.bintray.com/mapbox' }
 }
@@ -46,4 +47,5 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'com.mapbox.mapboxsdk:mapbox-android-navigation-ui:0.22.0'
     testImplementation 'org.mockito:mockito-core:1.10.19'
+    implementation 'com.android.support:design:28.0.0'
 }
