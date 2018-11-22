@@ -22,9 +22,6 @@
         </activity>
         <activity android:name=".Controller.OnboardingActivity"></activity>
 
-        <activity android:name=".Controller.MapViewActivity">
-
-        </activity>
         <activity android:name=".Controller.InventoryActivity">
 
         </activity>
