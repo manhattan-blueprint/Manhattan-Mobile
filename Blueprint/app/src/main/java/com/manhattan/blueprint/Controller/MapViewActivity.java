@@ -1,8 +1,14 @@
 package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
+<<<<<<< HEAD
 import android.content.Intent;
 import android.os.PersistableBundle;
+=======
+import android.app.ActivityOptions;
+import android.content.pm.PackageManager;
+import android.os.Build;
+>>>>>>> Finish inventory page
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +28,7 @@ import android.support.design.internal.*;
 import android.support.design.widget.*;
 import android.view.MenuItem;
 import android.content.Intent;
+import android.view.View;
 import android.widget.TextView;
 
 import com.mapbox.android.gestures.StandardScaleGestureDetector;
@@ -45,7 +52,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private MapboxMap mapboxMap;
     private BlueprintAPI blueprintAPI;
 
-    private BottomNavigationView bottomView;
+    private BottomNavigationView bottomMenuView;
 
     // Camera configuration
     private int minZoom = 17;
@@ -92,8 +99,14 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
+<<<<<<< HEAD
         bottomView = findViewById(R.id.bottom_menu);
         bottomView.setOnNavigationItemSelectedListener(this);
+=======
+        bottomMenuView = findViewById(R.id.bottom_menu);
+        bottomMenuView.setOnNavigationItemSelectedListener(this);
+
+>>>>>>> Finish inventory page
     }
 
     //region OnMapReadyCallback
@@ -133,13 +146,13 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         // Add resources to map for their location
         addResources(mapboxMap.getLocationComponent().getLastKnownLocation());
     }
-    //endregion
+    // endregion
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int mMenuId = item.getItemId();
-        for (int i = 0; i < bottomView.getMenu().size(); i++) {
-            MenuItem menuItem = bottomView.getMenu().getItem(i);
+        for (int i = 0; i < bottomMenuView.getMenu().size(); i++) {
+            MenuItem menuItem = bottomMenuView.getMenu().getItem(i);
             boolean isChecked = menuItem.getItemId() == item.getItemId();
             menuItem.setChecked(isChecked);
         }
@@ -148,7 +161,11 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             case R.id.inventory:
                 Log.d(" x ", "inventory selected");
                 Intent toInventory = new Intent(MapViewActivity.this, InventoryActivity.class);
-                startActivity(toInventory);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    startActivity(toInventory, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
+                } else {
+                    startActivity(toInventory);
+                }
                 break;
             case R.id.shopping_list:
                 Log.d(" x ", "shopping_list selected");
@@ -189,15 +206,15 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         });
     }
 
-    //region OnMarkerClickListener
+    // region OnMarkerClickListener
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
         Log.d("MARKER", "MARKER: " + marker.getTitle() + " tapped");
         return false;
     }
-    //endregion
+    // endregion
 
-    //region OnScaleListener
+    // region OnScaleListener
     @Override
     public void onScaleBegin(@NonNull StandardScaleGestureDetector detector) { }
 
@@ -211,9 +228,13 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     @Override
     public void onScaleEnd(@NonNull StandardScaleGestureDetector detector) { }
-    //endregion
+    // endregion
 
+<<<<<<< HEAD
     //region Mapbox overrides
+=======
+    // region OnRequestPermissionsResult
+>>>>>>> Finish inventory page
     @Override
     protected void onStart() {
         super.onStart();
