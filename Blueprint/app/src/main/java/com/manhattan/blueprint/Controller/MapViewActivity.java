@@ -1,9 +1,9 @@
 package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
-import android.content.pm.PackageManager;
+import android.content.Intent;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +13,8 @@ import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.Location;
+import com.manhattan.blueprint.Model.LoginManager;
+import com.manhattan.blueprint.Model.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.Model.ResourceSet;
 import com.manhattan.blueprint.R;
@@ -36,7 +38,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private MapView mapView;
     private MapboxMap mapboxMap;
     private BlueprintAPI blueprintAPI;
-    private static final int LOCATION_REQUEST_CODE = 0;
 
     // Camera configuration
     private int minZoom = 17;
@@ -44,23 +45,44 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private int minTilt = 40;
     private int maxTilt = 60;
 
-    @SuppressWarnings({"MissingPermission"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_view);
 
-        blueprintAPI = new BlueprintAPI();
-        Mapbox.getInstance(this, BuildConfig.MapboxAPIKey);
-
         mapView = findViewById(R.id.mapView);
-
-        // Configure MapView
+        Mapbox.getInstance(this, BuildConfig.MapboxAPIKey);
         mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
+
+        // If haven't logged in yet, or have revoked location, redirect
+        PermissionManager locationManager = new PermissionManager(0, Manifest.permission.ACCESS_FINE_LOCATION);
+        LoginManager loginManager = new LoginManager(this);
+        if (!loginManager.isLoggedIn()){
+            toOnboarding();
+        } else if (!locationManager.hasPermission(this)){
+            AlertDialog.Builder dialog = new AlertDialog.Builder(MapViewActivity.this);
+            dialog.setTitle("Location required");
+            dialog.setMessage("Please grant access to your location so Blueprint can show resources around you.");
+            dialog.setPositiveButton("Ok", (d, which) -> {
+                d.dismiss();
+                loginManager.setLoggedIn(false);
+                toOnboarding();
+            });
+            dialog.create().show();
+        } else {
+            blueprintAPI = new BlueprintAPI();
+            mapView.getMapAsync(this);
+        }
     }
 
-    // region OnMapReadyCallback
+    private void toOnboarding(){
+        Intent intent = new Intent(MapViewActivity.this, OnboardingActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    //region OnMapReadyCallback
+    @SuppressWarnings({"MissingPermission"})
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
@@ -82,23 +104,19 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Location tracking
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        // Only allow certain zoom options
+        LocationComponentOptions options = LocationComponentOptions
+                .builder(this)
+                .maxZoom(maxZoom)
+                .minZoom(minZoom)
+                .build();
+        locationComponent.activateLocationComponent(this, options);
+        locationComponent.setLocationComponentEnabled(true);
+        locationComponent.setRenderMode(RenderMode.GPS);
+        locationComponent.setCameraMode(CameraMode.TRACKING);
 
-            // Only allow certain zoom options
-            LocationComponentOptions options = LocationComponentOptions
-                    .builder(this)
-                    .maxZoom(maxZoom)
-                    .minZoom(minZoom)
-                    .build();
-            locationComponent.activateLocationComponent(this, options);
-            locationComponent.setLocationComponentEnabled(true);
-            locationComponent.setRenderMode(RenderMode.GPS);
-            locationComponent.setCameraMode(CameraMode.TRACKING);
-            // Add resources to map for their location
-            addResources(mapboxMap.getLocationComponent().getLastKnownLocation());
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
-        }
+        // Add resources to map for their location
+        addResources(mapboxMap.getLocationComponent().getLastKnownLocation());
     }
     //endregion
 
@@ -155,19 +173,47 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     public void onScaleEnd(@NonNull StandardScaleGestureDetector detector) { }
     //endregion
 
-    //region OnRequestPermissionsResult
+    //region Mapbox overrides
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
-        case LOCATION_REQUEST_CODE:
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                mapView.getMapAsync(this::onMapReady);
-            }
-            break;
-        default:
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            break;
-        }
+    protected void onStart() {
+        super.onStart();
+        mapView.onStart();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        mapView.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+    //endregion
 }
