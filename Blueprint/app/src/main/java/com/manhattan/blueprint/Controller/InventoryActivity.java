@@ -55,15 +55,15 @@ public class InventoryActivity extends AppCompatActivity {
 
             @Override
             public void failure(String error) {
-                AlertDialog.Builder failedLoginDlg = new AlertDialog.Builder(InventoryActivity.this);
-                failedLoginDlg.setTitle("Failed to retrieve inventory");
-                failedLoginDlg.setMessage(error);
-                failedLoginDlg.setCancelable(true);
-                failedLoginDlg.setPositiveButton("Ok", (dialog, which) -> {
+                AlertDialog.Builder failedFetchDlg = new AlertDialog.Builder(InventoryActivity.this);
+                failedFetchDlg.setTitle("Failed to retrieve inventory");
+                failedFetchDlg.setMessage(error);
+                failedFetchDlg.setCancelable(true);
+                failedFetchDlg.setPositiveButton("Ok", (dialog, which) -> {
                     dialog.dismiss();
                     finish();
                 });
-                failedLoginDlg.create().show();
+                failedFetchDlg.create().show();
 
             }
         });

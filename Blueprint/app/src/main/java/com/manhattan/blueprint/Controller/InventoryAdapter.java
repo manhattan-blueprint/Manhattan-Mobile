@@ -9,15 +9,15 @@ import com.manhattan.blueprint.R;
 import java.util.List;
 import android.widget.TextView;
 
-public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.MyViewHolder> {
+public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.InventoryViewHolder> {
 
     private final List<InventoryItem> values;
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
+    public class InventoryViewHolder extends RecyclerView.ViewHolder {
         public TextView resource;
         public TextView quantity;
 
-        public MyViewHolder(View view) {
+        public InventoryViewHolder(View view) {
             super(view);
             resource = (TextView) view.findViewById(R.id.resourceLayout);
             quantity = (TextView) view.findViewById(R.id.quantityLayout);
@@ -29,15 +29,15 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.MyVi
     }
 
     @Override
-    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public InventoryViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.inventory_list_row, parent, false);
 
-        return new MyViewHolder(itemView);
+        return new InventoryViewHolder(itemView);
     }
 
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
+    public void onBindViewHolder(InventoryViewHolder holder, int position) {
         InventoryItem item = values.get(position);
         holder.resource.setText(item.getId());
         holder.quantity.setText(String.valueOf(item.getQuantity()));
