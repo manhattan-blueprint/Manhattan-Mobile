@@ -7,6 +7,8 @@ import com.manhattan.blueprint.Model.DAO.DAO;
 import com.manhattan.blueprint.Model.TokenPair;
 import com.manhattan.blueprint.Model.UserCredentials;
 
+import org.jetbrains.annotations.NotNull;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import retrofit2.Call;
@@ -70,7 +72,7 @@ public final class BlueprintAPI {
     public void login(UserCredentials userCredentials, final APICallback<Void> callback) {
         authenticateService.login(userCredentials).enqueue(new Callback<TokenPair>() {
             @Override
-            public void onResponse(Call<TokenPair> call, Response<TokenPair> response) {
+            public void onResponse(@NotNull Call<TokenPair> call, @NotNull Response<TokenPair> response) {
                 if (response.code() == 200) {
                     DAO.instance.setCurrentToken(response.body());
                     callback.success(null);
@@ -80,7 +82,7 @@ public final class BlueprintAPI {
             }
 
             @Override
-            public void onFailure(Call<TokenPair> call, Throwable t) {
+            public void onFailure(@NotNull Call<TokenPair> call, @NotNull Throwable t) {
                 callback.failure(-1, t.toString());
             }
         });
@@ -91,7 +93,7 @@ public final class BlueprintAPI {
         // Make request
         call.enqueue(new Callback<T>() {
             @Override
-            public void onResponse(Call<T> call, Response<T> response) {
+            public void onResponse(@NotNull Call<T> call, @NotNull Response<T> response) {
                 if (response.code() == 401) {
                     // Unauthorized request - will refresh token and try again
                     refreshToken(call, callback);
@@ -103,7 +105,7 @@ public final class BlueprintAPI {
             }
 
             @Override
-            public void onFailure(Call<T> call, Throwable t) {
+            public void onFailure(@NotNull Call<T> call, @NotNull Throwable t) {
                 callback.failure(-1, t.toString());
             }
         });
@@ -113,14 +115,14 @@ public final class BlueprintAPI {
     private <T> void refreshToken(final Call<T> originalCall, final APICallback<T> originalCallback) {
         authenticateService.refreshToken(DAO.instance.getCurrentToken().getRefreshToken()).enqueue(new Callback<TokenPair>() {
             @Override
-            public void onResponse(Call<TokenPair> call, Response<TokenPair> response) {
+            public void onResponse(@NotNull Call<TokenPair> call, @NotNull Response<TokenPair> response) {
                 if (response.code() == 200) {
                     // Persist new token
                     DAO.instance.setCurrentToken(response.body());
                     // Repeat original request
                     originalCall.enqueue(new Callback<T>() {
                         @Override
-                        public void onResponse(Call<T> call, Response<T> response) {
+                        public void onResponse(@NotNull Call<T> call, @NotNull Response<T> response) {
                             if (response.code() == 200) {
                                 originalCallback.success(response.body());
                             } else {
@@ -128,7 +130,7 @@ public final class BlueprintAPI {
                             }
                         }
                         @Override
-                        public void onFailure(Call<T> call, Throwable t) {
+                        public void onFailure(@NotNull Call<T> call, @NotNull Throwable t) {
                             originalCallback.failure(-1, t.toString());
                         }
                     });
@@ -138,7 +140,7 @@ public final class BlueprintAPI {
             }
 
             @Override
-            public void onFailure(Call<TokenPair> call, Throwable t) {
+            public void onFailure(@NotNull Call<TokenPair> call, @NotNull Throwable t) {
                 originalCallback.failure(-1, t.toString());
             }
         });
