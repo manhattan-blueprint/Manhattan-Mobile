@@ -3,18 +3,16 @@ package com.manhattan.blueprint.Controller;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
-import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
-import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.rendering.ModelRenderable;
@@ -22,6 +20,7 @@ import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 import com.manhattan.blueprint.Model.PermissionManager;
+import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.R;
 
 public class ARActivity extends AppCompatActivity {
@@ -35,6 +34,9 @@ public class ARActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
+
+        String resourceToCollect = (String) getIntent().getExtras().get("resource");
+        Log.d("rescol", "RESOURCE TO COLLECT: " + resourceToCollect);
 
         PermissionManager cameraPermissionManager = new PermissionManager(0, Manifest.permission.CAMERA);
         if (!cameraPermissionManager.hasPermission(this)) {
@@ -52,33 +54,38 @@ public class ARActivity extends AppCompatActivity {
         try {
             switch (ArCoreApk.getInstance().requestInstall(this, !userRequestedARInstall)) {
                 case INSTALLED:
+                    // Start AR:
                     arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
 
                     // When you build a Renderable, Sceneform loads its resources in the background while returning
                     // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
                     ViewRenderable.builder()
-                            .setView(this, R.layout.planets)
+                            .setView(this, R.layout.resource_metal) //
                             .build()
                             .thenAccept(renderable -> testViewRenderable = renderable);
 
                     arFragment.setOnTapArPlaneListener(
                             (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
                                 if (testViewRenderable == null) {
-                                    Log.d("NULL", "Renderable is null");
+                                    Log.d("AR", "Renderable is null");
                                     return;
                                 }
 
-                                Log.d("NULL", "Renderable is not null");
                                 // Create the Anchor.
                                 Anchor anchor = hitResult.createAnchor();
                                 AnchorNode anchorNode = new AnchorNode(anchor);
                                 anchorNode.setParent(arFragment.getArSceneView().getScene());
 
-                                // Create the transformable andy and add it to the anchor.
-                                TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
-                                andy.setParent(anchorNode);
-                                andy.setRenderable(testViewRenderable);
-                                andy.select();
+                                // Create the transformable node and add it to the anchor.
+                                TransformableNode node = new TransformableNode(arFragment.getTransformationSystem());
+                                node.setParent(anchorNode);
+                                node.setRenderable(testViewRenderable);
+                                node.select();
+
+                                node.setOnTapListener((hitTestResult, motionEvent1) -> {
+
+                                    Log.d("AR", "Item was tapped");
+                                });
                             });
 
                 case INSTALL_REQUESTED:

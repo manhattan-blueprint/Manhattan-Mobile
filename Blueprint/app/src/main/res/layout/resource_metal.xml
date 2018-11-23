@@ -4,7 +4,7 @@
     android:layout_height="match_parent">
 
     <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/planetInfoCard"
+        android:id="@+id/Resource_Metal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -12,7 +12,7 @@
         android:gravity="center"
         android:orientation="vertical"
         android:padding="6dp"
-        android:text="Test Test Test Test Test"
+        android:text="Metal"
         android:textAlignment="center" />
 
 </android.support.constraint.ConstraintLayout>
