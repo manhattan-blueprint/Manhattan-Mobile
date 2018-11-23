@@ -45,8 +45,7 @@ public class InventoryActivity extends AppCompatActivity {
         // TODO: Add "Inventory" Toolbar
 
         BlueprintAPI api = new BlueprintAPI();
-
-        api.fetchInventory(new APICallback<Inventory>() {
+        api.makeRequest(api.inventoryService.fetchInventory(), new APICallback<Inventory>() {
             @Override
             public void success(Inventory response) {
                 inventory.addAll(response.getItems());
@@ -54,7 +53,7 @@ public class InventoryActivity extends AppCompatActivity {
             }
 
             @Override
-            public void failure(String error) {
+            public void failure(int code, String error) {
                 AlertDialog.Builder failedFetchDlg = new AlertDialog.Builder(InventoryActivity.this);
                 failedFetchDlg.setTitle("Failed to retrieve inventory");
                 failedFetchDlg.setMessage(error);
@@ -64,7 +63,6 @@ public class InventoryActivity extends AppCompatActivity {
                     finish();
                 });
                 failedFetchDlg.create().show();
-
             }
         });
     }
