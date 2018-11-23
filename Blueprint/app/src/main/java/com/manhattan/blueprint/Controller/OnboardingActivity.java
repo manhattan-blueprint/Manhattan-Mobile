@@ -16,6 +16,7 @@ import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.LoginManager;
 import com.manhattan.blueprint.Model.PermissionManager;
+import com.manhattan.blueprint.Model.TokenPair;
 import com.manhattan.blueprint.Model.UserCredentials;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.View.ControlledViewPager;
@@ -138,9 +139,9 @@ public class OnboardingActivity extends FragmentActivity {
                 return;
             }
 
-            api.authenticate(new UserCredentials(usernameText, passwordText), new APICallback<Boolean>() {
+            api.login(new UserCredentials(usernameText, passwordText), new APICallback<Void>() {
                 @Override
-                public void success(Boolean response) {
+                public void success(Void response) {
                     LoginManager loginManager = new LoginManager(OnboardingActivity.this);
                     loginManager.setLoggedIn(true);
 
@@ -151,7 +152,7 @@ public class OnboardingActivity extends FragmentActivity {
                 }
 
                 @Override
-                public void failure(String error) {
+                public void failure(int code, String error) {
                     AlertDialog.Builder failedLoginDlg = new AlertDialog.Builder(OnboardingActivity.this);
                     failedLoginDlg.setTitle("Login failed.");
                     failedLoginDlg.setMessage(error);

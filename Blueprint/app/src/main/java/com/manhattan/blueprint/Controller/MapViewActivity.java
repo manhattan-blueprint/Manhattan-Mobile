@@ -154,7 +154,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private void addResources(android.location.Location location){
         Location blueprintLocation = new Location(location);
 
-        blueprintAPI.fetchResources(blueprintLocation, new APICallback<ResourceSet>() {
+        blueprintAPI.makeRequest(blueprintAPI.resourceService.fetchResources(), new APICallback<ResourceSet>() {
             @Override
             public void success(ResourceSet response) {
                 for (Resource item : response.getItems()){
@@ -169,7 +169,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             }
 
             @Override
-            public void failure(String error) {
+            public void failure(int code, String error) {
                 new AlertDialog
                         .Builder(MapViewActivity.this, android.R.style.Theme_Material_Dialog_Alert)
                         .setTitle("Whoops! Could not fetch available resources.")
