@@ -8,13 +8,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
+import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
+import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
@@ -29,13 +34,15 @@ public class ARActivity extends AppCompatActivity {
     private boolean userRequestedARInstall = false;
     private ModelRenderable manhattanRenderable;
     private ViewRenderable testViewRenderable;
+    private String resourceToCollect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
 
-        String resourceToCollect = (String) getIntent().getExtras().get("resource");
+        // TODO: Show different resources depending on which one was tapped on the map view
+        resourceToCollect = (String) getIntent().getExtras().get("resource");
         Log.d("rescol", "RESOURCE TO COLLECT: " + resourceToCollect);
 
         PermissionManager cameraPermissionManager = new PermissionManager(0, Manifest.permission.CAMERA);
@@ -43,6 +50,18 @@ public class ARActivity extends AppCompatActivity {
             createDialog("Camera required",
                     "Please grant access to your camera so Blueprint can show resources around you.",
                     (dialog, which) -> finish());
+        }
+    }
+
+    public void onUpdate(FrameTime frameTime) {
+        arFragment.onUpdate(frameTime);
+        Frame frame = arFragment.getArSceneView().getArFrame();
+        for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
+            if (plane.getTrackingState() != TrackingState.TRACKING) {
+                // Once there is a tracking plane, plane discovery stops.
+                // do your callback here.
+                Log.d("ABCDE", "Move phone around");
+            }
         }
     }
 
@@ -54,15 +73,24 @@ public class ARActivity extends AppCompatActivity {
         try {
             switch (ArCoreApk.getInstance().requestInstall(this, !userRequestedARInstall)) {
                 case INSTALLED:
-                    // Start AR:
-                    arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
 
-                    // When you build a Renderable, Sceneform loads its resources in the background while returning
-                    // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
+                    // Build renderable object
                     ViewRenderable.builder()
                             .setView(this, R.layout.resource_metal) //
                             .build()
                             .thenAccept(renderable -> testViewRenderable = renderable);
+
+                    // Start AR:
+                    arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
+                    Log.d("ARrrrr", arFragment.toString());
+                    arFragment.getArSceneView().getScene().addOnUpdateListener(this::onUpdate);
+
+                    // TODO: Remove icon of a hand with device
+                    // arFragment.getPlaneDiscoveryController().hide();
+                    // arFragment.getPlaneDiscoveryController().setInstructionView(null);
+
+                    // TODO: Remove plane renderer
+                    // arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
 
                     arFragment.setOnTapArPlaneListener(
                             (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
