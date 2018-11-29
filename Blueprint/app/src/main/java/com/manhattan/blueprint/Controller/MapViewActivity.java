@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.google.gson.Gson;
 import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
@@ -189,7 +190,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     public boolean onMarkerClick(@NonNull Marker marker) {
         Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
         Bundle resourceToCollect = new Bundle();
-        resourceToCollect.putString("resource", markerResourceMap.get(marker).getId());
+        resourceToCollect.putString("resource", (new Gson()).toJson(markerResourceMap.get(marker)));
         intentAR.putExtras(resourceToCollect);
         startActivity(intentAR);
         return false;
