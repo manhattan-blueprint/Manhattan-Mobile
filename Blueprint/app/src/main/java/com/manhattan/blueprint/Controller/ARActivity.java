@@ -117,14 +117,14 @@ public class ARActivity extends AppCompatActivity {
                                             InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(),
                                                                                             tapsRequired);
                                             BlueprintAPI api = new BlueprintAPI();
-                                            api.addToInventory(itemCollected, new APICallback<InventoryItem>() {
+                                            api.makeRequest(api.inventoryService.addToInventory(itemCollected), new APICallback<Void>() {
                                                 @Override
-                                                public void success(InventoryItem response) {
+                                                public void success(Void response) {
                                                     finish();
                                                 }
 
                                                 @Override
-                                                public void failure(String error) {
+                                                public void failure(int code, String error) {
                                                     AlertDialog.Builder failedCollectionDlg = new AlertDialog.Builder(ARActivity.this);
                                                     failedCollectionDlg.setTitle("Item collection failed!");
                                                     failedCollectionDlg.setMessage(error);
@@ -133,6 +133,7 @@ public class ARActivity extends AppCompatActivity {
                                                     failedCollectionDlg.create().show();
                                                 }
                                             });
+
                                         }
                                     });
                                     node.getTranslationController().setEnabled(false);
