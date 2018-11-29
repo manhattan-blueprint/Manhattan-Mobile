@@ -6,7 +6,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,10 +45,8 @@ public class ARActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
 
-        // TODO: Show different resources depending on which one was tapped on the map view
         String jsonResource = (String) getIntent().getExtras().get("resource");
         resourceToCollect = (new GsonBuilder().create()).fromJson( jsonResource , Resource.class );
-        Log.d("rescol", "RESOURCE TO COLLECT: " + resourceToCollect.getId());
 
         PermissionManager cameraPermissionManager = new PermissionManager(0, Manifest.permission.CAMERA);
         if (!cameraPermissionManager.hasPermission(this)) {
@@ -80,14 +77,11 @@ public class ARActivity extends AppCompatActivity {
                             .thenAccept(renderable -> {
                                 testViewRenderable = renderable;
                                 TextView resourceView = renderable.getView().findViewById(R.id.Resource_AR);
-
-                                // TODO Set title / model for the resource here
                                 resourceView.setText(resourceToCollect.getId());
                             });
 
                     // Start AR:
                     arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
-                    Log.d("AR", arFragment.toString());
                     arFragment.getArSceneView().getScene().addOnUpdateListener(this::onUpdate);
 
                     // TODO: Uncomment to remove icon of a hand with device
@@ -113,17 +107,32 @@ public class ARActivity extends AppCompatActivity {
                                     node.setOnTapListener((hitTestResult, motionEvent1) -> {
                                         if(collectCounter > 0) {
                                             int progress = ((tapsRequired - collectCounter) * 100) / tapsRequired;
-                                            Toast.makeText(this, "Progress: " +
-                                                                              progress + "%",
+                                            Toast.makeText(this, "Progress: " + progress + "%",
                                                                               Toast.LENGTH_SHORT).show();
                                             collectCounter--;
                                         } else if(collectCounter == 0) {
-                                            Toast.makeText(this, "You collected " +
-                                                                              tapsRequired + " " +
-                                                                              resourceToCollect.getId() +
-                                                                              ". Well done!", Toast.LENGTH_LONG).show();
+                                            Toast.makeText(this, "You collected " + tapsRequired + " " +
+                                                                               resourceToCollect.getId() + ". Well done!",
+                                                                               Toast.LENGTH_LONG).show();
+                                            InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(),
+                                                                                            tapsRequired);
+                                            BlueprintAPI api = new BlueprintAPI();
+                                            api.addToInventory(itemCollected, new APICallback<InventoryItem>() {
+                                                @Override
+                                                public void success(InventoryItem response) {
+                                                    finish();
+                                                }
 
-                                            finish();
+                                                @Override
+                                                public void failure(String error) {
+                                                    AlertDialog.Builder failedCollectionDlg = new AlertDialog.Builder(ARActivity.this);
+                                                    failedCollectionDlg.setTitle("Item collection failed!");
+                                                    failedCollectionDlg.setMessage(error);
+                                                    failedCollectionDlg.setCancelable(true);
+                                                    failedCollectionDlg.setPositiveButton("Ok", (dialog, which) -> dialog.dismiss());
+                                                    failedCollectionDlg.create().show();
+                                                }
+                                            });
                                         }
                                     });
                                     node.getTranslationController().setEnabled(false);
