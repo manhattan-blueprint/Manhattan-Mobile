@@ -1,5 +1,6 @@
 package com.manhattan.blueprint.Controller;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import android.Manifest;
 import android.app.AlertDialog;
@@ -46,12 +47,13 @@ public class ARActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ar);
 
         String jsonResource = (String) getIntent().getExtras().get("resource");
-        resourceToCollect = (new GsonBuilder().create()).fromJson( jsonResource , Resource.class );
+        Gson gson = new GsonBuilder().create();
+        resourceToCollect = gson.fromJson( jsonResource , Resource.class );
 
         PermissionManager cameraPermissionManager = new PermissionManager(0, Manifest.permission.CAMERA);
         if (!cameraPermissionManager.hasPermission(this)) {
             createDialog("Camera required",
-                    "Please grant access to your camera so Blueprint can show resources around you.",
+                     "Please grant access to your camera so Blueprint can show resources around you.",
                     (dialog, which) -> finish());
         }
         itemWasPlaced = false;
@@ -70,79 +72,7 @@ public class ARActivity extends AppCompatActivity {
         try {
             switch (ArCoreApk.getInstance().requestInstall(this, !userRequestedARInstall)) {
                 case INSTALLED:
-                    // Build renderable object
-                    ViewRenderable.builder()
-                            .setView(this, R.layout.resource_ar)
-                            .build()
-                            .thenAccept(renderable -> {
-                                testViewRenderable = renderable;
-                                TextView resourceView = renderable.getView().findViewById(R.id.Resource_AR);
-                                resourceView.setText(resourceToCollect.getId());
-                            });
-
-                    // Start AR:
-                    arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
-                    arFragment.getArSceneView().getScene().addOnUpdateListener(this::onUpdate);
-
-                    // TODO: Uncomment to remove icon of a hand with device
-                    // arFragment.getPlaneDiscoveryController().hide();
-                    // arFragment.getPlaneDiscoveryController().setInstructionView(null);
-
-                    arFragment.setOnTapArPlaneListener(
-                            (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-                                if (testViewRenderable == null) {
-                                    return;
-                                } else if(!itemWasPlaced) {
-                                    // Create the Anchor.
-                                    Anchor anchor = hitResult.createAnchor();
-                                    AnchorNode anchorNode = new AnchorNode(anchor);
-                                    anchorNode.setParent(arFragment.getArSceneView().getScene());
-
-                                    // Create the transformable node and add it to the anchor.
-                                    TransformableNode node = new TransformableNode(arFragment.getTransformationSystem());
-                                    node.setParent(anchorNode);
-                                    node.setRenderable(testViewRenderable);
-                                    node.select();
-
-                                    node.setOnTapListener((hitTestResult, motionEvent1) -> {
-                                        if(collectCounter > 0) {
-                                            int progress = ((tapsRequired - collectCounter) * 100) / tapsRequired;
-                                            Toast.makeText(this, "Progress: " + progress + "%",
-                                                                              Toast.LENGTH_SHORT).show();
-                                            collectCounter--;
-                                        } else if(collectCounter == 0) {
-                                            Toast.makeText(this, "You collected " + tapsRequired + " " +
-                                                                               resourceToCollect.getId() + ". Well done!",
-                                                                               Toast.LENGTH_LONG).show();
-                                            InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(),
-                                                                                            tapsRequired);
-                                            BlueprintAPI api = new BlueprintAPI();
-                                            api.makeRequest(api.inventoryService.addToInventory(itemCollected), new APICallback<Void>() {
-                                                @Override
-                                                public void success(Void response) {
-                                                    finish();
-                                                }
-
-                                                @Override
-                                                public void failure(int code, String error) {
-                                                    AlertDialog.Builder failedCollectionDlg = new AlertDialog.Builder(ARActivity.this);
-                                                    failedCollectionDlg.setTitle("Item collection failed!");
-                                                    failedCollectionDlg.setMessage(error);
-                                                    failedCollectionDlg.setCancelable(true);
-                                                    failedCollectionDlg.setPositiveButton("Ok", (dialog, which) -> dialog.dismiss());
-                                                    failedCollectionDlg.create().show();
-                                                }
-                                            });
-
-                                        }
-                                    });
-                                    node.getTranslationController().setEnabled(false);
-
-                                    // Remove plane renderer
-                                    arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
-                                    itemWasPlaced = true;
-                                }
-                            });
+                    startAr();
 
                 case INSTALL_REQUESTED:
                     // Ensures next call of request install returns INSTALLED or throws
@@ -156,6 +86,77 @@ public class ARActivity extends AppCompatActivity {
             createDialog("Whoops!",
                     "Something went wrong: " + e.toString(),
                     (dialog, which) -> finish());
+        }
+    }
+
+    private void startAr() {
+        // Build renderable object
+        ViewRenderable.builder()
+                .setView(this, R.layout.resource_ar)
+                .build()
+                .thenAccept(renderable -> {
+                    testViewRenderable = renderable;
+                    TextView resourceView = renderable.getView().findViewById(R.id.Resource_AR);
+                    resourceView.setText(resourceToCollect.getId());
+                });
+
+        // Start AR:
+        arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
+        arFragment.getArSceneView().getScene().addOnUpdateListener(this::onUpdate);
+
+        // TODO: Uncomment to remove icon of a hand with device
+        // arFragment.getPlaneDiscoveryController().hide();
+        // arFragment.getPlaneDiscoveryController().setInstructionView(null);
+
+        arFragment.setOnTapArPlaneListener(
+                (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
+                    if (testViewRenderable == null) {
+                        return;
+                    } else if(!itemWasPlaced) {
+                        // Create the Anchor.
+                        Anchor anchor = hitResult.createAnchor();
+                        AnchorNode anchorNode = new AnchorNode(anchor);
+                        anchorNode.setParent(arFragment.getArSceneView().getScene());
+
+                        // Create the transformable node and add it to the anchor.
+                        TransformableNode node = new TransformableNode(arFragment.getTransformationSystem());
+                        node.setParent(anchorNode);
+                        node.setRenderable(testViewRenderable);
+                        node.select();
+
+                        node.setOnTapListener((hitTestResult, motionEvent1) -> {
+                            onResourceTapped();
+                        });
+                        node.getTranslationController().setEnabled(false);
+
+                        // Remove plane renderer
+                        arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
+                        itemWasPlaced = true;
+                    }
+                });
+    }
+
+    private void onResourceTapped() {
+        if(collectCounter > 0) {
+            int progress = ((tapsRequired - collectCounter) * 100) / tapsRequired;
+            Toast.makeText(this, "Progress: " + progress + "%", Toast.LENGTH_SHORT).show();
+            collectCounter--;
+        } else if(collectCounter == 0) {
+            Toast.makeText(this, "You collected " + tapsRequired + " " +
+                    resourceToCollect.getId() + ". Well done!", Toast.LENGTH_LONG).show();
+            InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), tapsRequired);
+            BlueprintAPI api = new BlueprintAPI();
+            api.makeRequest(api.inventoryService.addToInventory(itemCollected), new APICallback<Void>() {
+                @Override
+                public void success(Void response) {
+                    finish();
+                }
+
+                @Override
+                public void failure(int code, String error) {
+                    createDialog("Item collection failed!", error, (dialog, which) -> dialog.dismiss());
+                }
+            });
         }
     }
 

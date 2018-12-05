@@ -50,9 +50,6 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:1.10.19'
     implementation 'com.android.support:design:28.0.0'
 
-    // Provides ARCore Session and related resources.
-    implementation 'com.google.ar:core:1.5.0'
-
     // Provides ArFragment, and other UX resources.
     implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.5.1'
 

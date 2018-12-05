@@ -42,7 +42,11 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import java.util.HashMap;
 
-public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMarkerClickListener, MapboxMap.OnScaleListener, BottomNavigationView.OnNavigationItemSelectedListener {
+public class MapViewActivity extends    AppCompatActivity
+                             implements OnMapReadyCallback,
+                                        MapboxMap.OnMarkerClickListener,
+                                        MapboxMap.OnScaleListener,
+                                        BottomNavigationView.OnNavigationItemSelectedListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private BlueprintAPI blueprintAPI;
