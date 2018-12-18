@@ -52,8 +52,8 @@ public class ARActivity extends AppCompatActivity {
 
         PermissionManager cameraPermissionManager = new PermissionManager(0, Manifest.permission.CAMERA);
         if (!cameraPermissionManager.hasPermission(this)) {
-            createDialog("Camera required",
-                     "Please grant access to your camera so Blueprint can show resources around you.",
+            createDialog(getString(R.string.permission_camera_title),
+                    getString(R.string.permission_camera_description),
                     (dialog, which) -> finish());
         }
         itemWasPlaced = false;
@@ -79,13 +79,13 @@ public class ARActivity extends AppCompatActivity {
                     userRequestedARInstall = true;
             }
         } catch (UnavailableUserDeclinedInstallationException e) {
-            createDialog("ARCore required!",
-                    "We require ARCore to show you resources. Please install and try again",
-                    (dialog, which) -> finish());
+            createDialog(getString(R.string.ar_install_title),
+                         getString(R.string.ar_install_description),
+                        (dialog, which) -> finish());
         } catch (Exception e) {
-            createDialog("Whoops!",
-                    "Something went wrong: " + e.toString(),
-                    (dialog, which) -> finish());
+            createDialog(getString(R.string.whoops_title),
+                    getString(R.string.whoops_description) + e.toString(),
+                        (dialog, which) -> finish());
         }
     }
 
@@ -139,22 +139,23 @@ public class ARActivity extends AppCompatActivity {
     private void onResourceTapped() {
         if(collectCounter > 0) {
             int progress = ((tapsRequired - collectCounter) * 100) / tapsRequired;
-            Toast.makeText(this, "Progress: " + progress + "%", Toast.LENGTH_SHORT).show();
+            String progress_msg = String.format(getString(R.string.collection_progress), progress);
+            Toast.makeText(this, progress_msg, Toast.LENGTH_SHORT).show();
             collectCounter--;
         } else if(collectCounter == 0) {
-            Toast.makeText(this, "You collected " + tapsRequired + " " +
-                    resourceToCollect.getId() + ". Well done!", Toast.LENGTH_LONG).show();
             InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), tapsRequired);
             BlueprintAPI api = new BlueprintAPI();
             api.makeRequest(api.inventoryService.addToInventory(itemCollected), new APICallback<Void>() {
                 @Override
                 public void success(Void response) {
+                    String success_msg = String.format(getString(R.string.collection_success), tapsRequired, resourceToCollect.getId());
+                    Toast.makeText(ARActivity.this, success_msg, Toast.LENGTH_LONG).show();
                     finish();
                 }
 
                 @Override
                 public void failure(int code, String error) {
-                    createDialog("Item collection failed!", error, (dialog, which) -> dialog.dismiss());
+                    createDialog(getString(R.string.collection_failure_title), error, (dialog, which) -> dialog.dismiss());
                 }
             });
         }
@@ -164,7 +165,7 @@ public class ARActivity extends AppCompatActivity {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(ARActivity.this);
         alertDialog.setTitle(title);
         alertDialog.setMessage(message);
-        alertDialog.setPositiveButton("Ok", (dialog, which) -> {
+        alertDialog.setPositiveButton("OK", (dialog, which) -> {
             dialog.dismiss();
             onClick.onClick(dialog, which);
         });

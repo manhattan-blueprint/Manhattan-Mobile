@@ -16,7 +16,8 @@ public class MockData {
     private static Resource resourceR = new Resource("Coal",  new Location(51.450, -2.600));
     private static Resource resourceX = new Resource("String",  new Location(51.449, -2.601));
     private static Resource resourceY = new Resource("Kryptonite",  new Location(51.451, -2.600));
-    private static Resource[] resources = new Resource[]{resourceA, resourceB, resourceC, resourceV, resourceR};
+    private static Resource resourceZ = new Resource("Steel", new Location(51.479, -2.628));
+    private static Resource[] resources = new Resource[]{resourceA, resourceB, resourceC, resourceV, resourceR, resourceZ};
 
     public static TokenPair tokenPair = new TokenPair("refreshingToMeetYou", "helloWorld");
     public static Inventory inventory = new Inventory(new ArrayList<>(Arrays.asList(items)));
