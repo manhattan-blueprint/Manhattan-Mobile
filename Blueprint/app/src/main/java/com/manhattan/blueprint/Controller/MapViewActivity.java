@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.google.gson.Gson;
 import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
@@ -39,12 +40,19 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
-public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMarkerClickListener, MapboxMap.OnScaleListener, BottomNavigationView.OnNavigationItemSelectedListener {
+import java.util.HashMap;
+
+public class MapViewActivity extends    AppCompatActivity
+                             implements OnMapReadyCallback,
+                                        MapboxMap.OnMarkerClickListener,
+                                        MapboxMap.OnScaleListener,
+                                        BottomNavigationView.OnNavigationItemSelectedListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private BlueprintAPI blueprintAPI;
 
     private BottomNavigationView bottomView;
+    HashMap<Marker, Resource> markerResourceMap = new HashMap<>();
 
     // Camera configuration
     private int minZoom = 17;
@@ -161,10 +169,11 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     LatLng latLng = new LatLng(item.getLocation().getLatitude(),
                             item.getLocation().getLongitude());
                     IconFactory iconFactory = IconFactory.getInstance(MapViewActivity.this);
-                    mapboxMap.addMarker(new MarkerOptions()
+                    Marker marker = mapboxMap.addMarker(new MarkerOptions()
                             .position(latLng)
                             .title("ITEM " + item.getId())
                             .icon(iconFactory.fromResource(R.drawable.resource_default)));
+                    markerResourceMap.put(marker, item);
                 }
             }
 
@@ -180,15 +189,19 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         });
     }
 
-    //region OnMarkerClickListener
+    // region OnMarkerClickListener
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
-        Log.d("MARKER", "MARKER: " + marker.getTitle() + " tapped");
+        Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
+        Bundle resourceToCollect = new Bundle();
+        resourceToCollect.putString("resource", (new Gson()).toJson(markerResourceMap.get(marker)));
+        intentAR.putExtras(resourceToCollect);
+        startActivity(intentAR);
         return false;
     }
-    //endregion
+    // endregion
 
-    //region OnScaleListener
+    // region OnScaleListener
     @Override
     public void onScaleBegin(@NonNull StandardScaleGestureDetector detector) { }
 
@@ -202,9 +215,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     @Override
     public void onScaleEnd(@NonNull StandardScaleGestureDetector detector) { }
-    //endregion
+    // endregion
 
-    //region Mapbox overrides
+    // region Mapbox overrides
     @Override
     protected void onStart() {
         super.onStart();
@@ -246,5 +259,5 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         super.onDestroy();
         mapView.onDestroy();
     }
-    //endregion
+    // endregion
 }

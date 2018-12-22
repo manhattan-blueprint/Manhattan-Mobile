@@ -18,5 +18,7 @@ public class DAO {
     public void setCurrentToken(TokenPair tokenPair){
         // TODO: Persist
     }
+
+
 }
 

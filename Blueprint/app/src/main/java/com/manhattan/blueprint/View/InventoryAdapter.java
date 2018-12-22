@@ -1,4 +1,4 @@
-package com.manhattan.blueprint.Controller;
+package com.manhattan.blueprint.View;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
