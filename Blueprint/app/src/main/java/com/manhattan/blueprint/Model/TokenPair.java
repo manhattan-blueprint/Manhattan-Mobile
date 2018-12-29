@@ -1,21 +1,19 @@
 package com.manhattan.blueprint.Model;
 
-import android.media.session.MediaSession;
-
 import com.google.gson.annotations.SerializedName;
 
 import io.realm.RealmObject;
 
 public class TokenPair extends RealmObject {
-    @SerializedName("refresh_token")
+    @SerializedName("refresh")
     private String refreshToken;
 
-    @SerializedName("access_token")
+    @SerializedName("access")
     private String accessToken;
 
     public TokenPair() {
         this.accessToken = null;
-        this.accessToken = null;
+        this.refreshToken = null;
     }
 
     public TokenPair(String refreshToken, String accessToken) {
@@ -41,5 +39,10 @@ public class TokenPair extends RealmObject {
         }
 
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Access: " + accessToken + ", Refresh: " + refreshToken;
     }
 }

@@ -6,6 +6,6 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 
 public interface ResourceService {
-    @GET("/resources")
+    @GET("resources")
     Call<ResourceSet> fetchResources();
 }
