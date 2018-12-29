@@ -5,6 +5,9 @@ import com.manhattan.blueprint.Model.DAO.Maybe;
 import com.manhattan.blueprint.Model.Session;
 import com.manhattan.blueprint.Model.TokenPair;
 
+// Mock DAO implementation
+// Note nothing is implemented as the API is mocked and so doesn't require tokens
+
 public class MockDAO implements DAO {
     @Override
     public void setTokenPair(TokenPair tokenPair) {

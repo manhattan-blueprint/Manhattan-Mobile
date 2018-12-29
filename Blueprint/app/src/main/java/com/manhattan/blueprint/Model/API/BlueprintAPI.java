@@ -29,6 +29,7 @@ public final class BlueprintAPI {
     private DAO dao;
 
     // Allow client dependency injection
+    // This constructor should not be used anywhere other than tests
     public BlueprintAPI(OkHttpClient client, DAO dao){
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseURL)
@@ -42,6 +43,7 @@ public final class BlueprintAPI {
         this.dao = dao;
     }
 
+    // Standard constructor
     public BlueprintAPI(Context context) {
         // Intercept requests and add authorization header
         /*
@@ -138,7 +140,10 @@ public final class BlueprintAPI {
 
 
     private <T> void refreshToken(final Call<T> originalCall, final APICallback<T> originalCallback) {
-        if (!dao.getTokenPair().isPresent()) originalCallback.failure(401, "No token pair");
+        if (!dao.getTokenPair().isPresent()) {
+            originalCallback.failure(401, "No token pair");
+            return;
+        }
         TokenPair tokenPair = dao.getTokenPair().get();
 
         authenticateService.refreshToken(tokenPair.getRefreshToken()).enqueue(new Callback<TokenPair>() {
