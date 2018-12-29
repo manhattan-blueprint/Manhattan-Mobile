@@ -25,7 +25,7 @@ import com.google.ar.sceneform.ux.TransformableNode;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.InventoryItem;
-import com.manhattan.blueprint.Model.PermissionManager;
+import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.R;
 
@@ -144,7 +144,7 @@ public class ARActivity extends AppCompatActivity {
             collectCounter--;
         } else if(collectCounter == 0) {
             InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), tapsRequired);
-            BlueprintAPI api = new BlueprintAPI();
+            BlueprintAPI api = new BlueprintAPI(this);
             api.makeRequest(api.inventoryService.addToInventory(itemCollected), new APICallback<Void>() {
                 @Override
                 public void success(Void response) {

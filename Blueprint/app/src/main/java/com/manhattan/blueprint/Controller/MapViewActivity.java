@@ -14,16 +14,13 @@ import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.Location;
-import com.manhattan.blueprint.Model.LoginManager;
-import com.manhattan.blueprint.Model.PermissionManager;
+import com.manhattan.blueprint.Model.Managers.LoginManager;
+import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.Model.ResourceSet;
 import com.manhattan.blueprint.R;
-import android.support.design.internal.*;
 import android.support.design.widget.*;
 import android.view.MenuItem;
-import android.content.Intent;
-import android.widget.TextView;
 
 import com.mapbox.android.gestures.StandardScaleGestureDetector;
 import com.mapbox.mapboxsdk.Mapbox;
@@ -83,12 +80,12 @@ public class MapViewActivity extends    AppCompatActivity
             dialog.setMessage("Please grant access to your location so Blueprint can show resources around you.");
             dialog.setPositiveButton("Ok", (d, which) -> {
                 d.dismiss();
-                loginManager.setLoggedIn(false);
+                loginManager.logout();
                 toOnboarding();
             });
             dialog.create().show();
         } else {
-            blueprintAPI = new BlueprintAPI();
+            blueprintAPI = new BlueprintAPI(this);
             mapView.getMapAsync(this);
         }
     }

@@ -1,4 +1,4 @@
-package com.manhattan.blueprint.Model;
+package com.manhattan.blueprint.Model.Managers;
 
 import android.app.Activity;
 import android.content.Intent;

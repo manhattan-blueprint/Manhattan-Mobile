@@ -1,8 +1,11 @@
 package com.manhattan.blueprint.Model.API;
 
+import android.content.Context;
+
 import com.manhattan.blueprint.Model.API.Services.AuthenticateService;
 import com.manhattan.blueprint.Model.API.Services.InventoryService;
 import com.manhattan.blueprint.Model.API.Services.ResourceService;
+import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
 import com.manhattan.blueprint.Model.DAO.DAO;
 import com.manhattan.blueprint.Model.TokenPair;
 import com.manhattan.blueprint.Model.UserCredentials;
@@ -23,21 +26,23 @@ public final class BlueprintAPI {
     public ResourceService resourceService;
 
     private String baseURL = "https://myapi.com";
+    private DAO dao;
 
     // Allow client dependency injection
-    public BlueprintAPI(OkHttpClient client){
+    public BlueprintAPI(OkHttpClient client, DAO dao){
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseURL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(client)
                 .build();
 
-        authenticateService = retrofit.create(AuthenticateService.class);
-        inventoryService = retrofit.create(InventoryService.class);
-        resourceService = retrofit.create(ResourceService.class);
+        this.authenticateService = retrofit.create(AuthenticateService.class);
+        this.inventoryService = retrofit.create(InventoryService.class);
+        this.resourceService = retrofit.create(ResourceService.class);
+        this.dao = dao;
     }
 
-    public BlueprintAPI() {
+    public BlueprintAPI(Context context) {
         // Intercept requests and add authorization header
         /*
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
@@ -65,7 +70,7 @@ public final class BlueprintAPI {
         */
 
         // TODO: Replace once implemented on server side
-        this(new MockClient().client);
+        this(new MockClient().client, BlueprintDAO.getInstance(context));
     }
 
     // Login requires a specific method so we can grab the auth token and store it for later requests
@@ -74,7 +79,7 @@ public final class BlueprintAPI {
             @Override
             public void onResponse(@NotNull Call<TokenPair> call, @NotNull Response<TokenPair> response) {
                 if (response.code() == 200) {
-                    DAO.instance.setCurrentToken(response.body());
+                    dao.setTokenPair(response.body());
                     callback.success(null);
                 } else {
                     callback.failure(response.code(), response.message());
@@ -83,6 +88,26 @@ public final class BlueprintAPI {
 
             @Override
             public void onFailure(@NotNull Call<TokenPair> call, @NotNull Throwable t) {
+                callback.failure(-1, t.toString());
+            }
+        });
+    }
+
+    // Signup requires a specific method so we can grab the auth token and store for later requests
+    public void signup(UserCredentials userCredentials, final APICallback<Void> callback){
+        authenticateService.register(userCredentials).enqueue(new Callback<TokenPair>() {
+            @Override
+            public void onResponse(Call<TokenPair> call, Response<TokenPair> response) {
+                if (response.code() == 200) {
+                    dao.setTokenPair(response.body());
+                    callback.success(null);
+                } else {
+                    callback.failure(response.code(), response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<TokenPair> call, Throwable t) {
                 callback.failure(-1, t.toString());
             }
         });
@@ -113,12 +138,15 @@ public final class BlueprintAPI {
 
 
     private <T> void refreshToken(final Call<T> originalCall, final APICallback<T> originalCallback) {
-        authenticateService.refreshToken(DAO.instance.getCurrentToken().getRefreshToken()).enqueue(new Callback<TokenPair>() {
+        if (!dao.getTokenPair().isPresent()) originalCallback.failure(401, "No token pair");
+        TokenPair tokenPair = dao.getTokenPair().get();
+
+        authenticateService.refreshToken(tokenPair.getRefreshToken()).enqueue(new Callback<TokenPair>() {
             @Override
             public void onResponse(@NotNull Call<TokenPair> call, @NotNull Response<TokenPair> response) {
                 if (response.code() == 200) {
                     // Persist new token
-                    DAO.instance.setCurrentToken(response.body());
+                    dao.setTokenPair(response.body());
                     // Repeat original request
                     originalCall.enqueue(new Callback<T>() {
                         @Override

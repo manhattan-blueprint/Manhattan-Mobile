@@ -43,7 +43,7 @@ public class InventoryActivity extends AppCompatActivity {
 
         // TODO: Add "Inventory" Toolbar
 
-        BlueprintAPI api = new BlueprintAPI();
+        BlueprintAPI api = new BlueprintAPI(this);
         api.makeRequest(api.inventoryService.fetchInventory(), new APICallback<Inventory>() {
             @Override
             public void success(Inventory response) {
