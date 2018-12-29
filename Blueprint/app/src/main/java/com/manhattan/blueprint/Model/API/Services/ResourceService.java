@@ -8,5 +8,4 @@ import retrofit2.http.GET;
 public interface ResourceService {
     @GET("/resources")
     Call<ResourceSet> fetchResources();
-
 }

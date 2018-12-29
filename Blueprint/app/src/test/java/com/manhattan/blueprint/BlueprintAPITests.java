@@ -27,8 +27,8 @@ public class BlueprintAPITests {
     private String errorString;
 
     @Before
-    public void setUp(){
-        api = new BlueprintAPI(new MockClient().client);
+    public void setUp() {
+        api = new BlueprintAPI(new MockClient().client, new MockDAO());
         inventory = null;
         resourceSet = null;
         errorString = null;

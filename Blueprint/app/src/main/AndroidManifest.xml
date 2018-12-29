@@ -19,15 +19,16 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
 
+
         <activity android:name=".Controller.MapViewActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Controller.OnboardingActivity"></activity>
-        <activity android:name=".Controller.InventoryActivity"></activity>
-        <activity android:name=".Controller.ARActivity"></activity>
+        <activity android:name=".Controller.OnboardingActivity"/>
+        <activity android:name=".Controller.InventoryActivity"/>
+        <activity android:name=".Controller.ARActivity"/>
 
         <meta-data android:name="com.google.ar.core" android:value="required" />
     </application>

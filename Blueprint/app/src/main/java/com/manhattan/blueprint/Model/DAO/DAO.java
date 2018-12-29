@@ -1,24 +1,13 @@
 package com.manhattan.blueprint.Model.DAO;
 
+import com.manhattan.blueprint.Model.Session;
 import com.manhattan.blueprint.Model.TokenPair;
 
-import java.util.Optional;
-
-public class DAO {
-    public static DAO instance = new DAO();
-
-    private DAO() { }
-
-    // MARK: - TokenPair
-    public TokenPair getCurrentToken(){
-        // TODO: Implement
-        return null;
-    }
-
-    public void setCurrentToken(TokenPair tokenPair){
-        // TODO: Persist
-    }
-
-
+// Define methods in an interface so it can be mocked
+public interface DAO {
+    void setTokenPair(TokenPair tokenPair);
+    Maybe<TokenPair> getTokenPair();
+    void setSession(Session session);
+    Maybe<Session> getSession();
+    void clearSession();
 }
-

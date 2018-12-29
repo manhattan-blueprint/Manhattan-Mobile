@@ -8,7 +8,7 @@ public class ResourceSet {
     @SerializedName("items")
     private ArrayList<Resource> items;
 
-    public ResourceSet(ArrayList<Resource> items){
+    public ResourceSet(ArrayList<Resource> items) {
         this.items = items;
     }
 
@@ -19,7 +19,7 @@ public class ResourceSet {
     @Override
     public boolean equals(Object obj) {
         boolean eq = false;
-        if (obj instanceof ResourceSet){
+        if (obj instanceof ResourceSet) {
             ResourceSet other = (ResourceSet) obj;
             eq = other.items.equals(items);
         }

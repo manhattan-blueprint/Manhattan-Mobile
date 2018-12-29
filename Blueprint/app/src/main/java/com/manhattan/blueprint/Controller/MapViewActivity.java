@@ -14,16 +14,14 @@ import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.Location;
-import com.manhattan.blueprint.Model.LoginManager;
-import com.manhattan.blueprint.Model.PermissionManager;
+import com.manhattan.blueprint.Model.Managers.LoginManager;
+import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.Model.ResourceSet;
 import com.manhattan.blueprint.R;
-import android.support.design.internal.*;
+
 import android.support.design.widget.*;
 import android.view.MenuItem;
-import android.content.Intent;
-import android.widget.TextView;
 
 import com.mapbox.android.gestures.StandardScaleGestureDetector;
 import com.mapbox.mapboxsdk.Mapbox;
@@ -42,11 +40,11 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import java.util.HashMap;
 
-public class MapViewActivity extends    AppCompatActivity
-                             implements OnMapReadyCallback,
-                                        MapboxMap.OnMarkerClickListener,
-                                        MapboxMap.OnScaleListener,
-                                        BottomNavigationView.OnNavigationItemSelectedListener {
+public class MapViewActivity extends AppCompatActivity
+        implements OnMapReadyCallback,
+        MapboxMap.OnMarkerClickListener,
+        MapboxMap.OnScaleListener,
+        BottomNavigationView.OnNavigationItemSelectedListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private BlueprintAPI blueprintAPI;
@@ -75,20 +73,20 @@ public class MapViewActivity extends    AppCompatActivity
         // If haven't logged in yet, or have revoked location, redirect
         PermissionManager locationManager = new PermissionManager(0, Manifest.permission.ACCESS_FINE_LOCATION);
         LoginManager loginManager = new LoginManager(this);
-        if (!loginManager.isLoggedIn()){
+        if (!loginManager.isLoggedIn()) {
             toOnboarding();
-        } else if (!locationManager.hasPermission(this)){
+        } else if (!locationManager.hasPermission(this)) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(MapViewActivity.this);
             dialog.setTitle("Location required");
             dialog.setMessage("Please grant access to your location so Blueprint can show resources around you.");
             dialog.setPositiveButton("Ok", (d, which) -> {
                 d.dismiss();
-                loginManager.setLoggedIn(false);
+                loginManager.logout();
                 toOnboarding();
             });
             dialog.create().show();
         } else {
-            blueprintAPI = new BlueprintAPI();
+            blueprintAPI = new BlueprintAPI(this);
             mapView.getMapAsync(this);
         }
     }
@@ -159,13 +157,13 @@ public class MapViewActivity extends    AppCompatActivity
         return true;
     }
 
-    private void addResources(android.location.Location location){
+    private void addResources(android.location.Location location) {
         Location blueprintLocation = new Location(location);
 
         blueprintAPI.makeRequest(blueprintAPI.resourceService.fetchResources(), new APICallback<ResourceSet>() {
             @Override
             public void success(ResourceSet response) {
-                for (Resource item : response.getItems()){
+                for (Resource item : response.getItems()) {
                     LatLng latLng = new LatLng(item.getLocation().getLatitude(),
                             item.getLocation().getLongitude());
                     IconFactory iconFactory = IconFactory.getInstance(MapViewActivity.this);
@@ -203,7 +201,8 @@ public class MapViewActivity extends    AppCompatActivity
 
     // region OnScaleListener
     @Override
-    public void onScaleBegin(@NonNull StandardScaleGestureDetector detector) { }
+    public void onScaleBegin(@NonNull StandardScaleGestureDetector detector) {
+    }
 
     @Override
     public void onScale(@NonNull StandardScaleGestureDetector detector) {
@@ -214,7 +213,8 @@ public class MapViewActivity extends    AppCompatActivity
     }
 
     @Override
-    public void onScaleEnd(@NonNull StandardScaleGestureDetector detector) { }
+    public void onScaleEnd(@NonNull StandardScaleGestureDetector detector) {
+    }
     // endregion
 
     // region Mapbox overrides

@@ -4,9 +4,12 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import com.manhattan.blueprint.Model.InventoryItem;
 import com.manhattan.blueprint.R;
+
 import java.util.List;
+
 import android.widget.TextView;
 
 public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.InventoryViewHolder> {

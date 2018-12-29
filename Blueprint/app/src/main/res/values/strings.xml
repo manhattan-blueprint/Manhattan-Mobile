@@ -2,15 +2,16 @@
     <string name="app_name">Blueprint</string>
     <string name="mapbox_map_style" translatable="false">mapbox://styles/jaylees/cjo8kdzej10ew2rl2e91ovdim</string>
     <string name="permission_location_title">Location Permission</string>
-    <string name="permission_location_description">Access to your location is required to show resources near you.</string>
+    <string name="permission_location_description">Access to your location is required to show resources near you</string>
     <string name="permission_camera_title">Camera Permission</string>
-    <string name="permission_camera_description">Please grant access to your camera so Blueprint can show resources around you.</string>
-    <string name="permission_camera_description_1">Access to your camera is required to show resources in Augmented Reality.</string>
+    <string name="permission_camera_description">Please grant access to your camera so Blueprint can show resources around you</string>
+    <string name="permission_camera_description_1">Access to your camera is required to show resources in Augmented Reality</string>
     <string name="ar_install_title">ARCore required!</string>
-    <string name="ar_install_description">We require ARCore to show you resources. Please install and try again.</string>
+    <string name="ar_install_description">We require ARCore to show you resources, please install and try again</string>
     <string name="whoops_title">Whoops!</string>
     <string name="whoops_description">Something went wrong: </string>
     <string name="collection_progress">Progress: %d %%</string>
     <string name="collection_success">You collected %d %s. Well done!</string>
-    <string name="collection_failure_title">Item collection failed!</string>
+    <string name="collection_failure_title">Item collection failed</string>
+    <string name="positive_response">OK</string>
 </resources>
