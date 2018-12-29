@@ -10,12 +10,12 @@ import io.realm.Realm;
 public class BlueprintDAO implements DAO {
     private static BlueprintDAO instance;
 
-    private BlueprintDAO(Context context){
+    private BlueprintDAO(Context context) {
         Realm.init(context);
     }
 
     public static BlueprintDAO getInstance(Context context) {
-        if (instance == null){
+        if (instance == null) {
             instance = new BlueprintDAO(context);
         }
         return instance;
@@ -23,7 +23,7 @@ public class BlueprintDAO implements DAO {
 
     // MARK: - Token Pairs
     @Override
-    public void setTokenPair(TokenPair tokenPair){
+    public void setTokenPair(TokenPair tokenPair) {
         Realm.getDefaultInstance().executeTransaction(realm -> {
             // Delete all current instances
             realm.where(TokenPair.class).findAll().deleteAllFromRealm();
@@ -32,13 +32,13 @@ public class BlueprintDAO implements DAO {
     }
 
     @Override
-    public Maybe<TokenPair> getTokenPair(){
+    public Maybe<TokenPair> getTokenPair() {
         return Maybe.of(Realm.getDefaultInstance().where(TokenPair.class).findFirst());
     }
 
     // MARK: - Session
     @Override
-    public void setSession(Session session){
+    public void setSession(Session session) {
         Realm.getDefaultInstance().executeTransaction(realm -> {
             // Delete all current instances
             realm.where(Session.class).findAll().deleteAllFromRealm();
@@ -47,12 +47,12 @@ public class BlueprintDAO implements DAO {
     }
 
     @Override
-    public Maybe<Session> getSession(){
+    public Maybe<Session> getSession() {
         return Maybe.of(Realm.getDefaultInstance().where(Session.class).findFirst());
     }
 
     @Override
-    public void clearSession(){
+    public void clearSession() {
         Realm.getDefaultInstance().executeTransaction(realm ->
                 realm.where(Session.class).findAll().deleteAllFromRealm());
     }

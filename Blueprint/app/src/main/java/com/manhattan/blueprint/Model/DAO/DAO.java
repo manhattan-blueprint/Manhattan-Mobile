@@ -7,7 +7,6 @@ import com.manhattan.blueprint.Model.TokenPair;
 public interface DAO {
     void setTokenPair(TokenPair tokenPair);
     Maybe<TokenPair> getTokenPair();
-
     void setSession(Session session);
     Maybe<Session> getSession();
     void clearSession();

@@ -12,7 +12,7 @@ public interface AuthenticateService {
     Call<TokenPair> login(@Body UserCredentials credentials);
 
     @POST("/authenticate/register")
-    Call<TokenPair> register(@Body UserCredentials credientials);
+    Call<TokenPair> register(@Body UserCredentials credentials);
 
     @POST("/authenticate/refresh")
     Call<TokenPair> refreshToken(@Body String refreshToken);

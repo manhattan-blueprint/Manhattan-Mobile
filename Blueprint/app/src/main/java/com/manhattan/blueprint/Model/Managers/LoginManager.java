@@ -15,16 +15,16 @@ public class LoginManager {
         this.context = context;
     }
 
-    public void login(String username){
+    public void login(String username) {
         Session session = new Session(username);
         BlueprintDAO.getInstance(context).setSession(session);
     }
 
-    public boolean isLoggedIn(){
+    public boolean isLoggedIn() {
         return BlueprintDAO.getInstance(context).getSession().isPresent();
     }
 
-    public void logout(){
+    public void logout() {
         BlueprintDAO.getInstance(context).clearSession();
     }
 }

@@ -41,19 +41,19 @@ public class LoginFragment extends Fragment {
         this.onSignupClickListener = onSignupClickListener;
     }
 
-    public String getUsername(){
+    public String getUsername() {
         return usernameInput.getText().toString();
     }
 
-    public String getPassword(){
+    public String getPassword() {
         return passwordInput.getText().toString();
     }
 
-    public void setUsernameInvalid(String description){
+    public void setUsernameInvalid(String description) {
         usernameInput.setError(description);
     }
 
-    public void setPasswordInvalid(String description){
+    public void setPasswordInvalid(String description) {
         passwordInput.setError(description);
     }
 }

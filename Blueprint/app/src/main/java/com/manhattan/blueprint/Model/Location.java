@@ -9,12 +9,12 @@ public class Location {
     @SerializedName("longitude")
     private double longitude;
 
-    public Location(double latitude, double longitude){
+    public Location(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
     }
 
-    public Location(android.location.Location location){
+    public Location(android.location.Location location) {
         this.latitude = location.getLatitude();
         this.longitude = location.getLongitude();
     }
@@ -31,7 +31,7 @@ public class Location {
     public boolean equals(Object obj) {
         boolean result = false;
 
-        if (obj instanceof Location){
+        if (obj instanceof Location) {
             Location other = (Location) obj;
             result = this.longitude == other.longitude && this.latitude == other.latitude;
         }

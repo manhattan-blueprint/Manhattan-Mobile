@@ -12,28 +12,36 @@ public class PermissionManager {
     private int permissionCode;
     private String permission;
 
-    public PermissionManager(int permissionCode, String permission){
-       this.permissionCode = permissionCode;
-       this.permission = permission;
+    public PermissionManager(int permissionCode, String permission) {
+        this.permissionCode = permissionCode;
+        this.permission = permission;
     }
 
-    /** Check to see we have the necessary permissions for this app. */
+    /**
+     * Check to see we have the necessary permissions for this app.
+     */
     public boolean hasPermission(Activity activity) {
         return ContextCompat.checkSelfPermission(activity, permission)
                 == PackageManager.PERMISSION_GRANTED;
     }
 
-    /** Check to see we have the necessary permissions for this app, and ask for them if we don't. */
+    /**
+     * Check to see we have the necessary permissions for this app, and ask for them if we don't.
+     */
     public void requestPermission(Activity activity) {
         ActivityCompat.requestPermissions(activity, new String[]{permission}, permissionCode);
     }
 
-    /** Check to see if we need to show the rationale for this permission. */
+    /**
+     * Check to see if we need to show the rationale for this permission.
+     */
     public boolean shouldShowRequestPermissionRationale(Activity activity) {
         return ActivityCompat.shouldShowRequestPermissionRationale(activity, permission);
     }
 
-    /** Launch Application Setting to grant permission. */
+    /**
+     * Launch Application Setting to grant permission.
+     */
     public void launchPermissionSettings(Activity activity) {
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);

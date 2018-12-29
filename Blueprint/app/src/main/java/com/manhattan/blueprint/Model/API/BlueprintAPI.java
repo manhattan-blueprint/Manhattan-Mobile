@@ -30,7 +30,7 @@ public final class BlueprintAPI {
 
     // Allow client dependency injection
     // This constructor should not be used anywhere other than tests
-    public BlueprintAPI(OkHttpClient client, DAO dao){
+    public BlueprintAPI(OkHttpClient client, DAO dao) {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseURL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -96,7 +96,7 @@ public final class BlueprintAPI {
     }
 
     // Signup requires a specific method so we can grab the auth token and store for later requests
-    public void signup(UserCredentials userCredentials, final APICallback<Void> callback){
+    public void signup(UserCredentials userCredentials, final APICallback<Void> callback) {
         authenticateService.register(userCredentials).enqueue(new Callback<TokenPair>() {
             @Override
             public void onResponse(Call<TokenPair> call, Response<TokenPair> response) {
@@ -162,6 +162,7 @@ public final class BlueprintAPI {
                                 originalCallback.failure(response.code(), response.message());
                             }
                         }
+
                         @Override
                         public void onFailure(@NotNull Call<T> call, @NotNull Throwable t) {
                             originalCallback.failure(-1, t.toString());

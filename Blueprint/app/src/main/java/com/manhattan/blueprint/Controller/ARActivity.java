@@ -2,6 +2,7 @@ package com.manhattan.blueprint.Controller;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -38,8 +39,8 @@ public class ARActivity extends AppCompatActivity {
     private Resource resourceToCollect;
 
     private final int tapsRequired = 5;
-    private int       collectCounter;
-    private boolean   itemWasPlaced;
+    private int collectCounter;
+    private boolean itemWasPlaced;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +49,7 @@ public class ARActivity extends AppCompatActivity {
 
         String jsonResource = (String) getIntent().getExtras().get("resource");
         Gson gson = new GsonBuilder().create();
-        resourceToCollect = gson.fromJson( jsonResource , Resource.class );
+        resourceToCollect = gson.fromJson(jsonResource, Resource.class);
 
         PermissionManager cameraPermissionManager = new PermissionManager(0, Manifest.permission.CAMERA);
         if (!cameraPermissionManager.hasPermission(this)) {
@@ -80,12 +81,12 @@ public class ARActivity extends AppCompatActivity {
             }
         } catch (UnavailableUserDeclinedInstallationException e) {
             createDialog(getString(R.string.ar_install_title),
-                         getString(R.string.ar_install_description),
-                        (dialog, which) -> finish());
+                    getString(R.string.ar_install_description),
+                    (dialog, which) -> finish());
         } catch (Exception e) {
             createDialog(getString(R.string.whoops_title),
                     getString(R.string.whoops_description) + e.toString(),
-                        (dialog, which) -> finish());
+                    (dialog, which) -> finish());
         }
     }
 
@@ -112,7 +113,7 @@ public class ARActivity extends AppCompatActivity {
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
                     if (testViewRenderable == null) {
                         return;
-                    } else if(!itemWasPlaced) {
+                    } else if (!itemWasPlaced) {
                         // Create the Anchor.
                         Anchor anchor = hitResult.createAnchor();
                         AnchorNode anchorNode = new AnchorNode(anchor);
@@ -137,12 +138,12 @@ public class ARActivity extends AppCompatActivity {
     }
 
     private void onResourceTapped() {
-        if(collectCounter > 0) {
+        if (collectCounter > 0) {
             int progress = ((tapsRequired - collectCounter) * 100) / tapsRequired;
             String progress_msg = String.format(getString(R.string.collection_progress), progress);
             Toast.makeText(this, progress_msg, Toast.LENGTH_SHORT).show();
             collectCounter--;
-        } else if(collectCounter == 0) {
+        } else if (collectCounter == 0) {
             InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), tapsRequired);
             BlueprintAPI api = new BlueprintAPI(this);
             api.makeRequest(api.inventoryService.addToInventory(itemCollected), new APICallback<Void>() {
@@ -161,7 +162,7 @@ public class ARActivity extends AppCompatActivity {
         }
     }
 
-    private void createDialog(String title, String message, DialogInterface.OnClickListener onClick){
+    private void createDialog(String title, String message, DialogInterface.OnClickListener onClick) {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(ARActivity.this);
         alertDialog.setTitle(title);
         alertDialog.setMessage(message);

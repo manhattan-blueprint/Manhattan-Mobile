@@ -9,7 +9,7 @@ public class InventoryItem {
     @SerializedName("quantity")
     private int quantity;
 
-    public InventoryItem(String id, int quantity){
+    public InventoryItem(String id, int quantity) {
         this.id = id;
         this.quantity = quantity;
     }
@@ -25,7 +25,7 @@ public class InventoryItem {
     @Override
     public boolean equals(Object obj) {
         boolean result = false;
-        if (obj instanceof InventoryItem){
+        if (obj instanceof InventoryItem) {
             InventoryItem other = (InventoryItem) obj;
             result = this.id.equals(other.id) && this.quantity == other.quantity;
         }

@@ -109,7 +109,7 @@ public class OnboardingActivity extends FragmentActivity {
 
 
     // OnClickHandlers
-    private View.OnClickListener welcomeClick(){
+    private View.OnClickListener welcomeClick() {
         return v -> {
             // Restore state where user left off
             if (locationPermissionManager.hasPermission(OnboardingActivity.this) && cameraPermissionManager.hasPermission(OnboardingActivity.this)) {
@@ -125,7 +125,7 @@ public class OnboardingActivity extends FragmentActivity {
         };
     }
 
-    private View.OnClickListener permissionClick(PermissionManager permissionManager){
+    private View.OnClickListener permissionClick(PermissionManager permissionManager) {
         return v -> {
             if (permissionManager.hasPermission(this)) {
                 pager.setCurrentItem(pager.getCurrentItem() + 1);
@@ -135,7 +135,7 @@ public class OnboardingActivity extends FragmentActivity {
         };
     }
 
-    private View.OnClickListener loginClick(){
+    private View.OnClickListener loginClick() {
         return v -> {
             String usernameText = loginFragment.getUsername();
             String passwordText = loginFragment.getPassword();
@@ -164,17 +164,17 @@ public class OnboardingActivity extends FragmentActivity {
                 @Override
                 public void failure(int code, String error) {
                     AlertDialog.Builder failedLoginDlg = new AlertDialog.Builder(OnboardingActivity.this);
-                    failedLoginDlg.setTitle("Login failed.");
+                    failedLoginDlg.setTitle("Login failed");
                     failedLoginDlg.setMessage(error);
                     failedLoginDlg.setCancelable(true);
-                    failedLoginDlg.setPositiveButton("Ok", (dialog, which) -> dialog.dismiss());
+                    failedLoginDlg.setPositiveButton(R.string.positive_response, (dialog, which) -> dialog.dismiss());
                     failedLoginDlg.create().show();
                 }
             });
         };
     }
 
-    private View.OnClickListener signupClick(){
+    private View.OnClickListener signupClick() {
         return v -> {
             String usernameText = signupFragment.getUsername();
             String passwordText = signupFragment.getPassword();
@@ -203,10 +203,10 @@ public class OnboardingActivity extends FragmentActivity {
                 @Override
                 public void failure(int code, String error) {
                     AlertDialog.Builder failedLoginDlg = new AlertDialog.Builder(OnboardingActivity.this);
-                    failedLoginDlg.setTitle("Login failed.");
+                    failedLoginDlg.setTitle("Sign up failed");
                     failedLoginDlg.setMessage(error);
                     failedLoginDlg.setCancelable(true);
-                    failedLoginDlg.setPositiveButton("Ok", (dialog, which) -> dialog.dismiss());
+                    failedLoginDlg.setPositiveButton(R.string.positive_response, (dialog, which) -> dialog.dismiss());
                     failedLoginDlg.create().show();
                 }
             });
@@ -214,13 +214,13 @@ public class OnboardingActivity extends FragmentActivity {
         };
     }
 
-    private View.OnClickListener toSignupClick(){
+    private View.OnClickListener toSignupClick() {
         return v -> {
             pager.setCurrentItem(SIGNUP);
         };
     }
 
-    private View.OnClickListener toLoginClick(){
+    private View.OnClickListener toLoginClick() {
         return v -> {
             pager.setCurrentItem(LOGIN);
         };
@@ -228,29 +228,29 @@ public class OnboardingActivity extends FragmentActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
-        case LOCATION_PERMISSION:
-            if (locationPermissionManager.hasPermission(this)){
-                // If we somehow already have camera permissions, we can skip it
-                int offset = cameraPermissionManager.hasPermission(this) ? 2 : 1;
-                pager.setCurrentItem(pager.getCurrentItem() + offset);
-            } else if (!locationPermissionManager.shouldShowRequestPermissionRationale(this)) {
-                // If tapped "Do not show again"
-                locationPermissionManager.launchPermissionSettings(this);
-            } else {
-                Toast.makeText(this, "Location permissions are needed to run this application", Toast.LENGTH_LONG).show();
-            }
-            break;
-        case CAMERA_PERMISSION:
-            if (cameraPermissionManager.hasPermission(this)){
-                pager.setCurrentItem(pager.getCurrentItem() + 1);
-            } else if (!cameraPermissionManager.shouldShowRequestPermissionRationale(this)) {
-                // If tapped "Do not show again"
-                cameraPermissionManager.launchPermissionSettings(this);
-            } else {
-                Toast.makeText(this, "Camera permissions are needed to run this application", Toast.LENGTH_LONG).show();
-            }
-            break;
+        switch (requestCode) {
+            case LOCATION_PERMISSION:
+                if (locationPermissionManager.hasPermission(this)) {
+                    // If we somehow already have camera permissions, we can skip it
+                    int offset = cameraPermissionManager.hasPermission(this) ? 2 : 1;
+                    pager.setCurrentItem(pager.getCurrentItem() + offset);
+                } else if (!locationPermissionManager.shouldShowRequestPermissionRationale(this)) {
+                    // If tapped "Do not show again"
+                    locationPermissionManager.launchPermissionSettings(this);
+                } else {
+                    Toast.makeText(this, R.string.permission_location_description, Toast.LENGTH_LONG).show();
+                }
+                break;
+            case CAMERA_PERMISSION:
+                if (cameraPermissionManager.hasPermission(this)) {
+                    pager.setCurrentItem(pager.getCurrentItem() + 1);
+                } else if (!cameraPermissionManager.shouldShowRequestPermissionRationale(this)) {
+                    // If tapped "Do not show again"
+                    cameraPermissionManager.launchPermissionSettings(this);
+                } else {
+                    Toast.makeText(this, R.string.permission_camera_description, Toast.LENGTH_LONG).show();
+                }
+                break;
         }
     }
 }

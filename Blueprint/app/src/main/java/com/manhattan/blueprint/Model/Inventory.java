@@ -9,7 +9,7 @@ public class Inventory {
     @SerializedName("items")
     private ArrayList<InventoryItem> items;
 
-    public Inventory(ArrayList<InventoryItem> items){
+    public Inventory(ArrayList<InventoryItem> items) {
         this.items = items;
     }
 
@@ -20,7 +20,7 @@ public class Inventory {
     @Override
     public boolean equals(Object obj) {
         boolean eq = false;
-        if (obj instanceof Inventory){
+        if (obj instanceof Inventory) {
             Inventory other = (Inventory) obj;
             eq = other.getItems().equals(items);
         }
