@@ -143,7 +143,7 @@ public class OnboardingActivity extends FragmentActivity {
 
             // Validate user input
             if (usernameText.isEmpty() || usernameText.length() > 16) {
-                loginFragment.setUsernameInvalid("Empty Username");
+                loginFragment.setUsernameInvalid("Invalid Username");
                 return;
             } else if (!isValidPassword(passwordText)) {
                 loginFragment.setPasswordInvalid("Invalid Password");
@@ -182,7 +182,7 @@ public class OnboardingActivity extends FragmentActivity {
 
             // Validate user input
             if (usernameText.isEmpty() || usernameText.length() > 16) {
-                signupFragment.setUsernameInvalid("Empty Username");
+                signupFragment.setUsernameInvalid("Invalid Username");
                 return;
             } else if (!isValidPassword(passwordText)) {
                 signupFragment.setPasswordInvalid("Invalid password");
