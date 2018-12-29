@@ -24,6 +24,8 @@ import com.manhattan.blueprint.View.PermissionFragment;
 import com.manhattan.blueprint.View.SignupFragment;
 import com.manhattan.blueprint.View.WelcomeFragment;
 
+import java.util.regex.Pattern;
+
 public class OnboardingActivity extends FragmentActivity {
     private static final int PAGE_COUNT = 5;
     // PageIDs
@@ -140,11 +142,11 @@ public class OnboardingActivity extends FragmentActivity {
             String passwordText = loginFragment.getPassword();
 
             // Validate user input
-            if (usernameText.isEmpty()) {
+            if (usernameText.isEmpty() || usernameText.length() > 16) {
                 loginFragment.setUsernameInvalid("Empty Username");
                 return;
-            } else if (passwordText.isEmpty()) {
-                loginFragment.setPasswordInvalid("Empty Password");
+            } else if (!isValidPassword(passwordText)) {
+                loginFragment.setPasswordInvalid("Invalid Password");
                 return;
             }
 
@@ -179,11 +181,11 @@ public class OnboardingActivity extends FragmentActivity {
             String passwordText = signupFragment.getPassword();
 
             // Validate user input
-            if (usernameText.isEmpty()) {
+            if (usernameText.isEmpty() || usernameText.length() > 16) {
                 signupFragment.setUsernameInvalid("Empty Username");
                 return;
-            } else if (passwordText.isEmpty()) {
-                signupFragment.setPasswordInvalid("Empty Password");
+            } else if (!isValidPassword(passwordText)) {
+                signupFragment.setPasswordInvalid("Invalid password");
                 return;
             }
 
@@ -211,6 +213,11 @@ public class OnboardingActivity extends FragmentActivity {
             });
 
         };
+    }
+
+    private boolean isValidPassword(String password) {
+        Pattern pattern = Pattern.compile(getResources().getString(R.string.password_regex));
+        return pattern.matcher(password).matches();
     }
 
     private View.OnClickListener toSignupClick() {

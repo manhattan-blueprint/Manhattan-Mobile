@@ -14,4 +14,6 @@
     <string name="collection_success">You collected %d %s. Well done!</string>
     <string name="collection_failure_title">Item collection failed</string>
     <string name="positive_response">OK</string>
+
+    <string name="password_regex">(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{5,16}</string>
 </resources>
