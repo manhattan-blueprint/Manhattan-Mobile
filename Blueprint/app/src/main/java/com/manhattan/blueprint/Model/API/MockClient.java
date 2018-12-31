@@ -3,6 +3,8 @@ package com.manhattan.blueprint.Model.API;
 import com.google.gson.Gson;
 import com.manhattan.blueprint.Model.MockData;
 
+import java.net.HttpURLConnection;
+
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
@@ -25,7 +27,7 @@ public final class MockClient {
             Request original = chain.request();
             String requestURL = original.url().toString();
             String json = "";
-            int code = 200;
+            int code = HttpURLConnection.HTTP_OK;
 
             if (requestURL.contains("authenticate")) {
                 if (requestURL.contains("refresh")) {
@@ -37,7 +39,7 @@ public final class MockClient {
                 json = original.method() == "POST" ? "" : gson.toJson(MockData.inventory);
             } else if (requestURL.contains("resources")) {
                 if (!hasRejectedResourcesCall) {
-                    code = 401;
+                    code = HttpURLConnection.HTTP_UNAUTHORIZED;
                     json = gson.toJson(new APIError("Invalid auth token"));
                 } else {
                     json = gson.toJson(MockData.resourceSet);

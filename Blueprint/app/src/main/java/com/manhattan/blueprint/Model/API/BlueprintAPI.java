@@ -14,6 +14,7 @@ import com.manhattan.blueprint.Model.UserCredentials;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
@@ -90,7 +91,7 @@ public final class BlueprintAPI {
         authenticateService.login(userCredentials).enqueue(new Callback<TokenPair>() {
             @Override
             public void onResponse(@NotNull Call<TokenPair> call, @NotNull Response<TokenPair> response) {
-                if (response.code() == 200) {
+                if (response.code() == HttpURLConnection.HTTP_OK) {
                     dao.setTokenPair(response.body());
                     callback.success(null);
                 } else {
@@ -115,7 +116,7 @@ public final class BlueprintAPI {
         authenticateService.register(userCredentials).enqueue(new Callback<TokenPair>() {
             @Override
             public void onResponse(Call<TokenPair> call, Response<TokenPair> response) {
-                if (response.code() == 200) {
+                if (response.code() == HttpURLConnection.HTTP_OK) {
                     dao.setTokenPair(response.body());
                     callback.success(null);
                 } else {
@@ -141,10 +142,10 @@ public final class BlueprintAPI {
         call.enqueue(new Callback<T>() {
             @Override
             public void onResponse(@NotNull Call<T> call, @NotNull Response<T> response) {
-                if (response.code() == 401) {
+                if (response.code() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                     // Unauthorized request - will refresh token and try again
                     refreshToken(call, callback);
-                } else if (response.code() == 200) {
+                } else if (response.code() == HttpURLConnection.HTTP_OK) {
                     callback.success(response.body());
                 } else {
                     try {
@@ -166,7 +167,7 @@ public final class BlueprintAPI {
 
     private <T> void refreshToken(final Call<T> originalCall, final APICallback<T> originalCallback) {
         if (!dao.getTokenPair().isPresent()) {
-            originalCallback.failure(401, "No token pair");
+            originalCallback.failure(HttpURLConnection.HTTP_UNAUTHORIZED, "No token pair");
             return;
         }
         TokenPair tokenPair = dao.getTokenPair().get();
@@ -174,14 +175,14 @@ public final class BlueprintAPI {
         authenticateService.refreshToken(tokenPair.getRefreshToken()).enqueue(new Callback<TokenPair>() {
             @Override
             public void onResponse(@NotNull Call<TokenPair> call, @NotNull Response<TokenPair> response) {
-                if (response.code() == 200) {
+                if (response.code() == HttpURLConnection.HTTP_OK) {
                     // Persist new token
                     dao.setTokenPair(response.body());
                     // Repeat original request, must clone to remove "executed" status
                     originalCall.clone().enqueue(new Callback<T>() {
                         @Override
                         public void onResponse(@NotNull Call<T> call, @NotNull Response<T> response) {
-                            if (response.code() == 200) {
+                            if (response.code() == HttpURLConnection.HTTP_OK) {
                                 originalCallback.success(response.body());
                             } else {
                                 try {

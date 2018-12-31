@@ -137,16 +137,17 @@ public class OnboardingActivity extends FragmentActivity {
     }
 
     private View.OnClickListener loginClick() {
+        final int maxUsernameLength = 16;
         return v -> {
             String usernameText = loginFragment.getUsername();
             String passwordText = loginFragment.getPassword();
 
             // Validate user input
-            if (usernameText.isEmpty() || usernameText.length() > 16) {
-                loginFragment.setUsernameInvalid("Invalid Username");
+            if (usernameText.isEmpty() || usernameText.length() > maxUsernameLength) {
+                loginFragment.setUsernameInvalid(getString(R.string.invalid_username));
                 return;
             } else if (!isValidPassword(passwordText)) {
-                loginFragment.setPasswordInvalid("Invalid Password");
+                loginFragment.setPasswordInvalid(getString(R.string.invalid_password));
                 return;
             }
 
