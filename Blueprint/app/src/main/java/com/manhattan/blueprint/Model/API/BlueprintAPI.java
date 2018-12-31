@@ -177,8 +177,8 @@ public final class BlueprintAPI {
                 if (response.code() == 200) {
                     // Persist new token
                     dao.setTokenPair(response.body());
-                    // Repeat original request
-                    originalCall.enqueue(new Callback<T>() {
+                    // Repeat original request, must clone to remove "executed" status
+                    originalCall.clone().enqueue(new Callback<T>() {
                         @Override
                         public void onResponse(@NotNull Call<T> call, @NotNull Response<T> response) {
                             if (response.code() == 200) {

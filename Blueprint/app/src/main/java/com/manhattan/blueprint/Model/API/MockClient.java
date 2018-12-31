@@ -13,6 +13,10 @@ import okhttp3.ResponseBody;
 public final class MockClient {
     public OkHttpClient client;
 
+    // For testing purposes, we first reject any calls to the resources end point, forcing a token
+    // refresh. This means, although not ideal, the mock client stores state
+    private boolean hasRejectedResourcesCall = false;
+
     public MockClient() {
         Gson gson = new Gson();
         OkHttpClient.Builder mockClient = new OkHttpClient.Builder();
@@ -21,17 +25,28 @@ public final class MockClient {
             Request original = chain.request();
             String requestURL = original.url().toString();
             String json = "";
+            int code = 200;
 
             if (requestURL.contains("authenticate")) {
-                json = gson.toJson(MockData.tokenPair);
+                if (requestURL.contains("refresh")){
+                    json = gson.toJson(MockData.refreshTokenPair);
+                } else {
+                    json = gson.toJson(MockData.tokenPair);
+                }
             } else if (requestURL.contains("inventory")) {
                 json = original.method() == "POST" ? "" : gson.toJson(MockData.inventory);
             } else if (requestURL.contains("resources")) {
-                json = gson.toJson(MockData.resourceSet);
+                if (!hasRejectedResourcesCall){
+                    code = 401;
+                    json = gson.toJson(new APIError("Invalid auth token"));
+                } else {
+                    json = gson.toJson(MockData.resourceSet);
+                }
+                hasRejectedResourcesCall = !hasRejectedResourcesCall;
             }
 
             return responseBuilder
-                    .code(200)
+                    .code(code)
                     .protocol(Protocol.HTTP_1_1)
                     .body(ResponseBody.create(MediaType.parse("json"), json))
                     .message("")
