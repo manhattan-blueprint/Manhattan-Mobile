@@ -10,7 +10,7 @@ public class APIError {
         this.error = error;
     }
 
-    public String getError(String error) {
+    public String getError() {
         return error;
     }
 }
