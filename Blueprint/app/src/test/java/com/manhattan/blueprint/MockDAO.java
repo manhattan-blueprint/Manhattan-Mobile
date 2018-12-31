@@ -12,7 +12,7 @@ import com.manhattan.blueprint.Model.TokenPair;
 public class MockDAO implements DAO {
     private TokenPair mockTokenPair;
 
-    public MockDAO(){
+    public MockDAO() {
         this.mockTokenPair = new TokenPair("abc", "def");
     }
 

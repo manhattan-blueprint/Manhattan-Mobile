@@ -6,11 +6,11 @@ public class APIError {
     @SerializedName("error")
     private String error;
 
-    public APIError(String error){
+    public APIError(String error) {
         this.error = error;
     }
 
-    public String getError() {
+    public String getError(String error) {
         return error;
     }
 }

@@ -28,7 +28,7 @@ public final class MockClient {
             int code = 200;
 
             if (requestURL.contains("authenticate")) {
-                if (requestURL.contains("refresh")){
+                if (requestURL.contains("refresh")) {
                     json = gson.toJson(MockData.refreshTokenPair);
                 } else {
                     json = gson.toJson(MockData.tokenPair);
@@ -36,7 +36,7 @@ public final class MockClient {
             } else if (requestURL.contains("inventory")) {
                 json = original.method() == "POST" ? "" : gson.toJson(MockData.inventory);
             } else if (requestURL.contains("resources")) {
-                if (!hasRejectedResourcesCall){
+                if (!hasRejectedResourcesCall) {
                     code = 401;
                     json = gson.toJson(new APIError("Invalid auth token"));
                 } else {

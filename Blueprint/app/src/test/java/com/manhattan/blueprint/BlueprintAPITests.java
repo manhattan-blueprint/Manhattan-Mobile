@@ -113,7 +113,6 @@ public class BlueprintAPITests {
 
         // Validate updated DAO token
         assertEquals(mockDAO.getTokenPair().get(), MockData.refreshTokenPair);
-
     }
 
     // Validate that a resource can be added
