@@ -29,6 +29,8 @@ public final class MockClient {
             String json = "";
             int code = HttpURLConnection.HTTP_OK;
 
+
+
             if (requestURL.contains("authenticate")) {
                 if (requestURL.contains("refresh")) {
                     json = gson.toJson(MockData.refreshTokenPair);

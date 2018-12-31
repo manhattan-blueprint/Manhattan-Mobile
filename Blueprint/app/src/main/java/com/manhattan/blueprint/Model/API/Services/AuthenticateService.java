@@ -1,5 +1,6 @@
 package com.manhattan.blueprint.Model.API.Services;
 
+import com.manhattan.blueprint.Model.RefreshBody;
 import com.manhattan.blueprint.Model.TokenPair;
 import com.manhattan.blueprint.Model.UserCredentials;
 
@@ -15,5 +16,5 @@ public interface AuthenticateService {
     Call<TokenPair> register(@Body UserCredentials credentials);
 
     @POST("authenticate/refresh")
-    Call<TokenPair> refreshToken(@Body String refreshToken);
+    Call<TokenPair> refreshToken(@Body RefreshBody refresh);
 }

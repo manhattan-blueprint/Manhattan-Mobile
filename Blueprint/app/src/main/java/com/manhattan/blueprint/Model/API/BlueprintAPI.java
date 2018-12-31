@@ -8,6 +8,7 @@ import com.manhattan.blueprint.Model.API.Services.InventoryService;
 import com.manhattan.blueprint.Model.API.Services.ResourceService;
 import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
 import com.manhattan.blueprint.Model.DAO.DAO;
+import com.manhattan.blueprint.Model.RefreshBody;
 import com.manhattan.blueprint.Model.TokenPair;
 import com.manhattan.blueprint.Model.UserCredentials;
 
@@ -172,7 +173,7 @@ public final class BlueprintAPI {
         }
         TokenPair tokenPair = dao.getTokenPair().get();
 
-        authenticateService.refreshToken(tokenPair.getRefreshToken()).enqueue(new Callback<TokenPair>() {
+        authenticateService.refreshToken(new RefreshBody(tokenPair.getRefreshToken())).enqueue(new Callback<TokenPair>() {
             @Override
             public void onResponse(@NotNull Call<TokenPair> call, @NotNull Response<TokenPair> response) {
                 if (response.code() == HttpURLConnection.HTTP_OK) {
@@ -200,7 +201,12 @@ public final class BlueprintAPI {
                         }
                     });
                 } else {
-                    originalCallback.failure(response.code(), "Could not refresh token");
+                    try {
+                        APIError error = new Gson().fromJson(response.errorBody().string(), APIError.class);
+                        originalCallback.failure(response.code(), error.getError());
+                    } catch (IOException e) {
+                        originalCallback.failure(response.code(), "An unknown error occurred");
+                    }
                 }
             }
 
