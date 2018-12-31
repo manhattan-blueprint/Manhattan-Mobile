@@ -35,6 +35,7 @@ public class OnboardingActivity extends FragmentActivity {
     private static final int LOGIN = 3;
     private static final int SIGNUP = 4;
 
+    private final int maxUsernameLength = 16;
     private ControlledViewPager pager;
     private PermissionManager locationPermissionManager;
     private PermissionManager cameraPermissionManager;
@@ -137,7 +138,6 @@ public class OnboardingActivity extends FragmentActivity {
     }
 
     private View.OnClickListener loginClick() {
-        final int maxUsernameLength = 16;
         return v -> {
             String usernameText = loginFragment.getUsername();
             String passwordText = loginFragment.getPassword();
@@ -182,11 +182,11 @@ public class OnboardingActivity extends FragmentActivity {
             String passwordText = signupFragment.getPassword();
 
             // Validate user input
-            if (usernameText.isEmpty() || usernameText.length() > 16) {
-                signupFragment.setUsernameInvalid("Invalid Username");
+            if (usernameText.isEmpty() || usernameText.length() > maxUsernameLength) {
+                signupFragment.setUsernameInvalid(getString(R.string.invalid_username));
                 return;
             } else if (!isValidPassword(passwordText)) {
-                signupFragment.setPasswordInvalid("Invalid password");
+                signupFragment.setPasswordInvalid(getString(R.string.invalid_password));
                 return;
             }
 
