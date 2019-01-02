@@ -9,7 +9,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -25,6 +24,8 @@ import com.manhattan.blueprint.View.PermissionFragment;
 import com.manhattan.blueprint.View.SignupFragment;
 import com.manhattan.blueprint.View.WelcomeFragment;
 
+import java.util.regex.Pattern;
+
 public class OnboardingActivity extends FragmentActivity {
     private static final int PAGE_COUNT = 5;
     // PageIDs
@@ -34,6 +35,7 @@ public class OnboardingActivity extends FragmentActivity {
     private static final int LOGIN = 3;
     private static final int SIGNUP = 4;
 
+    private final int maxUsernameLength = 16;
     private ControlledViewPager pager;
     private PermissionManager locationPermissionManager;
     private PermissionManager cameraPermissionManager;
@@ -141,11 +143,11 @@ public class OnboardingActivity extends FragmentActivity {
             String passwordText = loginFragment.getPassword();
 
             // Validate user input
-            if (usernameText.isEmpty()) {
-                loginFragment.setUsernameInvalid("Empty Username");
+            if (usernameText.isEmpty() || usernameText.length() > maxUsernameLength) {
+                loginFragment.setUsernameInvalid(getString(R.string.invalid_username));
                 return;
-            } else if (passwordText.isEmpty()) {
-                loginFragment.setPasswordInvalid("Empty Password");
+            } else if (!isValidPassword(passwordText)) {
+                loginFragment.setPasswordInvalid(getString(R.string.invalid_password));
                 return;
             }
 
@@ -180,11 +182,11 @@ public class OnboardingActivity extends FragmentActivity {
             String passwordText = signupFragment.getPassword();
 
             // Validate user input
-            if (usernameText.isEmpty()) {
-                signupFragment.setUsernameInvalid("Empty Username");
+            if (usernameText.isEmpty() || usernameText.length() > maxUsernameLength) {
+                signupFragment.setUsernameInvalid(getString(R.string.invalid_username));
                 return;
-            } else if (passwordText.isEmpty()) {
-                signupFragment.setPasswordInvalid("Empty Password");
+            } else if (!isValidPassword(passwordText)) {
+                signupFragment.setPasswordInvalid(getString(R.string.invalid_password));
                 return;
             }
 
@@ -212,6 +214,11 @@ public class OnboardingActivity extends FragmentActivity {
             });
 
         };
+    }
+
+    private boolean isValidPassword(String password) {
+        Pattern pattern = Pattern.compile(getResources().getString(R.string.password_regex));
+        return pattern.matcher(password).matches();
     }
 
     private View.OnClickListener toSignupClick() {

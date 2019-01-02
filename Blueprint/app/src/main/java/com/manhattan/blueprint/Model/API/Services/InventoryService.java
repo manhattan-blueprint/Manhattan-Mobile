@@ -9,9 +9,9 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 
 public interface InventoryService {
-    @GET("/inventory")
+    @GET("inventory")
     Call<Inventory> fetchInventory();
 
-    @POST("/inventory")
+    @POST("inventory")
     Call<Void> addToInventory(@Body InventoryItem item);
 }
