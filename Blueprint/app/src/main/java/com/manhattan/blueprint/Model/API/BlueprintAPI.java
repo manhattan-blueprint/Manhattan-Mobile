@@ -1,6 +1,7 @@
 package com.manhattan.blueprint.Model.API;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.manhattan.blueprint.Model.API.Services.AuthenticateService;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -30,61 +32,71 @@ public final class BlueprintAPI {
     public InventoryService inventoryService;
     public ResourceService resourceService;
 
-    private String baseURL = "http://smithwjv.ddns.net:8000/api/v1/";
+    private static String baseURL = "http://smithwjv.ddns.net";
+    private static String baseAuthenticateURL = baseURL + ":8000/api/v1/";
+    private static String baseInventoryURL = baseURL + ":8001/api/v1/";
+    private static String baseResourceURL = baseURL + ":8002/api/v1/";
     private DAO dao;
 
     // Allow client dependency injection
     // This constructor should not be used anywhere other than tests
     public BlueprintAPI(OkHttpClient client, DAO dao) {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(baseURL)
+        this.authenticateService = new Retrofit.Builder()
+                .baseUrl(baseAuthenticateURL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(client)
-                .build();
+                .build().create(AuthenticateService.class);
 
-        this.authenticateService = retrofit.create(AuthenticateService.class);
-        this.inventoryService = retrofit.create(InventoryService.class);
-        this.resourceService = retrofit.create(ResourceService.class);
+        this.inventoryService = new Retrofit.Builder()
+                .baseUrl(baseInventoryURL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(client)
+                .build().create(InventoryService.class);
+
+        this.resourceService = new Retrofit.Builder()
+                .baseUrl(baseResourceURL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(client)
+                .build().create(ResourceService.class);
+
         this.dao = dao;
     }
 
     // Standard constructor
     public BlueprintAPI(Context context) {
-        /*
         // Intercept requests and add authorization header
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
         httpClient.addInterceptor(chain -> {
             Request original = chain.request();
-            Request request = original.newBuilder()
-                    .header("Authorization", "Bearer" + DAO.instance.getCurrentToken())
-                    .method(original.method(), original.body())
-                    .build();
-            return chain.proceed(request);
+            Request.Builder builder= original
+                    .newBuilder()
+                    .method(original.method(), original.body());
+
+            dao.getTokenPair().ifPresent(token ->
+                builder.header("Authorization", "Bearer " + token.getAccessToken())
+            );
+
+            return chain.proceed(builder.build());
         });
 
-        // Authorized requests
-        Retrofit authRetrofit = new Retrofit.Builder()
-                .baseUrl(baseURL)
+        this.authenticateService = new Retrofit.Builder()
+                .baseUrl(baseAuthenticateURL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient.build())
-                .build();
-        */
+                .build().create(AuthenticateService.class);
 
-        // Currently only authenticate is implemented
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(baseURL)
+        this.resourceService = new Retrofit.Builder()
+                .baseUrl(baseResourceURL)
                 .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        this.authenticateService = retrofit.create(AuthenticateService.class);
+                .client(httpClient.build())
+                .build().create(ResourceService.class);
 
-        // TODO: Replace once implemented on server side
-        Retrofit mockRetrofit = new Retrofit.Builder()
-                .baseUrl(baseURL)
+        this.inventoryService = new Retrofit.Builder()
+                .baseUrl(baseInventoryURL)
                 .addConverterFactory(GsonConverterFactory.create())
-                .client(new MockClient().client)
-                .build();
-        this.inventoryService = mockRetrofit.create(InventoryService.class);
-        this.resourceService = mockRetrofit.create(ResourceService.class);
+                .client(httpClient.build())
+                .build().create(InventoryService.class);
+
         this.dao = BlueprintDAO.getInstance(context);
     }
 
@@ -159,6 +171,7 @@ public final class BlueprintAPI {
 
     // Generic request method
     public <T> void makeRequest(Call<T> call, final APICallback<T> callback) {
+        Log.d("REQUEST", call.request().url().toString());
         // Make request
         call.enqueue(new Callback<T>() {
             @Override

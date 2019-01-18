@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 
 public class ResourceSet {
-    @SerializedName("items")
+    @SerializedName("spawns")
     private ArrayList<Resource> items;
 
     public ResourceSet(ArrayList<Resource> items) {
