@@ -17,6 +17,7 @@ import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
 import com.manhattan.blueprint.Model.DAO.DAO;
 import com.manhattan.blueprint.Model.DAO.Maybe;
 import com.manhattan.blueprint.Model.Location;
+import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.LoginManager;
 import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
@@ -52,6 +53,7 @@ public class MapViewActivity extends AppCompatActivity
     private MapView mapView;
     private MapboxMap mapboxMap;
     private BlueprintAPI blueprintAPI;
+    private ItemManager itemManager;
 
     private BottomNavigationView bottomView;
     HashMap<Marker, Resource> markerResourceMap = new HashMap<>();
@@ -79,6 +81,7 @@ public class MapViewActivity extends AppCompatActivity
         LoginManager loginManager = new LoginManager(this);
         if (!loginManager.isLoggedIn()) {
             toOnboarding();
+            return;
         } else if (!locationManager.hasPermission(this)) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(MapViewActivity.this);
             dialog.setTitle("Location required");
@@ -89,10 +92,28 @@ public class MapViewActivity extends AppCompatActivity
                 toOnboarding();
             });
             dialog.create().show();
-        } else {
-            blueprintAPI = new BlueprintAPI(this);
-            mapView.getMapAsync(this);
+            return;
         }
+
+        // Load data required
+        blueprintAPI = new BlueprintAPI(this);
+        itemManager = ItemManager.getInstance(this);
+        itemManager.fetchData(new APICallback<Void>() {
+            @Override
+            public void success(Void response) {
+                mapView.getMapAsync(MapViewActivity.this);
+            }
+
+            @Override
+            public void failure(int code, String error) {
+                new AlertDialog
+                        .Builder(MapViewActivity.this, android.R.style.Theme_Material_Dialog_Alert)
+                        .setTitle("Whoops! Could not fetch resource schema")
+                        .setMessage(error)
+                        .setNegativeButton(android.R.string.ok, null)
+                        .show();
+            }
+        });
     }
 
     private void toOnboarding() {
@@ -162,8 +183,6 @@ public class MapViewActivity extends AppCompatActivity
     }
 
     private void addResources(android.location.Location location) {
-        Location blueprintLocation = new Location(location);
-
         blueprintAPI.makeRequest(blueprintAPI.resourceService.fetchResources(), new APICallback<ResourceSet>() {
             @Override
             public void success(ResourceSet response) {
@@ -173,7 +192,7 @@ public class MapViewActivity extends AppCompatActivity
                     IconFactory iconFactory = IconFactory.getInstance(MapViewActivity.this);
                     Marker marker = mapboxMap.addMarker(new MarkerOptions()
                             .position(latLng)
-                            .title("ITEM " + item.getId())
+                            .title(itemManager.getName(item.getId()).getWithDefault("Item " + item.getId()))
                             .icon(iconFactory.fromResource(R.drawable.resource_default)));
                     markerResourceMap.put(marker, item);
                 }

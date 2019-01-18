@@ -31,4 +31,8 @@ public final class Maybe<T> {
     public void ifPresent(Consumer<? super T> consumer){
         if (value != null) consumer.consume(value);
     }
+
+    public T getWithDefault(T def){
+        return isPresent() ? value : def;
+    }
 }
