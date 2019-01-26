@@ -171,8 +171,6 @@ public final class BlueprintAPI {
 
     // Generic request method
     public <T> void makeRequest(Call<T> call, final APICallback<T> callback) {
-        Log.d("AUTH", dao.getTokenPair().get().getAccessToken());
-
         // Make request
         call.enqueue(new Callback<T>() {
             @Override
