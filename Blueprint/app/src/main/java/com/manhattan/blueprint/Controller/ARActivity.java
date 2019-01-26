@@ -26,6 +26,7 @@ import com.google.ar.sceneform.ux.TransformableNode;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.InventoryItem;
+import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.R;
@@ -149,8 +150,10 @@ public class ARActivity extends AppCompatActivity {
             api.makeRequest(api.inventoryService.addToInventory(itemCollected), new APICallback<Void>() {
                 @Override
                 public void success(Void response) {
-                    String success_msg = String.format(getString(R.string.collection_success), tapsRequired, resourceToCollect.getId());
-                    Toast.makeText(ARActivity.this, success_msg, Toast.LENGTH_LONG).show();
+                    // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
+                    String itemName = ItemManager.getInstance(ARActivity.this).getName(resourceToCollect.getId()).getWithDefault("items");
+                    String successMsg = String.format(getString(R.string.collection_success), tapsRequired, itemName);
+                    Toast.makeText(ARActivity.this, successMsg, Toast.LENGTH_LONG).show();
                     finish();
                 }
 

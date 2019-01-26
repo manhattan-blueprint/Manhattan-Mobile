@@ -4,12 +4,12 @@ import com.google.gson.annotations.SerializedName;
 
 public class InventoryItem {
     @SerializedName("item_id")
-    private String id;
+    private int id;
 
     @SerializedName("quantity")
     private int quantity;
 
-    public InventoryItem(String id, int quantity) {
+    public InventoryItem(int id, int quantity) {
         this.id = id;
         this.quantity = quantity;
     }
@@ -18,7 +18,7 @@ public class InventoryItem {
         return quantity;
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
@@ -27,7 +27,7 @@ public class InventoryItem {
         boolean result = false;
         if (obj instanceof InventoryItem) {
             InventoryItem other = (InventoryItem) obj;
-            result = this.id.equals(other.id) && this.quantity == other.quantity;
+            result = this.id == other.id && this.quantity == other.quantity;
         }
         return result;
     }

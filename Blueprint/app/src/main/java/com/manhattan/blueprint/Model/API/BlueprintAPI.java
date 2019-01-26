@@ -8,6 +8,7 @@ import com.manhattan.blueprint.Model.API.Services.InventoryService;
 import com.manhattan.blueprint.Model.API.Services.ResourceService;
 import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
 import com.manhattan.blueprint.Model.DAO.DAO;
+import com.manhattan.blueprint.Model.ItemSchema;
 import com.manhattan.blueprint.Model.RefreshBody;
 import com.manhattan.blueprint.Model.TokenPair;
 import com.manhattan.blueprint.Model.UserCredentials;
@@ -135,6 +136,25 @@ public final class BlueprintAPI {
                 callback.failure(-1, t.toString());
             }
         });
+    }
+
+    public void getSchema(final APICallback<ItemSchema> callback) {
+        authenticateService.itemSchema().enqueue(new Callback<ItemSchema>() {
+            @Override
+            public void onResponse(Call<ItemSchema> call, Response<ItemSchema> response) {
+                if (response.code() == HttpURLConnection.HTTP_OK) {
+                    callback.success(response.body());
+                } else {
+                    callback.failure(response.code(), "Failed to fetch schema");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ItemSchema> call, Throwable t) {
+                callback.failure(-1, t.toString());
+            }
+        });
+
     }
 
     // Generic request method

@@ -4,17 +4,17 @@ import com.google.gson.annotations.SerializedName;
 
 public class Resource {
     @SerializedName("item_id")
-    private String id;
+    private int id;
 
     @SerializedName("location")
     private Location location;
 
-    public Resource(String id, Location location) {
+    public Resource(int id, Location location) {
         this.id = id;
         this.location = location;
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
@@ -28,7 +28,7 @@ public class Resource {
 
         if (obj instanceof Resource) {
             Resource other = (Resource) obj;
-            result = this.id.equals(other.id) && this.location.equals(other.location);
+            result = this.id == other.id && this.location.equals(other.location);
         }
 
         return result;
