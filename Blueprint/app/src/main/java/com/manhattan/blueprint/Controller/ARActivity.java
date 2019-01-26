@@ -25,11 +25,16 @@ import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.InventoryItem;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.R;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class ARActivity extends AppCompatActivity {
     private ArFragment arFragment;
@@ -147,7 +152,8 @@ public class ARActivity extends AppCompatActivity {
         } else if (collectCounter == 0) {
             InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), tapsRequired);
             BlueprintAPI api = new BlueprintAPI(this);
-            api.makeRequest(api.inventoryService.addToInventory(itemCollected), new APICallback<Void>() {
+            Inventory inventoryToAdd = new Inventory(new ArrayList<>(Collections.singletonList(itemCollected)));
+            api.makeRequest(api.inventoryService.addToInventory(inventoryToAdd), new APICallback<Void>() {
                 @Override
                 public void success(Void response) {
                     // Show success with "You collected 5 wood", defaulting to "You collected 5 items"

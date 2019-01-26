@@ -13,5 +13,5 @@ public interface InventoryService {
     Call<Inventory> fetchInventory();
 
     @POST("inventory")
-    Call<Void> addToInventory(@Body InventoryItem item);
+    Call<Void> addToInventory(@Body Inventory inventory);
 }

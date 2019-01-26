@@ -1,20 +1,24 @@
 package com.manhattan.blueprint.View;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.manhattan.blueprint.Model.InventoryItem;
+import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.R;
 
 import java.util.List;
+import java.util.Locale;
 
 import android.widget.TextView;
 
 public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.InventoryViewHolder> {
 
-    private final List<InventoryItem> values;
+    private final List<InventoryItem> inventoryItems;
+    private Context context;
 
     public class InventoryViewHolder extends RecyclerView.ViewHolder {
         public TextView resource;
@@ -22,13 +26,14 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Inve
 
         public InventoryViewHolder(View view) {
             super(view);
-            resource = (TextView) view.findViewById(R.id.resourceLayout);
-            quantity = (TextView) view.findViewById(R.id.quantityLayout);
+            resource = view.findViewById(R.id.resourceLayout);
+            quantity = view.findViewById(R.id.quantityLayout);
         }
     }
 
-    public InventoryAdapter(List<InventoryItem> inventoryList) {
-        values = inventoryList;
+    public InventoryAdapter(Context context, List<InventoryItem> inventoryItems) {
+        this.inventoryItems = inventoryItems;
+        this.context = context;
     }
 
     @Override
@@ -41,13 +46,13 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Inve
 
     @Override
     public void onBindViewHolder(InventoryViewHolder holder, int position) {
-        InventoryItem item = values.get(position);
-        holder.resource.setText(item.getId());
+        InventoryItem item = inventoryItems.get(position);
+        holder.resource.setText(ItemManager.getInstance(context).getName(item.getId()).getWithDefault("Unknown"));
         holder.quantity.setText(String.valueOf(item.getQuantity()));
     }
 
     @Override
     public int getItemCount() {
-        return values.size();
+        return inventoryItems.size();
     }
 }
