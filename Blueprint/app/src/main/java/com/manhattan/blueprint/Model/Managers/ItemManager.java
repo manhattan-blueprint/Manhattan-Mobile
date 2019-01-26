@@ -14,19 +14,19 @@ public class ItemManager {
     private HashMap<Integer, String> itemMap;
     private BlueprintAPI api;
 
-    public static ItemManager getInstance(Context context){
+    public static ItemManager getInstance(Context context) {
         if (manager == null){
             manager = new ItemManager(context);
         }
         return manager;
     }
 
-    private ItemManager(Context context){
+    private ItemManager(Context context) {
         this.itemMap = new HashMap<>();
         this.api = new BlueprintAPI(context);
     }
 
-    public void fetchData(APICallback<Void> completion){
+    public void fetchData(APICallback<Void> completion) {
        api.getSchema(new APICallback<ItemSchema>() {
            @Override
            public void success(ItemSchema response) {
@@ -45,7 +45,7 @@ public class ItemManager {
        });
     }
 
-    public Maybe<String> getName(int id){
+    public Maybe<String> getName(int id) {
         return itemMap.containsKey(id) ? Maybe.of(itemMap.get(id)) : Maybe.empty();
     }
 
