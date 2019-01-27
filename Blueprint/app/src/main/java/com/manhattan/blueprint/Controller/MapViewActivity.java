@@ -98,8 +98,6 @@ public class MapViewActivity extends AppCompatActivity
             });
             dialog.create().show();
             return;
-        } else if (!isLocationEnabled()) {
-            displayLocationServicesRequest();
         }
 
         // Load data required
@@ -217,7 +215,7 @@ public class MapViewActivity extends AppCompatActivity
         });
     }
 
-    public boolean isLocationEnabled() {
+    private boolean isLocationEnabled() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
             return lm.isLocationEnabled();
@@ -282,6 +280,9 @@ public class MapViewActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         mapView.onResume();
+        if (!isLocationEnabled()) {
+            displayLocationServicesRequest();
+        }
     }
 
     @Override
