@@ -6,28 +6,25 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.LocationManager;
 import android.os.Build;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.PersistableBundle;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
-import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
-import com.manhattan.blueprint.Model.DAO.DAO;
-import com.manhattan.blueprint.Model.DAO.Maybe;
-import com.manhattan.blueprint.Model.Location;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.LoginManager;
 import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.Model.ResourceSet;
-import com.manhattan.blueprint.Model.TokenPair;
 import com.manhattan.blueprint.R;
 
 import android.support.design.widget.*;
@@ -70,6 +67,52 @@ public class MapViewActivity extends AppCompatActivity
     private int minTilt = 40;
     private int maxTilt = 60;
 
+    SendHttpRequestThread sendHttpRequestThread;
+
+    class SendHttpRequestThread extends Thread {
+
+        long connectionRefreshDelay = 5 * 1000;
+        boolean sendHttpRequest;
+        boolean insideDialog;
+
+        private SendHttpRequestThread() {
+            sendHttpRequest = true;
+            insideDialog = false;
+        }
+
+        private void onStop() {
+            sendHttpRequest = false;
+        }
+
+        @Override
+        public void run() {
+            while (sendHttpRequest) {
+                if (!isNetworkConnected() && !insideDialog) {
+                    insideDialog = true;
+
+                    MapViewActivity.this.runOnUiThread(() -> {
+                        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MapViewActivity.this);
+                        alertDialog.setTitle("No Network Connection");
+                        alertDialog.setMessage("Internet not available, to continue please turn on wi-fi.");
+                        alertDialog.setPositiveButton("Enable wi-fi", (dialog, which) -> {
+                            Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+                            startActivity(intent);
+                            dialog.dismiss();
+                            insideDialog = false;
+                        });
+                        alertDialog.setNegativeButton("No thanks", (dialog, which) ->  {
+                            dialog.cancel();
+                            insideDialog = false;
+                        });
+                        alertDialog.show();
+                    });
+                }
+
+                SystemClock.sleep(connectionRefreshDelay);
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,6 +143,10 @@ public class MapViewActivity extends AppCompatActivity
             dialog.create().show();
             return;
         }
+
+        // Periodically check network status
+        sendHttpRequestThread = new SendHttpRequestThread();
+        sendHttpRequestThread.start();
 
         // Load data required
         blueprintAPI = new BlueprintAPI(this);
@@ -245,6 +292,17 @@ public class MapViewActivity extends AppCompatActivity
         });
         alertDialog.setNegativeButton(getString(R.string.negative_response), (dialog, which) -> dialog.cancel());
         alertDialog.show();
+    }
+
+    public  boolean isNetworkConnected() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) this.getSystemService(this.CONNECTIVITY_SERVICE);
+
+        if (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+            connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()   == NetworkInfo.State.CONNECTED) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     // region OnMarkerClickListener
