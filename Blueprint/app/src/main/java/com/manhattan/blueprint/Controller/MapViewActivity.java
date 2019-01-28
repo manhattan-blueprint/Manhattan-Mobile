@@ -1,8 +1,13 @@
 package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.PersistableBundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -84,9 +89,9 @@ public class MapViewActivity extends AppCompatActivity
             return;
         } else if (!locationManager.hasPermission(this)) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(MapViewActivity.this);
-            dialog.setTitle("Location required");
-            dialog.setMessage("Please grant access to your location so Blueprint can show resources around you.");
-            dialog.setPositiveButton("Ok", (d, which) -> {
+            dialog.setTitle(getString(R.string.permission_location_title));
+            dialog.setMessage(getString(R.string.permission_location_description));
+            dialog.setPositiveButton(getString(R.string.positive_response), (d, which) -> {
                 d.dismiss();
                 loginManager.logout();
                 toOnboarding();
@@ -210,6 +215,30 @@ public class MapViewActivity extends AppCompatActivity
         });
     }
 
+    private boolean isLocationEnabled() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+            return lm.isLocationEnabled();
+        } else {
+            int mode = Settings.Secure.getInt(this.getContentResolver(), Settings.Secure.LOCATION_MODE,
+                    Settings.Secure.LOCATION_MODE_OFF);
+            return (mode != Settings.Secure.LOCATION_MODE_OFF);
+        }
+    }
+
+    private void displayLocationServicesRequest() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+
+        alertDialog.setTitle(getString(R.string.enable_location_title));
+        alertDialog.setMessage(getString(R.string.enable_location_description));
+        alertDialog.setPositiveButton(getString(R.string.enable_location_positive_response), (dialog, which) -> {
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(intent);
+        });
+        alertDialog.setNegativeButton(getString(R.string.negative_response), (dialog, which) -> dialog.cancel());
+        alertDialog.show();
+    }
+
     // region OnMarkerClickListener
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
@@ -251,6 +280,9 @@ public class MapViewActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         mapView.onResume();
+        if (!isLocationEnabled()) {
+            displayLocationServicesRequest();
+        }
     }
 
     @Override
