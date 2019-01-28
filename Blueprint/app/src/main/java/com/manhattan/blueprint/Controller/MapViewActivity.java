@@ -2,15 +2,12 @@ package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.LocationManager;
 import android.os.Build;
-import android.icu.util.TimeUnit;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.PersistableBundle;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -21,6 +18,7 @@ import com.google.gson.Gson;
 import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.Location;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.LoginManager;
 import com.manhattan.blueprint.Model.Managers.PermissionManager;
@@ -93,15 +91,15 @@ public class MapViewActivity extends AppCompatActivity
 
                 MapViewActivity.this.runOnUiThread(() -> {
                     AlertDialog.Builder alertDialog = new AlertDialog.Builder(MapViewActivity.this);
-                    alertDialog.setTitle("No Network Connection");
-                    alertDialog.setMessage("Internet not available, to continue please turn on wi-fi.");
-                    alertDialog.setPositiveButton("Enable wi-fi", (dialog, which) -> {
+                    alertDialog.setTitle(getString(R.string.no_network_title));
+                    alertDialog.setMessage(getString(R.string.no_network_description));
+                    alertDialog.setPositiveButton(getString(R.string.no_network_positive_response), (dialog, which) -> {
                         Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
                         startActivity(intent);
                         dialog.dismiss();
                         insideDialog = false;
                     });
-                    alertDialog.setNegativeButton("No thanks", (dialog, which) ->  {
+                    alertDialog.setNegativeButton(getString(R.string.negative_response), (dialog, which) ->  {
                         dialog.cancel();
                         insideDialog = false;
                     });

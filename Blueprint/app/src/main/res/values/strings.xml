@@ -9,6 +9,9 @@
     <string name="enable_location_title">Location Services</string>
     <string name="enable_location_description">To continue, please turn on location services and set your location mode to high accuracy.</string>
     <string name="enable_location_positive_response">Enable location services</string>
+    <string name="no_network_title">No Network Connection</string>
+    <string name="no_network_description">Internet not available, to continue please turn on wi-fi.</string>
+    <string name="no_network_positive_response">Enable wi-fi</string>
     <string name="ar_install_title">ARCore required!</string>
     <string name="ar_install_description">We require ARCore to show you resources, please install and try again.</string>
     <string name="whoops_title">Whoops!</string>
