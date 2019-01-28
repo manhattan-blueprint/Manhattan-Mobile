@@ -2,32 +2,28 @@ package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.LocationManager;
 import android.os.Build;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.PersistableBundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
-import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
-import com.manhattan.blueprint.Model.DAO.DAO;
-import com.manhattan.blueprint.Model.DAO.Maybe;
 import com.manhattan.blueprint.Model.Location;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.LoginManager;
 import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.Model.ResourceSet;
-import com.manhattan.blueprint.Model.TokenPair;
 import com.manhattan.blueprint.R;
 
 import android.support.design.widget.*;
@@ -50,6 +46,8 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import java.util.HashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public class MapViewActivity extends AppCompatActivity
         implements OnMapReadyCallback,
@@ -69,6 +67,54 @@ public class MapViewActivity extends AppCompatActivity
     private int maxZoom = 20;
     private int minTilt = 40;
     private int maxTilt = 60;
+
+    class CheckNetworkConnectionThread extends Thread {
+
+        boolean threadRunning;
+        boolean insideDialog;
+
+        private CheckNetworkConnectionThread() {
+            threadRunning = true;
+            insideDialog = false;
+        }
+
+        private void onStop() {
+            threadRunning = false;
+        }
+
+        private  boolean isNetworkConnected() {
+            ConnectivityManager connectivityManager = (ConnectivityManager) MapViewActivity.this.getSystemService(MapViewActivity.this.CONNECTIVITY_SERVICE);
+
+            return (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED    ||
+                    connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState()   == NetworkInfo.State.CONNECTING ||
+                    connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()   == NetworkInfo.State.CONNECTED    ||
+                    connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()   == NetworkInfo.State.CONNECTING);
+        }
+
+        @Override
+        public void run() {
+            if (!isNetworkConnected() && !insideDialog) {
+                insideDialog = true;
+
+                MapViewActivity.this.runOnUiThread(() -> {
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(MapViewActivity.this);
+                    alertDialog.setTitle(getString(R.string.no_network_title));
+                    alertDialog.setMessage(getString(R.string.no_network_description));
+                    alertDialog.setPositiveButton(getString(R.string.no_network_positive_response), (dialog, which) -> {
+                        Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+                        startActivity(intent);
+                        dialog.dismiss();
+                        insideDialog = false;
+                    });
+                    alertDialog.setNegativeButton(getString(R.string.negative_response), (dialog, which) ->  {
+                        dialog.cancel();
+                        insideDialog = false;
+                    });
+                    alertDialog.show();
+                });
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +146,12 @@ public class MapViewActivity extends AppCompatActivity
             dialog.create().show();
             return;
         }
+
+        // Periodically check network status
+        int connectionRefreshDelay = 10; // seconds
+        CheckNetworkConnectionThread checkNetworkConnectionThread = new CheckNetworkConnectionThread();
+        ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(2);
+        executor.scheduleWithFixedDelay(checkNetworkConnectionThread, 0, connectionRefreshDelay, java.util.concurrent.TimeUnit.SECONDS);
 
         // Load data required
         blueprintAPI = new BlueprintAPI(this);
