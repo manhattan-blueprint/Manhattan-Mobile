@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.LocationManager;
 import android.os.Build;
+import android.icu.util.TimeUnit;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.PersistableBundle;
@@ -47,6 +48,8 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import java.util.HashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public class MapViewActivity extends AppCompatActivity
         implements OnMapReadyCallback,
@@ -67,48 +70,43 @@ public class MapViewActivity extends AppCompatActivity
     private int minTilt = 40;
     private int maxTilt = 60;
 
-    SendHttpRequestThread sendHttpRequestThread;
+    CheckNetworkConnectionThread checkNetworkConnectionThread;
 
-    class SendHttpRequestThread extends Thread {
+    class CheckNetworkConnectionThread extends Thread {
 
-        long connectionRefreshDelay = 5 * 1000;
-        boolean sendHttpRequest;
+        boolean threadRunning;
         boolean insideDialog;
 
-        private SendHttpRequestThread() {
-            sendHttpRequest = true;
+        private CheckNetworkConnectionThread() {
+            threadRunning = true;
             insideDialog = false;
         }
 
         private void onStop() {
-            sendHttpRequest = false;
+            threadRunning = false;
         }
 
         @Override
         public void run() {
-            while (sendHttpRequest) {
-                if (!isNetworkConnected() && !insideDialog) {
-                    insideDialog = true;
+            if (!isNetworkConnected() && !insideDialog) {
+                insideDialog = true;
 
-                    MapViewActivity.this.runOnUiThread(() -> {
-                        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MapViewActivity.this);
-                        alertDialog.setTitle("No Network Connection");
-                        alertDialog.setMessage("Internet not available, to continue please turn on wi-fi.");
-                        alertDialog.setPositiveButton("Enable wi-fi", (dialog, which) -> {
-                            Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
-                            startActivity(intent);
-                            dialog.dismiss();
-                            insideDialog = false;
-                        });
-                        alertDialog.setNegativeButton("No thanks", (dialog, which) ->  {
-                            dialog.cancel();
-                            insideDialog = false;
-                        });
-                        alertDialog.show();
+                MapViewActivity.this.runOnUiThread(() -> {
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(MapViewActivity.this);
+                    alertDialog.setTitle("No Network Connection");
+                    alertDialog.setMessage("Internet not available, to continue please turn on wi-fi.");
+                    alertDialog.setPositiveButton("Enable wi-fi", (dialog, which) -> {
+                        Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+                        startActivity(intent);
+                        dialog.dismiss();
+                        insideDialog = false;
                     });
-                }
-
-                SystemClock.sleep(connectionRefreshDelay);
+                    alertDialog.setNegativeButton("No thanks", (dialog, which) ->  {
+                        dialog.cancel();
+                        insideDialog = false;
+                    });
+                    alertDialog.show();
+                });
             }
         }
     }
@@ -145,8 +143,10 @@ public class MapViewActivity extends AppCompatActivity
         }
 
         // Periodically check network status
-        sendHttpRequestThread = new SendHttpRequestThread();
-        sendHttpRequestThread.start();
+        int connectionRefreshDelay = 10;
+        checkNetworkConnectionThread = new CheckNetworkConnectionThread();
+        ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(2);
+        executor.scheduleWithFixedDelay(checkNetworkConnectionThread, 0, connectionRefreshDelay, java.util.concurrent.TimeUnit.SECONDS);
 
         // Load data required
         blueprintAPI = new BlueprintAPI(this);
@@ -297,12 +297,8 @@ public class MapViewActivity extends AppCompatActivity
     public  boolean isNetworkConnected() {
         ConnectivityManager connectivityManager = (ConnectivityManager) this.getSystemService(this.CONNECTIVITY_SERVICE);
 
-        if (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
-            connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()   == NetworkInfo.State.CONNECTED) {
-            return true;
-        } else {
-            return false;
-        }
+        return (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()   == NetworkInfo.State.CONNECTED);
     }
 
     // region OnMarkerClickListener
