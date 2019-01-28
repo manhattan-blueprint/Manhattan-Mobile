@@ -12,6 +12,8 @@ import com.manhattan.blueprint.Model.UserCredentials;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -92,7 +94,7 @@ public class BlueprintAPITests {
         // First validate DAO's token
         assertNotEquals(mockDAO.getTokenPair().get(), MockData.refreshTokenPair);
 
-        api.makeRequest(api.resourceService.fetchResources(), new APICallback<ResourceSet>() {
+        api.makeRequest(api.resourceService.fetchResources(1.234, 1.234), new APICallback<ResourceSet>() {
             @Override
             public void success(ResourceSet response) {
                 resourceSet = response;
@@ -117,8 +119,9 @@ public class BlueprintAPITests {
     // Validate that a resource can be added
     @Test
     public void testAddResource() throws Exception {
-        InventoryItem item = new InventoryItem("abc", 123);
-        api.makeRequest(api.inventoryService.addToInventory(item), new APICallback<Void>() {
+        InventoryItem item = new InventoryItem(1, 123);
+        Inventory inventory = new Inventory(new ArrayList<>(Collections.singletonList(item)));
+        api.makeRequest(api.inventoryService.addToInventory(inventory), new APICallback<Void>() {
             @Override
             public void success(Void response) {
                 lock.countDown();

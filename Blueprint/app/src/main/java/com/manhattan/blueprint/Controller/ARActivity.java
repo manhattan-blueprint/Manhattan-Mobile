@@ -150,7 +150,7 @@ public class ARActivity extends AppCompatActivity {
             Toast.makeText(this, progress_msg, Toast.LENGTH_SHORT).show();
             collectCounter--;
         } else if (collectCounter == 0) {
-            InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), tapsRequired);
+            InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), resourceToCollect.getQuantity());
             BlueprintAPI api = new BlueprintAPI(this);
             Inventory inventoryToAdd = new Inventory(new ArrayList<>(Collections.singletonList(itemCollected)));
             api.makeRequest(api.inventoryService.addToInventory(inventoryToAdd), new APICallback<Void>() {
@@ -158,7 +158,7 @@ public class ARActivity extends AppCompatActivity {
                 public void success(Void response) {
                     // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
                     String itemName = ItemManager.getInstance(ARActivity.this).getName(resourceToCollect.getId()).getWithDefault("items");
-                    String successMsg = String.format(getString(R.string.collection_success), tapsRequired, itemName);
+                    String successMsg = String.format(getString(R.string.collection_success), resourceToCollect.getQuantity(), itemName);
                     Toast.makeText(ARActivity.this, successMsg, Toast.LENGTH_LONG).show();
                     finish();
                 }
