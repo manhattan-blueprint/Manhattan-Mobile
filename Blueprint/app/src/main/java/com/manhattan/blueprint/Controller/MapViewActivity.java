@@ -44,6 +44,7 @@ import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentOptions;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.mapboxsdk.location.modes.RenderMode;
+import com.mapbox.mapboxsdk.log.Logger;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
@@ -188,9 +189,16 @@ public class MapViewActivity extends AppCompatActivity
     }
 
     private void addResources(android.location.Location location) {
-        blueprintAPI.makeRequest(blueprintAPI.resourceService.fetchResources(), new APICallback<ResourceSet>() {
+        Location blueprintLocation = new Location(location);
+
+        blueprintAPI.makeRequest(
+                blueprintAPI.resourceService.fetchResources(blueprintLocation.getLatitude(),
+                        blueprintLocation.getLongitude()),
+                new APICallback<ResourceSet>() {
             @Override
             public void success(ResourceSet response) {
+                if (response.getItems() == null) return;
+
                 for (Resource item : response.getItems()) {
                     LatLng latLng = new LatLng(item.getLocation().getLatitude(),
                             item.getLocation().getLongitude());

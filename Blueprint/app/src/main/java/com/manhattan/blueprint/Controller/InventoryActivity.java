@@ -33,7 +33,7 @@ public class InventoryActivity extends AppCompatActivity {
         getWindow().setEnterTransition(new Slide());
 
         inventoryView = (RecyclerView) findViewById(R.id.inventoryListView);
-        inventoryListAdapter = new InventoryAdapter(inventory);
+        inventoryListAdapter = new InventoryAdapter(this, inventory);
         inventoryView.setAdapter(inventoryListAdapter);
 
         RecyclerView.LayoutManager invLayoutManager = new LinearLayoutManager(getApplicationContext());

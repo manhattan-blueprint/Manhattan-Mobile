@@ -1,6 +1,7 @@
-package com.manhattan.blueprint.Model.API;
+package com.manhattan.blueprint;
 
 import com.google.gson.Gson;
+import com.manhattan.blueprint.Model.API.APIError;
 import com.manhattan.blueprint.Model.MockData;
 
 import java.net.HttpURLConnection;
@@ -12,7 +13,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-public final class MockClient {
+final class MockClient {
     public OkHttpClient client;
 
     // For testing purposes, we first reject any calls to the resources end point, forcing a token
