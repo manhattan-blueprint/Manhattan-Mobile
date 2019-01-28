@@ -9,9 +9,13 @@ public class Resource {
     @SerializedName("location")
     private Location location;
 
-    public Resource(int id, Location location) {
+    @SerializedName("quantity")
+    private int quantity;
+
+    public Resource(int id, Location location, int quantity) {
         this.id = id;
         this.location = location;
+        this.quantity = quantity;
     }
 
     public int getId() {
@@ -20,6 +24,10 @@ public class Resource {
 
     public Location getLocation() {
         return location;
+    }
+
+    public int getQuantity() {
+        return quantity;
     }
 
     @Override
