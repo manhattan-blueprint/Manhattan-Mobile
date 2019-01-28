@@ -68,8 +68,6 @@ public class MapViewActivity extends AppCompatActivity
     private int minTilt = 40;
     private int maxTilt = 60;
 
-    CheckNetworkConnectionThread checkNetworkConnectionThread;
-
     class CheckNetworkConnectionThread extends Thread {
 
         boolean threadRunning;
@@ -82,6 +80,15 @@ public class MapViewActivity extends AppCompatActivity
 
         private void onStop() {
             threadRunning = false;
+        }
+
+        private  boolean isNetworkConnected() {
+            ConnectivityManager connectivityManager = (ConnectivityManager) MapViewActivity.this.getSystemService(MapViewActivity.this.CONNECTIVITY_SERVICE);
+
+            return (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED    ||
+                    connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState()   == NetworkInfo.State.CONNECTING ||
+                    connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()   == NetworkInfo.State.CONNECTED    ||
+                    connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()   == NetworkInfo.State.CONNECTING);
         }
 
         @Override
@@ -141,8 +148,8 @@ public class MapViewActivity extends AppCompatActivity
         }
 
         // Periodically check network status
-        int connectionRefreshDelay = 10;
-        checkNetworkConnectionThread = new CheckNetworkConnectionThread();
+        int connectionRefreshDelay = 10; // seconds
+        CheckNetworkConnectionThread checkNetworkConnectionThread = new CheckNetworkConnectionThread();
         ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(2);
         executor.scheduleWithFixedDelay(checkNetworkConnectionThread, 0, connectionRefreshDelay, java.util.concurrent.TimeUnit.SECONDS);
 
@@ -290,13 +297,6 @@ public class MapViewActivity extends AppCompatActivity
         });
         alertDialog.setNegativeButton(getString(R.string.negative_response), (dialog, which) -> dialog.cancel());
         alertDialog.show();
-    }
-
-    public  boolean isNetworkConnected() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) this.getSystemService(this.CONNECTIVITY_SERVICE);
-
-        return (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
-                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()   == NetworkInfo.State.CONNECTED);
     }
 
     // region OnMarkerClickListener
