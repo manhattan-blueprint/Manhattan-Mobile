@@ -1,6 +1,7 @@
 package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.location.LocationManager;
@@ -38,13 +39,11 @@ import com.manhattan.blueprint.R;
 
 import android.support.design.widget.*;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.MenuItem;
 
 import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.logging.Logger;
 
 public class MapViewActivity extends FragmentActivity implements OnMapReadyCallback,
         BottomNavigationView.OnNavigationItemSelectedListener, GoogleMap.OnMarkerClickListener {
@@ -130,9 +129,9 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             return;
         } else if (!locationManager.hasPermission(this)) {
             new AlertDialog.Builder(MapViewActivity.this)
-                    .setTitle("Location required")
-                    .setMessage("Please grant access to your location so Blueprint can show resources around you.")
-                    .setPositiveButton("Ok", (d, which) -> {
+                    .setTitle(getString(R.string.permission_location_title))
+                    .setMessage(getString(R.string.permission_location_description))
+                    .setPositiveButton(getString(R.string.positive_response), (d, which) -> {
                         d.dismiss();
                         loginManager.logout();
                         toOnboarding();
@@ -179,6 +178,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
     //region OnMapReadyCallback
+    @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
@@ -314,17 +314,21 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
 
     // Formula from https://stackoverflow.com/a/11172685/5310315
     private double distanceBetween(LatLng a, LatLng b) {
-        double earthRadius = 6378.137;
-        double dLat = b.latitude * Math.PI / 180 - a.latitude * Math.PI / 180;
-        double dLong = b.longitude * Math.PI / 180 - a.longitude * Math.PI / 180;
+        double earthRadius = 63781370;
+
+        double dLat = toRadians(b.latitude) - toRadians(a.latitude);
+        double dLong = toRadians(b.longitude) - toRadians(a.longitude);
 
         double alpha = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                       Math.cos(a.latitude * Math.PI / 180) *
-                       Math.cos(b.latitude * Math.PI / 180) *
+                       Math.cos(toRadians(a.latitude)) *
+                       Math.cos(toRadians(b.latitude)) *
                        Math.sin(dLong/2) * Math.sin(dLong/2);
 
         double c = 2 * Math.atan2(Math.sqrt(alpha), Math.sqrt(1-alpha));
-        double d = earthRadius * c;
-        return d * 1000; // meters
+        return earthRadius * c;
+    }
+
+    private double toRadians(double degrees){
+        return degrees * Math.PI / 180;
     }
 }
