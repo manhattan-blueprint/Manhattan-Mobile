@@ -52,6 +52,8 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     private final int DEFAULT_ZOOM = 18;
     private final int MAX_DISTANCE_REFRESH = 500;
     private final int MAX_DISTANCE_COLLECT = 20;
+    private final int DESIRED_GPS_INTERVAL = 10 * 1000;
+    private final int FASTEST_GPS_INTERVAL = 2000;
     private final LatLng defaultLocation = new LatLng(51.449946, -2.599858);
     private BlueprintAPI blueprintAPI;
     private ItemManager itemManager;
@@ -193,8 +195,8 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         // Get user's location
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(10 * 1000);
-        locationRequest.setFastestInterval(2000);
+        locationRequest.setInterval(DESIRED_GPS_INTERVAL);
+        locationRequest.setFastestInterval(FASTEST_GPS_INTERVAL);
 
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, new LocationCallback() {
             @Override

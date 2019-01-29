@@ -14,7 +14,6 @@ import com.manhattan.blueprint.Model.RefreshBody;
 import com.manhattan.blueprint.Model.TokenPair;
 import com.manhattan.blueprint.Model.UserCredentials;
 
-
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
