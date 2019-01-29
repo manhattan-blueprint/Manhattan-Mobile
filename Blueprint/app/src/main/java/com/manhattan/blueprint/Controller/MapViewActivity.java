@@ -7,11 +7,8 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.PersistableBundle;
 import android.provider.Settings;
 import android.app.AlertDialog;
-import android.content.Intent;
-import android.location.Location;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
@@ -41,44 +38,31 @@ import com.manhattan.blueprint.R;
 
 import android.support.design.widget.*;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.MenuItem;
-
-import com.mapbox.android.gestures.StandardScaleGestureDetector;
-import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
-import com.mapbox.mapboxsdk.annotations.Marker;
-import com.mapbox.mapboxsdk.annotations.MarkerOptions;
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
-import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.location.LocationComponent;
-import com.mapbox.mapboxsdk.location.LocationComponentOptions;
-import com.mapbox.mapboxsdk.location.modes.CameraMode;
-import com.mapbox.mapboxsdk.location.modes.RenderMode;
-import com.mapbox.mapboxsdk.log.Logger;
-import com.mapbox.mapboxsdk.maps.MapView;
-import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.HashMap;
-import java.util.function.BiConsumer;
+import java.util.logging.Logger;
 
 public class MapViewActivity extends FragmentActivity implements OnMapReadyCallback,
         BottomNavigationView.OnNavigationItemSelectedListener, GoogleMap.OnMarkerClickListener {
 
     // Default to the VR Lab
     private final int DEFAULT_ZOOM = 18;
+    private final int MAX_DISTANCE_REFRESH = 500;
+    private final int MAX_DISTANCE_COLLECT = 20;
     private final LatLng defaultLocation = new LatLng(51.449946, -2.599858);
-
     private BlueprintAPI blueprintAPI;
     private ItemManager itemManager;
     private FusedLocationProviderClient fusedLocationProviderClient;
-
     private BottomNavigationView bottomView;
     private GoogleMap googleMap;
-    HashMap<Marker, Resource> markerResourceMap = new HashMap<>();
+    private HashMap<Marker, Resource> markerResourceMap = new HashMap<>();
+    private LatLng lastLocationRequestedForResources;
+    private LatLng currentLocation;
+
 
     class CheckNetworkConnectionThread extends Thread {
 
@@ -180,6 +164,14 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!isLocationEnabled()) {
+            displayLocationServicesRequest();
+        }
+    }
+
     private void toOnboarding() {
         Intent intent = new Intent(MapViewActivity.this, OnboardingActivity.class);
         startActivity(intent);
@@ -196,6 +188,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         googleMap.getUiSettings().setAllGesturesEnabled(false);
         googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.setOnMarkerClickListener(this);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
 
         // Get user's location
         LocationRequest locationRequest = new LocationRequest();
@@ -207,10 +200,15 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
-                LatLng location = new LatLng(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude());
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, googleMap.getCameraPosition().zoom));
-                // TODO: Only request resources if location has significantly changed
-                addResources(location);
+                currentLocation = new LatLng(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude());
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, googleMap.getCameraPosition().zoom));
+
+                // Request resources if we've moved more than max distance, or is first run
+                if (lastLocationRequestedForResources == null ||
+                        distanceBetween(lastLocationRequestedForResources, currentLocation) >= MAX_DISTANCE_REFRESH){
+                    lastLocationRequestedForResources = currentLocation;
+                    addResources(currentLocation);
+                }
             }
         }, Looper.myLooper());
 
@@ -220,9 +218,10 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     }
     //endregion
 
-    private void addResources(android.location.Location location) {
-        Location blueprintLocation = new Location(location);
-        blueprintAPI.makeRequest(blueprintAPI.resourceService.fetchResources(), new APICallback<ResourceSet>() {
+    private void addResources(LatLng location) {
+        Location blueprintLocation = new Location(location.latitude, location.longitude);
+        blueprintAPI.makeRequest(blueprintAPI.resourceService.fetchResources(blueprintLocation.getLatitude(),
+                blueprintLocation.getLongitude()), new APICallback<ResourceSet>() {
             @Override
             public void success(ResourceSet response) {
                 markerResourceMap.forEach((marker, resource) -> marker.remove());
@@ -258,7 +257,6 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
 
     private void displayLocationServicesRequest() {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-
         alertDialog.setTitle(getString(R.string.enable_location_title));
         alertDialog.setMessage(getString(R.string.enable_location_description));
         alertDialog.setPositiveButton(getString(R.string.enable_location_positive_response), (dialog, which) -> {
@@ -272,12 +270,15 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     // region OnMarkerClickListener
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
-        Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
-        Bundle resourceToCollect = new Bundle();
-        resourceToCollect.putString("resource", (new Gson()).toJson(markerResourceMap.get(marker)));
-        intentAR.putExtras(resourceToCollect);
-        startActivity(intentAR);
-        return false;
+        marker.showInfoWindow();
+        if (distanceBetween(marker.getPosition(), currentLocation) <= MAX_DISTANCE_COLLECT) {
+            Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
+            Bundle resourceToCollect = new Bundle();
+            resourceToCollect.putString("resource", (new Gson()).toJson(markerResourceMap.get(marker)));
+            intentAR.putExtras(resourceToCollect);
+            startActivity(intentAR);
+        }
+        return true;
     }
     // endregion
 
@@ -309,5 +310,21 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
                 .setNegativeButton(android.R.string.ok, null)
                 .show();
 
+    }
+
+    // Formula from https://stackoverflow.com/a/11172685/5310315
+    private double distanceBetween(LatLng a, LatLng b) {
+        double earthRadius = 6378.137;
+        double dLat = b.latitude * Math.PI / 180 - a.latitude * Math.PI / 180;
+        double dLong = b.longitude * Math.PI / 180 - a.longitude * Math.PI / 180;
+
+        double alpha = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                       Math.cos(a.latitude * Math.PI / 180) *
+                       Math.cos(b.latitude * Math.PI / 180) *
+                       Math.sin(dLong/2) * Math.sin(dLong/2);
+
+        double c = 2 * Math.atan2(Math.sqrt(alpha), Math.sqrt(1-alpha));
+        double d = earthRadius * c;
+        return d * 1000; // meters
     }
 }
