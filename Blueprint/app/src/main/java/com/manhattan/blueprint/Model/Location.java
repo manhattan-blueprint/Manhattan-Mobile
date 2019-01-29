@@ -1,5 +1,6 @@
 package com.manhattan.blueprint.Model;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.annotations.SerializedName;
 
 public class Location {
@@ -12,11 +13,6 @@ public class Location {
     public Location(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
-    }
-
-    public Location(android.location.Location location) {
-        this.latitude = location.getLatitude();
-        this.longitude = location.getLongitude();
     }
 
     public double getLatitude() {

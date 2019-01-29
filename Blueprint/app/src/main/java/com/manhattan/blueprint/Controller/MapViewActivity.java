@@ -1,21 +1,32 @@
 package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.location.LocationManager;
 import android.os.Build;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.PersistableBundle;
 import android.provider.Settings;
+import android.app.AlertDialog;
+import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
-import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.Location;
@@ -27,46 +38,32 @@ import com.manhattan.blueprint.Model.ResourceSet;
 import com.manhattan.blueprint.R;
 
 import android.support.design.widget.*;
+import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
-
-import com.mapbox.android.gestures.StandardScaleGestureDetector;
-import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
-import com.mapbox.mapboxsdk.annotations.Marker;
-import com.mapbox.mapboxsdk.annotations.MarkerOptions;
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
-import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.location.LocationComponent;
-import com.mapbox.mapboxsdk.location.LocationComponentOptions;
-import com.mapbox.mapboxsdk.location.modes.CameraMode;
-import com.mapbox.mapboxsdk.location.modes.RenderMode;
-import com.mapbox.mapboxsdk.log.Logger;
-import com.mapbox.mapboxsdk.maps.MapView;
-import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-public class MapViewActivity extends AppCompatActivity
-        implements OnMapReadyCallback,
-        MapboxMap.OnMarkerClickListener,
-        MapboxMap.OnScaleListener,
-        BottomNavigationView.OnNavigationItemSelectedListener {
-    private MapView mapView;
-    private MapboxMap mapboxMap;
+public class MapViewActivity extends FragmentActivity implements OnMapReadyCallback,
+        BottomNavigationView.OnNavigationItemSelectedListener, GoogleMap.OnMarkerClickListener {
+
+    // Default to the VR Lab
+    private final int DEFAULT_ZOOM = 18;
+    private final int MAX_DISTANCE_REFRESH = 500;
+    private final int MAX_DISTANCE_COLLECT = 20;
+    private final int DESIRED_GPS_INTERVAL = 10 * 1000;
+    private final int FASTEST_GPS_INTERVAL = 2000;
+    private final LatLng defaultLocation = new LatLng(51.449946, -2.599858);
     private BlueprintAPI blueprintAPI;
     private ItemManager itemManager;
-
+    private FusedLocationProviderClient fusedLocationProviderClient;
     private BottomNavigationView bottomView;
-    HashMap<Marker, Resource> markerResourceMap = new HashMap<>();
+    private GoogleMap googleMap;
+    private HashMap<Marker, Resource> markerResourceMap = new HashMap<>();
+    private LatLng lastLocationRequestedForResources;
+    private LatLng currentLocation;
 
-    // Camera configuration
-    private int minZoom = 17;
-    private int maxZoom = 20;
-    private int minTilt = 40;
-    private int maxTilt = 60;
 
     class CheckNetworkConnectionThread extends Thread {
 
@@ -124,9 +121,7 @@ public class MapViewActivity extends AppCompatActivity
         bottomView = findViewById(R.id.bottom_menu);
         bottomView.setOnNavigationItemSelectedListener(this);
 
-        mapView = findViewById(R.id.mapView);
-        Mapbox.getInstance(this, BuildConfig.MapboxAPIKey);
-        mapView.onCreate(savedInstanceState);
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         // If haven't logged in yet, or have revoked location, redirect
         PermissionManager locationManager = new PermissionManager(0, Manifest.permission.ACCESS_FINE_LOCATION);
@@ -135,15 +130,15 @@ public class MapViewActivity extends AppCompatActivity
             toOnboarding();
             return;
         } else if (!locationManager.hasPermission(this)) {
-            AlertDialog.Builder dialog = new AlertDialog.Builder(MapViewActivity.this);
-            dialog.setTitle(getString(R.string.permission_location_title));
-            dialog.setMessage(getString(R.string.permission_location_description));
-            dialog.setPositiveButton(getString(R.string.positive_response), (d, which) -> {
-                d.dismiss();
-                loginManager.logout();
-                toOnboarding();
-            });
-            dialog.create().show();
+            new AlertDialog.Builder(MapViewActivity.this)
+                    .setTitle(getString(R.string.permission_location_title))
+                    .setMessage(getString(R.string.permission_location_description))
+                    .setPositiveButton(getString(R.string.positive_response), (d, which) -> {
+                        d.dismiss();
+                        loginManager.logout();
+                        toOnboarding();
+                    })
+                    .create().show();
             return;
         }
 
@@ -159,19 +154,23 @@ public class MapViewActivity extends AppCompatActivity
         itemManager.fetchData(new APICallback<Void>() {
             @Override
             public void success(Void response) {
-                mapView.getMapAsync(MapViewActivity.this);
+                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+                mapFragment.getMapAsync(MapViewActivity.this);
             }
 
             @Override
             public void failure(int code, String error) {
-                new AlertDialog
-                        .Builder(MapViewActivity.this, android.R.style.Theme_Material_Dialog_Alert)
-                        .setTitle("Whoops! Could not fetch resource schema")
-                        .setMessage(error)
-                        .setNegativeButton(android.R.string.ok, null)
-                        .show();
+                showError("Whoops! Could not fetch resource schema", error);
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!isLocationEnabled()) {
+            displayLocationServicesRequest();
+        }
     }
 
     private void toOnboarding() {
@@ -181,45 +180,110 @@ public class MapViewActivity extends AppCompatActivity
     }
 
     //region OnMapReadyCallback
-    @SuppressWarnings({"MissingPermission"})
+    @SuppressLint("MissingPermission")
     @Override
-    public void onMapReady(MapboxMap mapboxMap) {
-        this.mapboxMap = mapboxMap;
-
-        // Map Style from URL
-        mapboxMap.setStyle(getString(R.string.mapbox_map_style));
-
+    public void onMapReady(GoogleMap googleMap) {
+        this.googleMap = googleMap;
         // Configure UI
-        mapboxMap.getUiSettings().setCompassEnabled(false);
-        mapboxMap.getUiSettings().setDoubleTapGesturesEnabled(false);
-        mapboxMap.getUiSettings().setScrollGesturesEnabled(false);
+        googleMap.setMyLocationEnabled(true);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(false);
+        googleMap.getUiSettings().setAllGesturesEnabled(false);
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+        googleMap.setOnMarkerClickListener(this);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
 
-        // Default Camera Position
-        mapboxMap.animateCamera(CameraUpdateFactory.tiltTo(minTilt));
+        // Get user's location
+        LocationRequest locationRequest = new LocationRequest();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(DESIRED_GPS_INTERVAL);
+        locationRequest.setFastestInterval(FASTEST_GPS_INTERVAL);
 
-        // Action listeners
-        mapboxMap.setOnMarkerClickListener(this);
-        mapboxMap.addOnScaleListener(this);
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                super.onLocationResult(locationResult);
+                currentLocation = new LatLng(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude());
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, googleMap.getCameraPosition().zoom));
 
-        // Location tracking
-        LocationComponent locationComponent = mapboxMap.getLocationComponent();
-        // Only allow certain zoom options
-        LocationComponentOptions options = LocationComponentOptions
-                .builder(this)
-                .maxZoom(maxZoom)
-                .minZoom(minZoom)
-                .build();
-        locationComponent.activateLocationComponent(this, options);
-        locationComponent.setLocationComponentEnabled(true);
-        locationComponent.setRenderMode(RenderMode.GPS);
-        locationComponent.setCameraMode(CameraMode.TRACKING);
+                // Request resources if we've moved more than max distance, or is first run
+                if (lastLocationRequestedForResources == null ||
+                        distanceBetween(lastLocationRequestedForResources, currentLocation) >= MAX_DISTANCE_REFRESH){
+                    lastLocationRequestedForResources = currentLocation;
+                    addResources(currentLocation);
+                }
+            }
+        }, Looper.myLooper());
 
-        // Add resources to map for their location
-        addResources(mapboxMap.getLocationComponent().getLastKnownLocation());
+        // Move to default location
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, DEFAULT_ZOOM));
+        addResources(defaultLocation);
     }
     //endregion
 
+    private void addResources(LatLng location) {
+        Location blueprintLocation = new Location(location.latitude, location.longitude);
+        blueprintAPI.makeRequest(blueprintAPI.resourceService.fetchResources(blueprintLocation.getLatitude(),
+                blueprintLocation.getLongitude()), new APICallback<ResourceSet>() {
+            @Override
+            public void success(ResourceSet response) {
+                markerResourceMap.forEach((marker, resource) -> marker.remove());
+                markerResourceMap.clear();
+
+                for (Resource item : response.getItems()) {
+                    LatLng itemLocation = new LatLng(item.getLocation().getLatitude(),
+                            item.getLocation().getLongitude());
+                    Marker marker = googleMap.addMarker(new MarkerOptions()
+                            .title(itemManager.getName(item.getId()).getWithDefault("Item " + item.getId()))
+                            .position(itemLocation));
+                    markerResourceMap.put(marker, item);
+                }
+            }
+
+            @Override
+            public void failure(int code, String error) {
+                showError("Whoops! Could not fetch available resources", error);
+            }
+        });
+    }
+
+    private boolean isLocationEnabled() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+            return lm.isLocationEnabled();
+        } else {
+            int mode = Settings.Secure.getInt(this.getContentResolver(), Settings.Secure.LOCATION_MODE,
+                    Settings.Secure.LOCATION_MODE_OFF);
+            return (mode != Settings.Secure.LOCATION_MODE_OFF);
+        }
+    }
+
+    private void displayLocationServicesRequest() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+        alertDialog.setTitle(getString(R.string.enable_location_title));
+        alertDialog.setMessage(getString(R.string.enable_location_description));
+        alertDialog.setPositiveButton(getString(R.string.enable_location_positive_response), (dialog, which) -> {
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(intent);
+        });
+        alertDialog.setNegativeButton(getString(R.string.negative_response), (dialog, which) -> dialog.cancel());
+        alertDialog.show();
+    }
+
+    // region OnMarkerClickListener
     @Override
+    public boolean onMarkerClick(@NonNull Marker marker) {
+        marker.showInfoWindow();
+        if (distanceBetween(marker.getPosition(), currentLocation) <= MAX_DISTANCE_COLLECT) {
+            Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
+            Bundle resourceToCollect = new Bundle();
+            resourceToCollect.putString("resource", (new Gson()).toJson(markerResourceMap.get(marker)));
+            intentAR.putExtras(resourceToCollect);
+            startActivity(intentAR);
+        }
+        return true;
+    }
+    // endregion
+
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         for (int i = 0; i < bottomView.getMenu().size(); i++) {
             MenuItem menuItem = bottomView.getMenu().getItem(i);
@@ -240,139 +304,33 @@ public class MapViewActivity extends AppCompatActivity
         return true;
     }
 
-    private void addResources(android.location.Location location) {
-        Location blueprintLocation = new Location(location);
+    private void showError(String title, String message) {
+        new AlertDialog
+                .Builder(MapViewActivity.this, android.R.style.Theme_Material_Dialog_Alert)
+                .setTitle(title)
+                .setMessage(message)
+                .setNegativeButton(android.R.string.ok, null)
+                .show();
 
-        blueprintAPI.makeRequest(
-                blueprintAPI.resourceService.fetchResources(blueprintLocation.getLatitude(),
-                        blueprintLocation.getLongitude()),
-                new APICallback<ResourceSet>() {
-            @Override
-            public void success(ResourceSet response) {
-                if (response.getItems() == null) return;
-
-                for (Resource item : response.getItems()) {
-                    LatLng latLng = new LatLng(item.getLocation().getLatitude(),
-                            item.getLocation().getLongitude());
-                    IconFactory iconFactory = IconFactory.getInstance(MapViewActivity.this);
-                    Marker marker = mapboxMap.addMarker(new MarkerOptions()
-                            .position(latLng)
-                            .title(itemManager.getName(item.getId()).getWithDefault("Item " + item.getId()))
-                            .icon(iconFactory.fromResource(R.drawable.resource_default)));
-                    markerResourceMap.put(marker, item);
-                }
-            }
-
-            @Override
-            public void failure(int code, String error) {
-                new AlertDialog
-                        .Builder(MapViewActivity.this, android.R.style.Theme_Material_Dialog_Alert)
-                        .setTitle("Whoops! Could not fetch available resources.")
-                        .setMessage(error)
-                        .setNegativeButton(android.R.string.ok, null)
-                        .show();
-            }
-        });
     }
 
-    private boolean isLocationEnabled() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-            return lm.isLocationEnabled();
-        } else {
-            int mode = Settings.Secure.getInt(this.getContentResolver(), Settings.Secure.LOCATION_MODE,
-                    Settings.Secure.LOCATION_MODE_OFF);
-            return (mode != Settings.Secure.LOCATION_MODE_OFF);
-        }
+    // Formula from https://stackoverflow.com/a/11172685/5310315
+    private double distanceBetween(LatLng a, LatLng b) {
+        double earthRadius = 63781370;
+
+        double dLat = toRadians(b.latitude) - toRadians(a.latitude);
+        double dLong = toRadians(b.longitude) - toRadians(a.longitude);
+
+        double alpha = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                       Math.cos(toRadians(a.latitude)) *
+                       Math.cos(toRadians(b.latitude)) *
+                       Math.sin(dLong/2) * Math.sin(dLong/2);
+
+        double c = 2 * Math.atan2(Math.sqrt(alpha), Math.sqrt(1-alpha));
+        return earthRadius * c;
     }
 
-    private void displayLocationServicesRequest() {
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-
-        alertDialog.setTitle(getString(R.string.enable_location_title));
-        alertDialog.setMessage(getString(R.string.enable_location_description));
-        alertDialog.setPositiveButton(getString(R.string.enable_location_positive_response), (dialog, which) -> {
-            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            startActivity(intent);
-        });
-        alertDialog.setNegativeButton(getString(R.string.negative_response), (dialog, which) -> dialog.cancel());
-        alertDialog.show();
+    private double toRadians(double degrees){
+        return degrees * Math.PI / 180;
     }
-
-    // region OnMarkerClickListener
-    @Override
-    public boolean onMarkerClick(@NonNull Marker marker) {
-        Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
-        Bundle resourceToCollect = new Bundle();
-        resourceToCollect.putString("resource", (new Gson()).toJson(markerResourceMap.get(marker)));
-        intentAR.putExtras(resourceToCollect);
-        startActivity(intentAR);
-        return false;
-    }
-    // endregion
-
-    // region OnScaleListener
-    @Override
-    public void onScaleBegin(@NonNull StandardScaleGestureDetector detector) {
-    }
-
-    @Override
-    public void onScale(@NonNull StandardScaleGestureDetector detector) {
-        double zoom = mapboxMap.getCameraPosition().zoom;
-        double fractionZoomed = (zoom - minZoom) / (maxZoom - minZoom);
-        double cameraTilt = (maxTilt - minTilt) * fractionZoomed + minTilt;
-        mapboxMap.animateCamera(CameraUpdateFactory.tiltTo(cameraTilt));
-    }
-
-    @Override
-    public void onScaleEnd(@NonNull StandardScaleGestureDetector detector) {
-    }
-    // endregion
-
-    // region Mapbox overrides
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mapView.onStart();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mapView.onResume();
-        if (!isLocationEnabled()) {
-            displayLocationServicesRequest();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mapView.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mapView.onStop();
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
-        mapView.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        mapView.onLowMemory();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mapView.onDestroy();
-    }
-    // endregion
 }
