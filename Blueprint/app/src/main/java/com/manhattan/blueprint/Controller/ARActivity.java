@@ -1,14 +1,26 @@
 package com.manhattan.blueprint.Controller;
 
+import com.google.ar.core.Pose;
+import com.google.ar.core.Session;
+import com.google.ar.core.TrackingState;
+import com.google.ar.sceneform.HitTestResult;
+import com.google.ar.sceneform.Scene;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
 
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.provider.Settings;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,10 +60,19 @@ public class ARActivity extends AppCompatActivity {
     private int collectCounter;
     private boolean itemWasPlaced;
 
+    private FloatingActionButton holoButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
+
+        holoButton = findViewById(R.id.HoloButton);
+        holoButton.setAlpha(0.35f);
+        holoButton.setOnClickListener(v -> {
+            // TODO Go to Hololens
+            // startActivity(new Intent(ARActivity.this, HOLOLENS.class));
+        });
 
         String jsonResource = (String) getIntent().getExtras().get("resource");
         Gson gson = new GsonBuilder().create();
@@ -104,7 +125,9 @@ public class ARActivity extends AppCompatActivity {
                 .thenAccept(renderable -> {
                     testViewRenderable = renderable;
                     TextView resourceView = renderable.getView().findViewById(R.id.Resource_AR);
-                    resourceView.setText(resourceToCollect.getId());
+                    ItemManager itemManager = ItemManager.getInstance(this);
+                    String resourceText = itemManager.getName(resourceToCollect.getId()).getWithDefault("");
+                    resourceView.setText(resourceText);
                 });
 
         // Start AR:
@@ -144,6 +167,7 @@ public class ARActivity extends AppCompatActivity {
     }
 
     private void onResourceTapped() {
+
         if (collectCounter > 0) {
             int progress = ((tapsRequired - collectCounter) * 100) / tapsRequired;
             String progress_msg = String.format(getString(R.string.collection_progress), progress);
@@ -175,7 +199,7 @@ public class ARActivity extends AppCompatActivity {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(ARActivity.this);
         alertDialog.setTitle(title);
         alertDialog.setMessage(message);
-        alertDialog.setPositiveButton("OK", (dialog, which) -> {
+        alertDialog.setPositiveButton(R.string.positive_response, (dialog, which) -> {
             dialog.dismiss();
             onClick.onClick(dialog, which);
         });
