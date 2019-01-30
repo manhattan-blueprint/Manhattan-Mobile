@@ -1,10 +1,7 @@
 package com.manhattan.blueprint.Controller;
 
-import com.google.ar.core.Pose;
-import com.google.ar.core.Session;
+import com.google.ar.core.Frame;
 import com.google.ar.core.TrackingState;
-import com.google.ar.sceneform.HitTestResult;
-import com.google.ar.sceneform.Scene;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -12,15 +9,14 @@ import com.google.gson.GsonBuilder;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,7 +41,6 @@ import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.R;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 public class ARActivity extends AppCompatActivity {
@@ -59,8 +54,13 @@ public class ARActivity extends AppCompatActivity {
     private final int tapsRequired = 5;
     private int collectCounter;
     private boolean itemWasPlaced;
+    private boolean planeWasDetected;
 
     private FloatingActionButton holoButton;
+    private Toast arToastMessage;
+    private Snackbar arSnackbarMessage;
+    private TextView snackbarTextView;
+    private FrameLayout snackbarView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +85,7 @@ public class ARActivity extends AppCompatActivity {
                     (dialog, which) -> finish());
         }
         itemWasPlaced = false;
+        planeWasDetected = false;
         collectCounter = tapsRequired - 1;
     }
 
@@ -126,17 +127,19 @@ public class ARActivity extends AppCompatActivity {
                     testViewRenderable = renderable;
                     TextView resourceView = renderable.getView().findViewById(R.id.Resource_AR);
                     ItemManager itemManager = ItemManager.getInstance(this);
-                    String resourceText = itemManager.getName(resourceToCollect.getId()).getWithDefault("");
+                    String resourceText = itemManager.getName(resourceToCollect.getId()).getWithDefault("Resource");
                     resourceView.setText(resourceText);
                 });
 
         // Start AR:
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
-        arFragment.getArSceneView().getScene().addOnUpdateListener(this::onUpdate);
+        arFragment.getArSceneView().getScene().addOnUpdateListener(this::onSceneUpdate);
 
         // TODO: Uncomment to remove icon of a hand with device
         // arFragment.getPlaneDiscoveryController().hide();
         // arFragment.getPlaneDiscoveryController().setInstructionView(null);
+
+        createSnackbar();
 
         arFragment.setOnTapArPlaneListener(
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
@@ -161,19 +164,45 @@ public class ARActivity extends AppCompatActivity {
 
                         // Remove plane renderer
                         arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
+                        arSnackbarMessage.setText(getString(R.string.resource_collection_instruction));
                         itemWasPlaced = true;
                     }
                 });
     }
 
-    private void onResourceTapped() {
+    public void onSceneUpdate(FrameTime frameTime) {
+        arFragment.onUpdate(frameTime);
+        Frame frame = arFragment.getArSceneView().getArFrame();
 
+        if (!planeWasDetected) {
+            // Check if a plane was detected
+            for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
+                if (plane.getTrackingState() == TrackingState.TRACKING) {
+                    arSnackbarMessage.setText(getString(R.string.place_resource_instruction));
+                    planeWasDetected = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    private void onResourceTapped() {
         if (collectCounter > 0) {
+            if (collectCounter == tapsRequired - 1) {
+                arSnackbarMessage.dismiss();
+            }
             int progress = ((tapsRequired - collectCounter) * 100) / tapsRequired;
             String progress_msg = String.format(getString(R.string.collection_progress), progress);
-            Toast.makeText(this, progress_msg, Toast.LENGTH_SHORT).show();
+
+            if (arToastMessage != null) {
+                arToastMessage.cancel();
+            }
+            arToastMessage = Toast.makeText(this, progress_msg, Toast.LENGTH_SHORT);
+            arToastMessage.show();
+
             collectCounter--;
         } else if (collectCounter == 0) {
+            arToastMessage.cancel();
             InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), resourceToCollect.getQuantity());
             BlueprintAPI api = new BlueprintAPI(this);
             Inventory inventoryToAdd = new Inventory(new ArrayList<>(Collections.singletonList(itemCollected)));
@@ -204,5 +233,15 @@ public class ARActivity extends AppCompatActivity {
             onClick.onClick(dialog, which);
         });
         alertDialog.create().show();
+    }
+
+    private void createSnackbar() {
+        arSnackbarMessage = Snackbar.make(findViewById(R.id.ARview), getString(R.string.plane_discovery_instruction), Snackbar.LENGTH_INDEFINITE);
+        snackbarTextView = (TextView) (arSnackbarMessage.getView()).findViewById(android.support.design.R.id.snackbar_text);
+        snackbarView = (FrameLayout) arSnackbarMessage.getView();
+        snackbarTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        snackbarTextView.setTextSize(17);
+        snackbarView.setAlpha(0.50f);
+        arSnackbarMessage.show();
     }
 }

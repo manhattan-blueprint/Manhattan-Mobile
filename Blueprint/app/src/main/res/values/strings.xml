@@ -19,6 +19,9 @@
     <string name="collection_progress">Progress: %d %%</string>
     <string name="collection_success">You collected %d %s. Well done!</string>
     <string name="collection_failure_title">Item collection failed!</string>
+    <string name="plane_discovery_instruction">Look around to get used to the environment</string>
+    <string name="place_resource_instruction">Tap on the plane to place a resource</string>
+    <string name="resource_collection_instruction">Tap on the resource to collect it</string>
     <string name="positive_response">OK</string>
     <string name="negative_response">No thanks</string>
 
