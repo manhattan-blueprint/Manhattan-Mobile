@@ -40,6 +40,7 @@ import com.manhattan.blueprint.R;
 import android.support.design.widget.*;
 import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import java.util.HashMap;
 import java.util.concurrent.Executors;
@@ -52,8 +53,8 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     private final int DEFAULT_ZOOM = 18;
     private final int MAX_DISTANCE_REFRESH = 500;
     private final int MAX_DISTANCE_COLLECT = 20;
-    private final int DESIRED_GPS_INTERVAL = 10 * 1000;
-    private final int FASTEST_GPS_INTERVAL = 2000;
+    private final int DESIRED_GPS_INTERVAL = 1000;
+    private final int FASTEST_GPS_INTERVAL = 500;
     private final LatLng defaultLocation = new LatLng(51.449946, -2.599858);
     private BlueprintAPI blueprintAPI;
     private ItemManager itemManager;
@@ -273,6 +274,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
         marker.showInfoWindow();
+
         if (distanceBetween(marker.getPosition(), currentLocation) <= MAX_DISTANCE_COLLECT) {
             Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
             Bundle resourceToCollect = new Bundle();
@@ -316,21 +318,17 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
 
     // Formula from https://stackoverflow.com/a/11172685/5310315
     private double distanceBetween(LatLng a, LatLng b) {
-        double earthRadius = 63781370;
-
-        double dLat = toRadians(b.latitude) - toRadians(a.latitude);
-        double dLong = toRadians(b.longitude) - toRadians(a.longitude);
+        double earthRadius = 6378.137;
+        double dLat = b.latitude * Math.PI / 180 - a.latitude * Math.PI / 180;
+        double dLong = b.longitude * Math.PI / 180 - a.longitude * Math.PI / 180;
 
         double alpha = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                       Math.cos(toRadians(a.latitude)) *
-                       Math.cos(toRadians(b.latitude)) *
-                       Math.sin(dLong/2) * Math.sin(dLong/2);
+                Math.cos(a.latitude * Math.PI / 180) *
+                        Math.cos(b.latitude * Math.PI / 180) *
+                        Math.sin(dLong/2) * Math.sin(dLong/2);
 
         double c = 2 * Math.atan2(Math.sqrt(alpha), Math.sqrt(1-alpha));
-        return earthRadius * c;
-    }
-
-    private double toRadians(double degrees){
-        return degrees * Math.PI / 180;
+        double d = earthRadius * c;
+        return d * 1000;
     }
 }
