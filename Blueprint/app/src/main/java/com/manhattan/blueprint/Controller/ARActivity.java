@@ -5,7 +5,6 @@ import com.google.ar.core.TrackingState;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;

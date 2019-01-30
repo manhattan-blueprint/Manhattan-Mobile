@@ -51,7 +51,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     // Default to the VR Lab
     private final int DEFAULT_ZOOM = 18;
     private final int MAX_DISTANCE_REFRESH = 500;
-    private final int MAX_DISTANCE_COLLECT = 50;
+    private final int MAX_DISTANCE_COLLECT = 20;
     private final int DESIRED_GPS_INTERVAL = 10 * 1000;
     private final int FASTEST_GPS_INTERVAL = 2000;
     private final LatLng defaultLocation = new LatLng(51.449946, -2.599858);
