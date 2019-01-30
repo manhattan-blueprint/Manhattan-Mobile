@@ -4,11 +4,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/ARview"
     tools:context=".Controller.ARActivity">
 
     <fragment android:name="com.google.ar.sceneform.ux.ArFragment"
         android:id="@+id/ux_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/HoloButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|right"
+        android:src="@drawable/ic_switch_hololens"
+        android:layout_margin="10dp"
+        app:backgroundTint="@color/white_smoke"/>
 
 </FrameLayout>
