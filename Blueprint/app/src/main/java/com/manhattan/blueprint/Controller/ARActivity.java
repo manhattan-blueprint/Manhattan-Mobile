@@ -8,11 +8,11 @@ import com.google.gson.GsonBuilder;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -69,8 +69,8 @@ public class ARActivity extends AppCompatActivity {
         holoButton = findViewById(R.id.HoloButton);
         holoButton.setAlpha(0.35f);
         holoButton.setOnClickListener(v -> {
-            // TODO Go to Hololens
-            // startActivity(new Intent(ARActivity.this, HOLOLENS.class));
+            // Go to Hololens
+            startActivity(new Intent(ARActivity.this, HololensCommsActivity.class));
         });
 
         String jsonResource = (String) getIntent().getExtras().get("resource");

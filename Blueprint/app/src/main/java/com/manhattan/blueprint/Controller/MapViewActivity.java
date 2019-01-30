@@ -301,6 +301,8 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             case R.id.shopping_list:
                 break;
             case R.id.settings:
+                Intent toSettings = new Intent(MapViewActivity.this, SettingsActivity.class);
+                startActivity(toSettings);
                 break;
         }
         return true;

@@ -29,6 +29,8 @@
         <activity android:name=".Controller.OnboardingActivity" />
         <activity android:name=".Controller.InventoryActivity" />
         <activity android:name=".Controller.ARActivity" />
+        <activity android:name=".Controller.HololensCommsActivity" />
+        <activity android:name=".Controller.SettingsActivity" />
 
         <meta-data
             android:name="com.google.ar.core"
