@@ -2,19 +2,24 @@ package com.manhattan.blueprint.Controller;
 
 import com.google.ar.core.Frame;
 import com.google.ar.core.TrackingState;
+import com.google.ar.sceneform.HitTestResult;
+import com.google.ar.sceneform.Scene;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.graphics.Canvas;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -65,6 +70,10 @@ public class ARActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
+        View vi = (View) findViewById(R.id.Minigame);
+        vi.bringToFront();
+//        vi.setLayoutParams(FrameLayout.LayoutParams());
+
 
         holoButton = findViewById(R.id.HoloButton);
         holoButton.setAlpha(0.35f);
@@ -132,7 +141,17 @@ public class ARActivity extends AppCompatActivity {
 
         // Start AR:
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
-        arFragment.getArSceneView().getScene().addOnUpdateListener(this::onSceneUpdate);
+        Scene arScene = arFragment.getArSceneView().getScene();
+        arScene.addOnUpdateListener(this::onSceneUpdate);
+        arScene.setOnTouchListener(
+                (HitTestResult hitTestResult, MotionEvent sceneMotionEvent) -> {
+                    if (itemWasPlaced) {
+                        Log.d("gesture", "SCENE TOUCHED " + sceneMotionEvent);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
 
         // TODO: Uncomment to remove icon of a hand with device
         // arFragment.getPlaneDiscoveryController().hide();
