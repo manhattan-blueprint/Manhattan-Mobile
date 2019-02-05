@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <dimen name="design_bottom_navigation_text_size"        tools:override="true">13sp</dimen>
+    <dimen name="design_bottom_navigation_active_text_size" tools:override="true">13sp</dimen>
+    <dimen name="row_padding_vertical"      >2sp</dimen>
+    <dimen name="activity_horizontal_margin">20sp</dimen>
+
+</resources>

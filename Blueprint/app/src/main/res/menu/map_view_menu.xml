@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/inventory"
+        android:icon="@drawable/ic_inventory_list_black_24dp"
+        android:title="Inventory"
+        android:enabled="true" />
+
+    <item android:id="@+id/shopping_list"
+        android:icon="@drawable/ic_shopping_list_black_24dp"
+        android:title="Shopping List"
+        android:enabled="true" />
+
+    <item android:id="@+id/settings"
+        android:icon="@drawable/ic_settings_black_24dp"
+        android:title="Settings"
+        android:enabled="true" />
+
+</menu>
