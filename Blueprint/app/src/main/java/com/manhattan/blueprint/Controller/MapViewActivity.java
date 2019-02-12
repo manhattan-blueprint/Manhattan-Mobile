@@ -2,12 +2,8 @@ package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.location.LocationManager;
-import android.os.Build;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.graphics.drawable.ColorDrawable;
 import android.provider.Settings;
 import android.app.AlertDialog;
 import android.os.Looper;
@@ -29,6 +25,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.API.Developer;
 import com.manhattan.blueprint.Model.Location;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.LoginManager;
@@ -36,15 +33,24 @@ import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.Model.ResourceSet;
 import com.manhattan.blueprint.R;
+import com.manhattan.blueprint.Utils.LocationUtils;
+import com.manhattan.blueprint.Utils.NetworkUtils;
+import com.manhattan.blueprint.Utils.ViewUtils;
 
 import android.support.design.widget.*;
 import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.Spinner;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class MapViewActivity extends FragmentActivity implements OnMapReadyCallback,
         BottomNavigationView.OnNavigationItemSelectedListener, GoogleMap.OnMarkerClickListener {
@@ -55,64 +61,19 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     private final int MAX_DISTANCE_COLLECT = 20;
     private final int DESIRED_GPS_INTERVAL = 1000;
     private final int FASTEST_GPS_INTERVAL = 500;
-    private final LatLng defaultLocation = new LatLng(51.449946, -2.599858);
+
     private BlueprintAPI blueprintAPI;
     private ItemManager itemManager;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private BottomNavigationView bottomView;
+    private Button developerModeButton;
     private GoogleMap googleMap;
     private HashMap<Marker, Resource> markerResourceMap = new HashMap<>();
     private LatLng lastLocationRequestedForResources;
-    private LatLng currentLocation;
+    // Default to VR lab
+    private LatLng currentLocation = new LatLng(51.449946, -2.599858);
+    private boolean inDeveloperMode = false;
 
-
-    class CheckNetworkConnectionThread extends Thread {
-
-        boolean threadRunning;
-        boolean insideDialog;
-
-        private CheckNetworkConnectionThread() {
-            threadRunning = true;
-            insideDialog = false;
-        }
-
-        private void onStop() {
-            threadRunning = false;
-        }
-
-        private  boolean isNetworkConnected() {
-            ConnectivityManager connectivityManager = (ConnectivityManager) MapViewActivity.this.getSystemService(MapViewActivity.this.CONNECTIVITY_SERVICE);
-
-            return (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED    ||
-                    connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState()   == NetworkInfo.State.CONNECTING ||
-                    connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()   == NetworkInfo.State.CONNECTED    ||
-                    connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()   == NetworkInfo.State.CONNECTING);
-        }
-
-        @Override
-        public void run() {
-            if (!isNetworkConnected() && !insideDialog) {
-                insideDialog = true;
-
-                MapViewActivity.this.runOnUiThread(() -> {
-                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(MapViewActivity.this);
-                    alertDialog.setTitle(getString(R.string.no_network_title));
-                    alertDialog.setMessage(getString(R.string.no_network_description));
-                    alertDialog.setPositiveButton(getString(R.string.no_network_positive_response), (dialog, which) -> {
-                        Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
-                        startActivity(intent);
-                        dialog.dismiss();
-                        insideDialog = false;
-                    });
-                    alertDialog.setNegativeButton(getString(R.string.negative_response), (dialog, which) ->  {
-                        dialog.cancel();
-                        insideDialog = false;
-                    });
-                    alertDialog.show();
-                });
-            }
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,6 +82,20 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
 
         bottomView = findViewById(R.id.bottom_menu);
         bottomView.setOnNavigationItemSelectedListener(this);
+
+        developerModeButton = findViewById(R.id.developer_button);
+        developerModeButton.setVisibility(View.GONE);
+        developerModeButton.setOnClickListener(v -> {
+            inDeveloperMode = !inDeveloperMode;
+            if (inDeveloperMode) {
+                developerModeButton.setBackground(new ColorDrawable(getColor(R.color.green)));
+            } else {
+                developerModeButton.setBackground(new ColorDrawable(getColor(R.color.red)));
+            }
+            onMapReady(googleMap);
+        });
+        developerModeButton.setBackground(new ColorDrawable(getColor(R.color.red)));
+
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -131,37 +106,45 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             toOnboarding();
             return;
         } else if (!locationManager.hasPermission(this)) {
-            new AlertDialog.Builder(MapViewActivity.this)
-                    .setTitle(getString(R.string.permission_location_title))
-                    .setMessage(getString(R.string.permission_location_description))
-                    .setPositiveButton(getString(R.string.positive_response), (d, which) -> {
-                        d.dismiss();
+            ViewUtils.showError(this,
+                    getString(R.string.permission_location_title),
+                    getString(R.string.permission_location_description),
+                    (dialog, which) -> {
+                        dialog.dismiss();
                         loginManager.logout();
                         toOnboarding();
-                    })
-                    .create().show();
+                    });
             return;
         }
 
-        // Periodically check network status
-        int connectionRefreshDelay = 10; // seconds
-        CheckNetworkConnectionThread checkNetworkConnectionThread = new CheckNetworkConnectionThread();
-        ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(2);
-        executor.scheduleWithFixedDelay(checkNetworkConnectionThread, 0, connectionRefreshDelay, java.util.concurrent.TimeUnit.SECONDS);
+        configureNetworkChecker();
 
         // Load data required
         blueprintAPI = new BlueprintAPI(this);
         itemManager = ItemManager.getInstance(this);
-        itemManager.fetchData(new APICallback<Void>() {
+        blueprintAPI.makeRequest(blueprintAPI.resourceService.validateDeveloper(), new APICallback<Developer>() {
             @Override
-            public void success(Void response) {
-                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-                mapFragment.getMapAsync(MapViewActivity.this);
+            public void success(Developer response) {
+                if (response.isDeveloper()) {
+                    developerModeButton.setVisibility(View.VISIBLE);
+                }
+                itemManager.fetchData(new APICallback<Void>() {
+                    @Override
+                    public void success(Void response) {
+                        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+                        mapFragment.getMapAsync(MapViewActivity.this);
+                    }
+
+                    @Override
+                    public void failure(int code, String error) {
+                        ViewUtils.showError(MapViewActivity.this, "Whoops! Could not fetch resource schema", error);
+                    }
+                });
             }
 
             @Override
             public void failure(int code, String error) {
-                showError("Whoops! Could not fetch resource schema", error);
+                ViewUtils.showError(MapViewActivity.this, "Whoops! Could not determine developer role", error);
             }
         });
     }
@@ -169,9 +152,33 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     @Override
     protected void onResume() {
         super.onResume();
-        if (!isLocationEnabled()) {
+        if (!LocationUtils.isLocationEnabled(this)) {
             displayLocationServicesRequest();
         }
+    }
+
+    private void configureNetworkChecker() {
+        // Periodically check network status
+        int connectionRefreshDelay = 10; // seconds
+        NetworkUtils.CheckNetworkConnectionThread connectionThread = new NetworkUtils.CheckNetworkConnectionThread(this);
+        connectionThread.setCallback(value ->
+                MapViewActivity.this.runOnUiThread(() -> {
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(MapViewActivity.this);
+                    alertDialog.setTitle(getString(R.string.no_network_title));
+                    alertDialog.setMessage(getString(R.string.no_network_description));
+                    alertDialog.setPositiveButton(getString(R.string.no_network_positive_response), (dialog, which) -> {
+                        Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+                        startActivity(intent);
+                        dialog.dismiss();
+                        connectionThread.canContinue(true);
+                    });
+                    alertDialog.setNegativeButton(getString(R.string.negative_response), (dialog, which) -> {
+                        dialog.cancel();
+                        connectionThread.canContinue(true);
+                    });
+                    alertDialog.show();
+                }));
+        Executors.newScheduledThreadPool(2).scheduleWithFixedDelay(connectionThread, 0, connectionRefreshDelay, TimeUnit.SECONDS);
     }
 
     private void toOnboarding() {
@@ -187,8 +194,9 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         this.googleMap = googleMap;
         // Configure UI
         googleMap.setMyLocationEnabled(true);
-        googleMap.getUiSettings().setMyLocationButtonEnabled(false);
-        googleMap.getUiSettings().setAllGesturesEnabled(false);
+        // Only enable gestures if developer
+        googleMap.getUiSettings().setMyLocationButtonEnabled(inDeveloperMode);
+        googleMap.getUiSettings().setAllGesturesEnabled(inDeveloperMode);
         googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.setOnMarkerClickListener(this);
         googleMap.getUiSettings().setMapToolbarEnabled(false);
@@ -205,31 +213,38 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
                 super.onLocationResult(locationResult);
                 currentLocation = new LatLng(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude());
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, googleMap.getCameraPosition().zoom));
-
-                // Request resources if we've moved more than max distance, or is first run
-                if (lastLocationRequestedForResources == null ||
-                        distanceBetween(lastLocationRequestedForResources, currentLocation) >= MAX_DISTANCE_REFRESH){
-                    lastLocationRequestedForResources = currentLocation;
-                    addResources(currentLocation);
-                }
+                addResourcesIfNeeded(false);
             }
         }, Looper.myLooper());
 
+        // Configure Developer Mode
+        if (inDeveloperMode) {
+            googleMap.setOnMapLongClickListener(this::displayAddResourceDialog);
+        } else {
+            googleMap.setOnMapLongClickListener(null);
+        }
+
         // Move to default location
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, DEFAULT_ZOOM));
-        addResources(defaultLocation);
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, DEFAULT_ZOOM));
+        addResourcesIfNeeded(false);
     }
     //endregion
 
-    private void addResources(LatLng location) {
-        Location blueprintLocation = new Location(location.latitude, location.longitude);
-        blueprintAPI.makeRequest(blueprintAPI.resourceService.fetchResources(blueprintLocation.getLatitude(),
-                blueprintLocation.getLongitude()), new APICallback<ResourceSet>() {
+    private void addResourcesIfNeeded(boolean force) {
+        // Request resources if we've moved more than max distance, or is first run
+        if (lastLocationRequestedForResources != null &&
+                LocationUtils.distanceBetween(lastLocationRequestedForResources, currentLocation) < MAX_DISTANCE_REFRESH && !force) {
+            return;
+        }
+
+        lastLocationRequestedForResources = currentLocation;
+
+        blueprintAPI.makeRequest(blueprintAPI.resourceService.fetchResources(
+                currentLocation.latitude, currentLocation.longitude), new APICallback<ResourceSet>() {
             @Override
             public void success(ResourceSet response) {
                 markerResourceMap.forEach((marker, resource) -> marker.remove());
                 markerResourceMap.clear();
-
                 for (Resource item : response.getItems()) {
                     LatLng itemLocation = new LatLng(item.getLocation().getLatitude(),
                             item.getLocation().getLongitude());
@@ -242,21 +257,41 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
 
             @Override
             public void failure(int code, String error) {
-                showError("Whoops! Could not fetch available resources", error);
+                ViewUtils.showError(MapViewActivity.this, "Whoops! Could not fetch available resources", error);
             }
         });
     }
 
-    private boolean isLocationEnabled() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-            return lm.isLocationEnabled();
-        } else {
-            int mode = Settings.Secure.getInt(this.getContentResolver(), Settings.Secure.LOCATION_MODE,
-                    Settings.Secure.LOCATION_MODE_OFF);
-            return (mode != Settings.Secure.LOCATION_MODE_OFF);
+    // region OnMarkerClickListener
+    @Override
+    public boolean onMarkerClick(@NonNull Marker marker) {
+        Resource resource = markerResourceMap.get(marker);
+        marker.showInfoWindow();
+
+        // Developers delete instead of AR
+        if (inDeveloperMode) {
+            new AlertDialog.Builder(this)
+                    .setTitle(String.format(getString(R.string.developer_delete_resource),
+                            resource.getQuantity(),
+                            ItemManager.getInstance(this).getName(resource.getId()).getWithDefault("items")))
+                    .setPositiveButton(getString(R.string.positive_response), (dialog, which) -> {
+                        dialog.dismiss();
+                        deleteResource(resource);
+                    })
+                    .setNegativeButton(getString(R.string.negative_response), null)
+                    .show();
+
+        // Only collect if close enough
+        } else if (LocationUtils.distanceBetween(marker.getPosition(), currentLocation) <= MAX_DISTANCE_COLLECT) {
+            Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
+            Bundle resourceToCollect = new Bundle();
+            resourceToCollect.putString("resource", (new Gson()).toJson(resource));
+            intentAR.putExtras(resourceToCollect);
+            startActivity(intentAR);
         }
+        return true;
     }
+    // endregion
 
     private void displayLocationServicesRequest() {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
@@ -270,21 +305,71 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         alertDialog.show();
     }
 
-    // region OnMarkerClickListener
-    @Override
-    public boolean onMarkerClick(@NonNull Marker marker) {
-        marker.showInfoWindow();
+    private void displayAddResourceDialog(LatLng latlng){
+        // Configure Spinner
+        View view = getLayoutInflater().inflate(R.layout.alert_add_resource, null);
+        Spinner resourceNameSpinner = view.findViewById(R.id.resource_name_spinner);
+        Spinner resourceQuantitySpinner = view.findViewById(R.id.resource_quantity_spinner);
 
-        if (distanceBetween(marker.getPosition(), currentLocation) <= MAX_DISTANCE_COLLECT) {
-            Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
-            Bundle resourceToCollect = new Bundle();
-            resourceToCollect.putString("resource", (new Gson()).toJson(markerResourceMap.get(marker)));
-            intentAR.putExtras(resourceToCollect);
-            startActivity(intentAR);
+
+        ItemManager itemManager = ItemManager.getInstance(this);
+
+        // Data for resources
+        ArrayList<Integer> quantities = new ArrayList<>();
+        for (int i = 0; i < 16; i++){
+            quantities.add(i + 1);
         }
-        return true;
+
+        // Creating adapter for spinners
+        resourceNameSpinner.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,
+                new ArrayList<>(itemManager.getNames())));
+        resourceQuantitySpinner.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,
+                quantities));
+
+        new AlertDialog.Builder(this)
+            .setTitle("Add Resource")
+            .setView(view)
+            .setPositiveButton(R.string.positive_response, (dialog, which) -> {
+                dialog.dismiss();
+
+                int resourceId = itemManager.getId((String) resourceNameSpinner.getSelectedItem()).getWithDefault(0);
+                Location location = new Location(latlng.latitude, latlng.longitude);
+                int quantity = quantities.get(resourceQuantitySpinner.getSelectedItemPosition());
+
+                addResource(new Resource(resourceId, location, quantity));
+            })
+            .show();
     }
-    // endregion
+
+    // Developer mode functions
+    private void addResource(Resource resource) {
+        blueprintAPI.makeRequest(blueprintAPI.resourceService.addResources(new ResourceSet(resource)), new APICallback<Void>() {
+            @Override
+            public void success(Void response) {
+                addResourcesIfNeeded(true);
+            }
+
+            @Override
+            public void failure(int code, String error) {
+                ViewUtils.showError(MapViewActivity.this, "Error adding resource", error);
+            }
+        });
+    }
+
+    private void deleteResource(Resource resource) {
+        blueprintAPI.makeRequest(blueprintAPI.resourceService.deleteResources(new ResourceSet(resource)), new APICallback<Void>() {
+            @Override
+            public void success(Void response) {
+                addResourcesIfNeeded(true);
+            }
+
+            @Override
+            public void failure(int code, String error) {
+                ViewUtils.showError(MapViewActivity.this, "Couldn't delete resource", error);
+            }
+        });
+    }
+
 
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         for (int i = 0; i < bottomView.getMenu().size(); i++) {
@@ -304,31 +389,5 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
                 break;
         }
         return true;
-    }
-
-    private void showError(String title, String message) {
-        new AlertDialog
-                .Builder(MapViewActivity.this, android.R.style.Theme_Material_Dialog_Alert)
-                .setTitle(title)
-                .setMessage(message)
-                .setNegativeButton(android.R.string.ok, null)
-                .show();
-
-    }
-
-    // Formula from https://stackoverflow.com/a/11172685/5310315
-    private double distanceBetween(LatLng a, LatLng b) {
-        double earthRadius = 6378.137;
-        double dLat = b.latitude * Math.PI / 180 - a.latitude * Math.PI / 180;
-        double dLong = b.longitude * Math.PI / 180 - a.longitude * Math.PI / 180;
-
-        double alpha = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(a.latitude * Math.PI / 180) *
-                        Math.cos(b.latitude * Math.PI / 180) *
-                        Math.sin(dLong/2) * Math.sin(dLong/2);
-
-        double c = 2 * Math.atan2(Math.sqrt(alpha), Math.sqrt(1-alpha));
-        double d = earthRadius * c;
-        return d * 1000;
     }
 }
