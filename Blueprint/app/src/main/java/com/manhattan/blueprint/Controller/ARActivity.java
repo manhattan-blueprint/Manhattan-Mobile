@@ -10,16 +10,13 @@ import com.google.gson.GsonBuilder;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.graphics.Canvas;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +43,11 @@ import com.manhattan.blueprint.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
+
+import static android.view.KeyEvent.ACTION_DOWN;
+import static android.view.KeyEvent.ACTION_UP;
+import static android.view.MotionEvent.ACTION_MOVE;
 
 public class ARActivity extends AppCompatActivity {
     private ArFragment arFragment;
@@ -66,14 +68,28 @@ public class ARActivity extends AppCompatActivity {
     private TextView snackbarTextView;
     private FrameLayout snackbarView;
 
+    float rotation;
+    float Xp = 0;
+    float Yp = 0;
+    float X0 = 0;
+    float Y0 = 0;
+    float X  = 0;
+    float Y  = 0;
+    boolean failed = true;
+    View vi;
+
+    int A[] = new int[2];
+    int B[] = new int[2];
+    int D[] = new int[2];
+    int C[] = new int[2];
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
-        View vi = (View) findViewById(R.id.Minigame);
+        vi = (View) findViewById(R.id.Minigame);
         vi.bringToFront();
-//        vi.setLayoutParams(FrameLayout.LayoutParams());
-
+        rotation = vi.getRotation();
 
         holoButton = findViewById(R.id.HoloButton);
         holoButton.setAlpha(0.35f);
@@ -145,8 +161,74 @@ public class ARActivity extends AppCompatActivity {
         arScene.addOnUpdateListener(this::onSceneUpdate);
         arScene.setOnTouchListener(
                 (HitTestResult hitTestResult, MotionEvent sceneMotionEvent) -> {
+
                     if (itemWasPlaced) {
-                        Log.d("gesture", "SCENE TOUCHED " + sceneMotionEvent);
+                        double diff;
+                        switch(sceneMotionEvent.getAction()) {
+                            case ACTION_UP:
+                                if (failed) {
+                                    return true;
+                                }
+                                X = sceneMotionEvent.getX();
+                                Y = sceneMotionEvent.getY();
+                                if (outOfBounds(new int[] {(int) X, (int) Y})) {
+                                    failed = true;
+                                    setSnackbar("Failed, try again! (outside)");
+                                    return true;
+                                }
+                                double dist = Math.sqrt((X - X0) * (X - X0) + (Y - Y0) * (Y - Y0));
+                                if (dist  < 0.8f * vi.getHeight()) {
+                                    failed = true;
+                                    setSnackbar("Failed, try again! (distance)");
+                                    return true;
+                                }
+                                setSnackbar("Well done!");
+                                Random rand = new Random();
+                                do {
+                                    rotation = rand.nextInt(180) - 90;
+                                } while (rotation == 90);
+                                vi.setRotation(rotation);
+                                Log.d("minigame", "new rotation = " + rotation);
+                                break;
+
+                            case ACTION_DOWN:
+                                setSnackbar("Started ...");
+                                failed = false;
+                                getCorners();
+                                X0 = sceneMotionEvent.getX();
+                                Y0 = sceneMotionEvent.getY();
+                                Xp = X0;
+                                Yp = Y0;
+                                getCorners();
+                                if ( outOfBounds(new int[] {(int) X0, (int) Y0}) ) {
+                                    failed = true;
+                                    setSnackbar("Failed, try again! (outside)99");
+                                }
+                                break;
+
+                            case ACTION_MOVE:
+                                if (failed) {
+                                    return true;
+                                }
+                                setSnackbar("Moving ...");
+                                X = sceneMotionEvent.getX();
+                                Y = sceneMotionEvent.getY();
+                                diff = getAngleError();
+                                if (outOfBounds(new int[] {(int) X, (int) Y})) {
+                                    failed = true;
+                                    setSnackbar("Failed, try again! (outside)");
+                                    return true;
+                                }
+                                if (diff > 20) {
+                                    failed = true;
+                                    setSnackbar("Failed, try again! (angle)");
+                                    return true;
+                                }
+                                Xp = X;
+                                Yp = Y;
+                                break;
+                        }
+
                         return true;
                     } else {
                         return false;
@@ -261,5 +343,51 @@ public class ARActivity extends AppCompatActivity {
         snackbarTextView.setTextSize(17);
         snackbarView.setAlpha(0.50f);
         arSnackbarMessage.show();
+    }
+
+    private void setSnackbar(String msg) {
+        arSnackbarMessage.setText(msg);
+    }
+
+    private void getCorners() {
+        vi.getLocationOnScreen(A);
+
+        B[0] = (int) (A[0] + vi.getWidth() * Math.cos(rotation * Math.PI / 180));
+        B[1] = (int) (A[1] + vi.getWidth() * Math.sin(rotation * Math.PI / 180));
+
+        D[0] = (int) (A[0] - vi.getHeight() * Math.sin(rotation * Math.PI / 180));
+        D[1] = (int) (A[1] + vi.getHeight() * Math.cos(rotation * Math.PI / 180));
+
+        C[0] = (int) (D[0] + vi.getWidth() * Math.cos(rotation * Math.PI / 180));
+        C[1] = (int) (D[1] + vi.getWidth() * Math.sin(rotation * Math.PI / 180));
+    }
+
+    private int area(int[] A, int[] B, int[] C) {
+        return Math.abs( (A[0] * B[1] + A[1] * C[0] + B[0] * C[1] ) -
+                         (C[0] * B[1] + A[1] * B[0] + C[1] * A[0] ) ) / 2;
+    }
+
+    private boolean outOfBounds(int[] P) {
+        // PAB + PBC + PCD + PDA
+        int PAB = area(P, A, B);
+        int PBC = area(P, B, C);
+        int PCD = area(P, C, D);
+        int PDA = area(P, D, A);
+        int totalArea = PAB + PBC + PCD + PDA;
+        int rectArea = vi.getWidth() * vi.getHeight();
+        return totalArea > rectArea;
+    }
+
+    private double getAngleError() {
+        double angle = Math.atan2(Yp - Y, X - Xp) * 180 / Math.PI;
+        if (angle < 0) {
+            angle = 180 + angle;
+        }
+        double diff;
+        diff = Math.abs(angle - (90 - rotation));
+        diff = Math.min(diff, 180 - diff);
+        Log.d("angle", "Angle: " + angle);
+        Log.d("angle", "Error: " + diff);
+        return diff;
     }
 }

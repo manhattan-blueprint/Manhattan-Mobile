@@ -9,9 +9,8 @@
 
     <View
         android:id="@+id/Minigame"
-        android:rotation="0"
-        android:layout_marginLeft="100dp"
-        android:layout_marginTop="80dp"
+        android:rotation="-30"
+        android:layout_gravity="center"
         android:layout_width="100dp"
         android:layout_height="300dp"
         android:foreground="@drawable/ar_gesture" />
