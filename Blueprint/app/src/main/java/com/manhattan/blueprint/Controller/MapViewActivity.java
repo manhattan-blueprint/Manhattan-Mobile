@@ -59,8 +59,10 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     private final int DEFAULT_ZOOM = 18;
     private final int MAX_DISTANCE_REFRESH = 500;
     private final int MAX_DISTANCE_COLLECT = 20;
+    // Times in MS
     private final int DESIRED_GPS_INTERVAL = 1000;
     private final int FASTEST_GPS_INTERVAL = 500;
+    private final int NETWORK_CHECK_REFRESH = 10000;
 
     private BlueprintAPI blueprintAPI;
     private ItemManager itemManager;
@@ -95,7 +97,6 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             onMapReady(googleMap);
         });
         developerModeButton.setBackground(new ColorDrawable(getColor(R.color.red)));
-
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -159,7 +160,6 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
 
     private void configureNetworkChecker() {
         // Periodically check network status
-        int connectionRefreshDelay = 10; // seconds
         NetworkUtils.CheckNetworkConnectionThread connectionThread = new NetworkUtils.CheckNetworkConnectionThread(this);
         connectionThread.setCallback(value ->
                 MapViewActivity.this.runOnUiThread(() -> {
@@ -178,7 +178,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
                     });
                     alertDialog.show();
                 }));
-        Executors.newScheduledThreadPool(2).scheduleWithFixedDelay(connectionThread, 0, connectionRefreshDelay, TimeUnit.SECONDS);
+        Executors.newScheduledThreadPool(2).scheduleWithFixedDelay(connectionThread, 0, NETWORK_CHECK_REFRESH, TimeUnit.MILLISECONDS);
     }
 
     private void toOnboarding() {
@@ -212,7 +212,8 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
                 currentLocation = new LatLng(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude());
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, googleMap.getCameraPosition().zoom));
+                // Don't move if in developer mode - may have panned to another location
+                if (!inDeveloperMode) googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, googleMap.getCameraPosition().zoom));
                 addResourcesIfNeeded(false);
             }
         }, Looper.myLooper());
@@ -316,7 +317,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
 
         // Data for resources
         ArrayList<Integer> quantities = new ArrayList<>();
-        for (int i = 0; i < 16; i++){
+        for (int i = 0; i < itemManager.getNames().size(); i++){
             quantities.add(i + 1);
         }
 
