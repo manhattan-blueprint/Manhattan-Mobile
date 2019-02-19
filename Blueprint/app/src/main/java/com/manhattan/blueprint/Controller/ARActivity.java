@@ -4,12 +4,17 @@ import com.google.ar.core.Frame;
 import com.google.ar.core.TrackingState;
 import com.google.ar.sceneform.HitTestResult;
 import com.google.ar.sceneform.Scene;
+import com.google.ar.sceneform.math.Vector3;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -23,7 +28,6 @@ import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
-import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 import com.google.ar.sceneform.AnchorNode;
@@ -44,6 +48,8 @@ import com.manhattan.blueprint.R;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static android.view.KeyEvent.ACTION_DOWN;
 import static android.view.KeyEvent.ACTION_UP;
@@ -56,8 +62,12 @@ public class ARActivity extends AppCompatActivity {
     private ModelRenderable manhattanRenderable;
     private ViewRenderable testViewRenderable;
     private Resource resourceToCollect;
+    private Anchor anchor;
+    private AnchorNode anchorNode;
+    private TransformableNode transformableNode;
 
-    private final int tapsRequired = 5;
+
+    private final int swipesRequired = 5;
     private int collectCounter;
     private boolean itemWasPlaced;
     private boolean planeWasDetected;
@@ -76,7 +86,9 @@ public class ARActivity extends AppCompatActivity {
     float X  = 0;
     float Y  = 0;
     boolean failed = true;
+    boolean minigameReady = true;
     View vi;
+    GradientDrawable drawable;
 
     int A[] = new int[2];
     int B[] = new int[2];
@@ -88,8 +100,11 @@ public class ARActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
         vi = (View) findViewById(R.id.Minigame);
-        vi.bringToFront();
+        drawable = (GradientDrawable) getResources().getDrawable(R.drawable.ar_gesture);
+        drawable.setStroke(10, Color.argb(255,0,0,255));
+        vi.setForeground(drawable);
         rotation = vi.getRotation();
+        vi.bringToFront();
 
         holoButton = findViewById(R.id.HoloButton);
         holoButton.setAlpha(0.35f);
@@ -110,7 +125,7 @@ public class ARActivity extends AppCompatActivity {
         }
         itemWasPlaced = false;
         planeWasDetected = false;
-        collectCounter = tapsRequired - 1;
+        collectCounter = swipesRequired - 1;
     }
 
     public void onUpdate(FrameTime frameTime) {
@@ -166,62 +181,66 @@ public class ARActivity extends AppCompatActivity {
                         double diff;
                         switch(sceneMotionEvent.getAction()) {
                             case ACTION_UP:
-                                if (failed) {
-                                    return true;
+                                if (failed || !minigameReady) {
+                                    break;
                                 }
                                 X = sceneMotionEvent.getX();
                                 Y = sceneMotionEvent.getY();
                                 if (outOfBounds(new int[] {(int) X, (int) Y})) {
                                     failed = true;
-                                    setSnackbar("Failed, try again! (outside)");
+                                    setSnackbar("You went outside the box, try again!");
+                                    newMinigame(false);
                                     return true;
                                 }
                                 double dist = Math.sqrt((X - X0) * (X - X0) + (Y - Y0) * (Y - Y0));
-                                if (dist  < 0.8f * vi.getHeight()) {
+                                if (dist  < 0.75f * vi.getHeight()) {
                                     failed = true;
-                                    setSnackbar("Failed, try again! (distance)");
+                                    setSnackbar("You didn't swipe far enough, try again!");
+                                    newMinigame(false);
                                     return true;
                                 }
-                                setSnackbar("Well done!");
-                                Random rand = new Random();
-                                do {
-                                    rotation = rand.nextInt(180) - 90;
-                                } while (rotation == 90);
-                                vi.setRotation(rotation);
-                                Log.d("minigame", "new rotation = " + rotation);
+                                onSuccessfulSwipe();
+                                newMinigame(true);
                                 break;
 
                             case ACTION_DOWN:
-                                setSnackbar("Started ...");
+                                if (!minigameReady) {
+                                    break;
+                                }
+                                minigameReady = true;
+                                setSnackbar("GO!");
                                 failed = false;
                                 getCorners();
                                 X0 = sceneMotionEvent.getX();
                                 Y0 = sceneMotionEvent.getY();
                                 Xp = X0;
                                 Yp = Y0;
-                                getCorners();
                                 if ( outOfBounds(new int[] {(int) X0, (int) Y0}) ) {
                                     failed = true;
-                                    setSnackbar("Failed, try again! (outside)99");
+                                    setSnackbar("You went outside the box, try again!");
+                                    newMinigame(false);
+                                    return true;
                                 }
                                 break;
 
                             case ACTION_MOVE:
-                                if (failed) {
-                                    return true;
+                                if (failed || !minigameReady) {
+                                    break;
                                 }
-                                setSnackbar("Moving ...");
+                                setSnackbar("...");
                                 X = sceneMotionEvent.getX();
                                 Y = sceneMotionEvent.getY();
                                 diff = getAngleError();
                                 if (outOfBounds(new int[] {(int) X, (int) Y})) {
                                     failed = true;
-                                    setSnackbar("Failed, try again! (outside)");
+                                    setSnackbar("You went outside the box, try again!");
+                                    newMinigame(false);
                                     return true;
                                 }
-                                if (diff > 20) {
+                                if (diff > 30) {
                                     failed = true;
-                                    setSnackbar("Failed, try again! (angle)");
+                                    setSnackbar("You didn't swipe in a straight line, try again!");
+                                    newMinigame(false);
                                     return true;
                                 }
                                 Xp = X;
@@ -240,44 +259,68 @@ public class ARActivity extends AppCompatActivity {
         // arFragment.getPlaneDiscoveryController().setInstructionView(null);
 
         createSnackbar();
+    }
 
-        arFragment.setOnTapArPlaneListener(
-                (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-                    if (testViewRenderable == null) {
-                        return;
-                    } else if (!itemWasPlaced) {
-                        // Create the Anchor.
-                        Anchor anchor = hitResult.createAnchor();
-                        AnchorNode anchorNode = new AnchorNode(anchor);
+    private void newMinigame(boolean completed) {
+        minigameReady = false;
+        if (completed) {
+            drawable.setStroke(10, Color.argb(255,0,255,0));
+            vi.setForeground(drawable);
+        } else {
+            drawable.setStroke(10, Color.argb(255,255,0,0));
+            vi.setForeground(drawable);
+        }
+        final Handler handler = new Handler();
+        handler.postDelayed(() -> {
+            // Do something after 2s
+            Random rand = new Random();
+            do {
+                rotation = rand.nextInt(180) - 90;
+            } while (rotation == 90);
+            vi.setRotation(rotation);
+            drawable.setStroke(10, Color.argb(255,0,0,255));
+            vi.setForeground(drawable);
+            minigameReady = true;
+        }, 2000);
+    }
+
+    public void onSceneUpdate(FrameTime frameTime) {
+        vi.bringToFront();
+        arFragment.onUpdate(frameTime);
+        Frame frame = arFragment.getArSceneView().getArFrame();
+
+        if (anchorNode != null && minigameReady) {
+            Vector3 worldPos = anchorNode.getWorldPosition();
+            Vector3 screnPos = arFragment.getArSceneView().getScene().getCamera().worldToScreenPoint(worldPos);
+            if ( outOfBounds(new int[] {(int) screnPos.x, (int) screnPos.y}) ) {
+                failed = true;
+                setSnackbar("Resource is out of view!");
+                newMinigame(false);
+            }
+        }
+
+        if (!planeWasDetected) {
+            // Check if a plane was detected
+            for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
+                if (plane.getTrackingState() == TrackingState.TRACKING) {
+                    if (anchor == null) {
+                        anchor = plane.createAnchor(plane.getCenterPose());
+                        anchorNode = new AnchorNode(anchor);
                         anchorNode.setParent(arFragment.getArSceneView().getScene());
 
                         // Create the transformable node and add it to the anchor.
-                        TransformableNode node = new TransformableNode(arFragment.getTransformationSystem());
-                        node.setParent(anchorNode);
-                        node.setRenderable(testViewRenderable);
-                        node.select();
-
-                        node.setOnTapListener((hitTestResult, motionEvent1) -> {
-                            onResourceTapped();
-                        });
-                        node.getTranslationController().setEnabled(false);
+                        transformableNode = new TransformableNode(arFragment.getTransformationSystem());
+                        transformableNode.setParent(anchorNode);
+                        transformableNode.setRenderable(testViewRenderable);
+                        transformableNode.select();
+                        transformableNode.getTranslationController().setEnabled(false);
 
                         // Remove plane renderer
                         arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
                         arSnackbarMessage.setText(getString(R.string.resource_collection_instruction));
                         itemWasPlaced = true;
                     }
-                });
-    }
 
-    public void onSceneUpdate(FrameTime frameTime) {
-        arFragment.onUpdate(frameTime);
-        Frame frame = arFragment.getArSceneView().getArFrame();
-
-        if (!planeWasDetected) {
-            // Check if a plane was detected
-            for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
-                if (plane.getTrackingState() == TrackingState.TRACKING) {
                     arSnackbarMessage.setText(getString(R.string.place_resource_instruction));
                     planeWasDetected = true;
                     break;
@@ -286,23 +329,22 @@ public class ARActivity extends AppCompatActivity {
         }
     }
 
-    private void onResourceTapped() {
+    private void onSuccessfulSwipe() {
         if (collectCounter > 0) {
-            if (collectCounter == tapsRequired - 1) {
-                arSnackbarMessage.dismiss();
-            }
-            int progress = ((tapsRequired - collectCounter) * 100) / tapsRequired;
+//            if (collectCounter == swipesRequired - 1) {
+//                arSnackbarMessage.dismiss();
+//            }
+//
+//            if (arToastMessage != null) {
+//                arToastMessage.cancel();
+//            }
+            int progress = ((swipesRequired - collectCounter) * 100) / swipesRequired;
             String progress_msg = String.format(getString(R.string.collection_progress), progress);
-
-            if (arToastMessage != null) {
-                arToastMessage.cancel();
-            }
-            arToastMessage = Toast.makeText(this, progress_msg, Toast.LENGTH_SHORT);
-            arToastMessage.show();
+            setSnackbar(progress_msg);
 
             collectCounter--;
         } else if (collectCounter == 0) {
-            arToastMessage.cancel();
+            // arToastMessage.cancel();
             InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), resourceToCollect.getQuantity());
             BlueprintAPI api = new BlueprintAPI(this);
             Inventory inventoryToAdd = new Inventory(new ArrayList<>(Collections.singletonList(itemCollected)));
@@ -312,7 +354,7 @@ public class ARActivity extends AppCompatActivity {
                     // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
                     String itemName = ItemManager.getInstance(ARActivity.this).getName(resourceToCollect.getId()).getWithDefault("items");
                     String successMsg = String.format(getString(R.string.collection_success), resourceToCollect.getQuantity(), itemName);
-                    Toast.makeText(ARActivity.this, successMsg, Toast.LENGTH_LONG).show();
+                    setSnackbar(successMsg);
                     finish();
                 }
 
@@ -322,6 +364,7 @@ public class ARActivity extends AppCompatActivity {
                 }
             });
         }
+        vi.bringToFront();
     }
 
     private void createDialog(String title, String message, DialogInterface.OnClickListener onClick) {
@@ -375,7 +418,7 @@ public class ARActivity extends AppCompatActivity {
         int PDA = area(P, D, A);
         int totalArea = PAB + PBC + PCD + PDA;
         int rectArea = vi.getWidth() * vi.getHeight();
-        return totalArea > rectArea;
+        return totalArea > rectArea + 2000;
     }
 
     private double getAngleError() {
