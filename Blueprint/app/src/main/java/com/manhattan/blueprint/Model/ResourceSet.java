@@ -3,10 +3,15 @@ package com.manhattan.blueprint.Model;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class ResourceSet {
     @SerializedName("spawns")
     private ArrayList<Resource> items;
+
+    public ResourceSet(Resource resource){
+        this.items = new ArrayList<>(Collections.singletonList(resource));
+    }
 
     public ResourceSet(ArrayList<Resource> items) {
         this.items = items;

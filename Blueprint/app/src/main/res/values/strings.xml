@@ -25,6 +25,8 @@
     <string name="positive_response">OK</string>
     <string name="negative_response">No thanks</string>
 
+    <string name="developer_delete_resource">Are you sure you want to delete %d %s?</string>
+
     <string name="invalid_username">Invalid username, it must have less than 16 characters.</string>
     <string name="invalid_password">Invalid password, it must be between 5 and 16 characters and contain at least 1 number, lowercase and uppercase character.</string>
     <!-- A password between 5 and 16 characters in length,
