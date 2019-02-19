@@ -14,6 +14,7 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -59,8 +60,7 @@ public class ARActivity extends AppCompatActivity {
     private ArFragment arFragment;
 
     private boolean userRequestedARInstall = false;
-    private ModelRenderable manhattanRenderable;
-    private ViewRenderable testViewRenderable;
+    private ModelRenderable ingot;
     private Resource resourceToCollect;
     private Anchor anchor;
     private AnchorNode anchorNode;
@@ -159,16 +159,17 @@ public class ARActivity extends AppCompatActivity {
 
     private void startAr() {
         // Build renderable object
-        ViewRenderable.builder()
-                .setView(this, R.layout.resource_ar)
+        ModelRenderable.builder()
+                .setSource(this, Uri.parse("Ingot.sfb"))
                 .build()
                 .thenAccept(renderable -> {
-                    testViewRenderable = renderable;
-                    TextView resourceView = renderable.getView().findViewById(R.id.Resource_AR);
-                    ItemManager itemManager = ItemManager.getInstance(this);
-                    String resourceText = itemManager.getName(resourceToCollect.getId()).getWithDefault("Resource");
-                    resourceView.setText(resourceText);
-                });
+                    ingot = renderable;
+                })
+                .exceptionally(
+                        throwable -> {
+                            Log.d("cartita", "Unable to load Renderable.", throwable);
+                            return null;
+                        });
 
         // Start AR:
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
@@ -237,7 +238,7 @@ public class ARActivity extends AppCompatActivity {
                                     newMinigame(false);
                                     return true;
                                 }
-                                if (diff > 30) {
+                                if (diff > 35) {
                                     failed = true;
                                     setSnackbar("You didn't swipe in a straight line, try again!");
                                     newMinigame(false);
@@ -259,29 +260,6 @@ public class ARActivity extends AppCompatActivity {
         // arFragment.getPlaneDiscoveryController().setInstructionView(null);
 
         createSnackbar();
-    }
-
-    private void newMinigame(boolean completed) {
-        minigameReady = false;
-        if (completed) {
-            drawable.setStroke(10, Color.argb(255,0,255,0));
-            vi.setForeground(drawable);
-        } else {
-            drawable.setStroke(10, Color.argb(255,255,0,0));
-            vi.setForeground(drawable);
-        }
-        final Handler handler = new Handler();
-        handler.postDelayed(() -> {
-            // Do something after 2s
-            Random rand = new Random();
-            do {
-                rotation = rand.nextInt(180) - 90;
-            } while (rotation == 90);
-            vi.setRotation(rotation);
-            drawable.setStroke(10, Color.argb(255,0,0,255));
-            vi.setForeground(drawable);
-            minigameReady = true;
-        }, 2000);
     }
 
     public void onSceneUpdate(FrameTime frameTime) {
@@ -310,8 +288,9 @@ public class ARActivity extends AppCompatActivity {
 
                         // Create the transformable node and add it to the anchor.
                         transformableNode = new TransformableNode(arFragment.getTransformationSystem());
+                        transformableNode.setLocalScale(new Vector3(0.02f, 0.02f, 0.02f));
                         transformableNode.setParent(anchorNode);
-                        transformableNode.setRenderable(testViewRenderable);
+                        transformableNode.setRenderable(ingot);
                         transformableNode.select();
                         transformableNode.getTranslationController().setEnabled(false);
 
@@ -327,6 +306,32 @@ public class ARActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    private void newMinigame(boolean completed) {
+        minigameReady = false;
+        if (completed) {
+            drawable.setStroke(10, Color.argb(155,0,255,0));
+            drawable.setColor(Color.argb(100,0,255,0));
+            vi.setForeground(drawable);
+        } else {
+            drawable.setStroke(10, Color.argb(155,255,0,0));
+            drawable.setColor(Color.argb(100,255,0,0));
+            vi.setForeground(drawable);
+        }
+        final Handler handler = new Handler();
+        handler.postDelayed(() -> {
+            // Do something after 2s
+            Random rand = new Random();
+            do {
+                rotation = rand.nextInt(180) - 90;
+            } while (rotation == 90);
+            vi.setRotation(rotation);
+            drawable.setStroke(10, Color.argb(255,0,0,255));
+            drawable.setColor(Color.argb(0,0,0,0));
+            vi.setForeground(drawable);
+            minigameReady = true;
+        }, 2000);
     }
 
     private void onSuccessfulSwipe() {
