@@ -3,12 +3,19 @@ package com.manhattan.blueprint.Controller;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Point;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Display;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Toast;
 
@@ -26,7 +33,7 @@ import com.manhattan.blueprint.View.WelcomeFragment;
 
 import java.util.regex.Pattern;
 
-public class OnboardingActivity extends FragmentActivity {
+public class OnboardingActivity extends FragmentActivity implements SurfaceHolder.Callback {
     private static final int PAGE_COUNT = 5;
     // PageIDs
     private static final int WELCOME = 0;
@@ -36,12 +43,16 @@ public class OnboardingActivity extends FragmentActivity {
     private static final int SIGNUP = 4;
 
     private final int maxUsernameLength = 16;
+    private SurfaceView surface;
     private ControlledViewPager pager;
     private PermissionManager locationPermissionManager;
     private PermissionManager cameraPermissionManager;
     private LoginFragment loginFragment;
     private SignupFragment signupFragment;
     private BlueprintAPI api;
+    private Point screenSize;
+
+    private String testURL = "https://redirector.googlevideo.com/videoplayback?expire=1550602960&ratebypass=yes&mt=1550580666&fvip=3&mn=sn-x0gvfxc-vu2e%2Csn-c0q7lnsl&ei=cP5rXP6MGsLTgQe-mrDgDg&ip=185.225.17.253&ms=au%2Crdu&mv=u&source=youtube&signature=5A85872D3AAE0969ACABF6520A645A7D3A376DB8.19092F1BC74F940B65846DD6F472DE9EE17897B6&key=yt6&mime=video%2Fmp4&lmt=1541586802171970&dur=313.840&txp=5531232&pl=25&id=o-AIL4J8xHUYBsZ2-1A8L83TQQGGigoD0DXtRXViSRZ3N2&sparams=dur%2Cei%2Cid%2Cip%2Cipbits%2Citag%2Clmt%2Cmime%2Cmm%2Cmn%2Cms%2Cmv%2Cpl%2Cratebypass%2Crequiressl%2Csource%2Cexpire&itag=22&requiressl=yes&ipbits=0&mm=31%2C29&c=WEB&title=COSTA+RICA%20IN%204K%2060fps%20HDR%20(ULTRA%20HD)";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +63,35 @@ public class OnboardingActivity extends FragmentActivity {
         pager.setAdapter(new ScreenSlidePagerAdapter(getSupportFragmentManager()));
         api = new BlueprintAPI(this);
 
+        surface = findViewById(R.id.surface);
+        surface.getHolder().addCallback(this);
+
         locationPermissionManager = new PermissionManager(LOCATION_PERMISSION, Manifest.permission.ACCESS_FINE_LOCATION);
         cameraPermissionManager = new PermissionManager(CAMERA_PERMISSION, Manifest.permission.CAMERA);
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        try {
+            MediaPlayer player = new MediaPlayer();
+            player.setDisplay(holder);
+            player.setDataSource(testURL);
+            player.prepare();
+            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            player.setOnPreparedListener(mp -> player.start());
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
@@ -222,15 +260,11 @@ public class OnboardingActivity extends FragmentActivity {
     }
 
     private View.OnClickListener toSignupClick() {
-        return v -> {
-            pager.setCurrentItem(SIGNUP);
-        };
+        return v -> pager.setCurrentItem(SIGNUP);
     }
 
     private View.OnClickListener toLoginClick() {
-        return v -> {
-            pager.setCurrentItem(LOGIN);
-        };
+        return v -> pager.setCurrentItem(LOGIN);
     }
 
     @Override

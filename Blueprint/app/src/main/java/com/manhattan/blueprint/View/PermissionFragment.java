@@ -21,12 +21,12 @@ public class PermissionFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         ViewGroup fragment = (ViewGroup) inflater.inflate(R.layout.fragment_permission, container, false);
         // Configure
-        TextView emojiText = fragment.findViewById(R.id.permissionEmoji);
+//        TextView emojiText = fragment.findViewById(R.id.permissionEmoji);
         TextView titleText = fragment.findViewById(R.id.permissionTitle);
         TextView descriptionText = fragment.findViewById(R.id.permissionDescription);
         Button permissionAccess = fragment.findViewById(R.id.permissionAccess);
 
-        emojiText.setText(emoji);
+//        emojiText.setText(emoji);
         titleText.setText(title);
         descriptionText.setText(description);
         permissionAccess.setOnClickListener(onClickListener);

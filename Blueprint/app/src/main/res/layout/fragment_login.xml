@@ -8,46 +8,55 @@
 
     <Button
         android:id="@+id/loginButton"
+        style="@style/Button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="40dp"
         android:layout_marginTop="40dp"
         android:layout_marginEnd="40dp"
+        android:background="@drawable/onboarding_button"
         android:text="Login"
         android:textColor="@android:color/white"
-        android:background="@color/medium_blue"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/passwordInput" />
 
     <EditText
+        style="@style/B1"
         android:id="@+id/usernameInput"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:layout_marginStart="40dp"
         android:layout_marginLeft="40dp"
         android:layout_marginTop="40dp"
         android:layout_marginEnd="40dp"
         android:layout_marginRight="40dp"
+        android:background="@drawable/onboarding_edittext"
         android:ems="10"
         android:hint="Username"
         android:inputType="textPersonName"
+        android:paddingLeft="20dp"
+        android:textColorHint="@color/brandPrimaryDarkTransparent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
+        style="@style/B1"
         android:id="@+id/passwordInput"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:layout_marginStart="40dp"
         android:layout_marginLeft="40dp"
         android:layout_marginTop="40dp"
         android:layout_marginEnd="40dp"
         android:layout_marginRight="40dp"
+        android:background="@drawable/onboarding_edittext"
         android:ems="10"
         android:hint="Password"
         android:inputType="textPassword"
+        android:paddingLeft="20dp"
+        android:textColorHint="@color/brandPrimaryDarkTransparent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.4"
         app:layout_constraintStart_toStartOf="parent"
@@ -65,22 +74,21 @@
         app:layout_constraintTop_toBottomOf="@+id/loginButton">
 
         <TextView
+            style="@style/B2_White"
             android:id="@+id/noAccountTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Don't have an account yet? "
-            android:textSize="16sp"
             tools:layout_editor_absoluteX="94dp"
             tools:layout_editor_absoluteY="291dp" />
 
         <TextView
+            style="@style/B2_White_Bold"
             android:id="@+id/signupTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=" Sign Up"
             android:textAlignment="viewStart"
-            android:textColor="@color/medium_blue"
-            android:textSize="16sp"
             tools:layout_editor_absoluteX="288dp"
             tools:layout_editor_absoluteY="291dp" />
     </LinearLayout>

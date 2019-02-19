@@ -6,65 +6,55 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
-    <TextView
-        android:id="@+id/permissionEmoji"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:text="📷"
-        android:textAlignment="center"
-        android:textSize="100sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.35000002" />
+        app:srcCompat="@color/black" />
 
     <TextView
+        style="@style/H1"
         android:id="@+id/permissionTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:text="Camera Permission"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="40dp"
+        android:text="Camera"
+        android:textAlignment="viewStart"
         android:textSize="36sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/permissionEmoji"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@+id/imageView2" />
 
     <TextView
         android:id="@+id/permissionDescription"
+        style="@style/B2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="60dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="80dp"
         android:text="Access to your camera is required to show you resources in Augmented Reality."
-        android:textAlignment="center"
+        android:textAlignment="viewStart"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/permissionEmoji" />
+        app:layout_constraintTop_toBottomOf="@+id/permissionTitle" />
 
     <Button
+        style="@style/Button"
         android:id="@+id/permissionAccess"
-        android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_width="180dp"
+        android:layout_height="40dp"
         android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="16dp"
-        android:background="@color/medium_blue"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/onboarding_button"
         android:elevation="0dp"
-        android:text="Give Access"
+        android:text="Give Permission"
         android:textColor="@android:color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/permissionDescription" />
+
 </android.support.constraint.ConstraintLayout>
