@@ -118,7 +118,7 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
                 // Camera Permission
                 case 2:
                     PermissionFragment cameraFragment = new PermissionFragment();
-                    cameraFragment.setConfiguration(BitmapFactory.decodeResource(getResources(), R.drawable.hex_map),
+                    cameraFragment.setConfiguration(BitmapFactory.decodeResource(getResources(), R.drawable.hex_camera),
                             getString(R.string.permission_camera_title),
                             getString(R.string.permission_camera_description),
                             permissionClick(cameraPermissionManager));
