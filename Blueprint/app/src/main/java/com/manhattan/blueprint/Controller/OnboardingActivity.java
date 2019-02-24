@@ -3,17 +3,16 @@ package com.manhattan.blueprint.Controller;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.graphics.Point;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -28,31 +27,27 @@ import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.View.ControlledViewPager;
 import com.manhattan.blueprint.View.LoginFragment;
 import com.manhattan.blueprint.View.PermissionFragment;
-import com.manhattan.blueprint.View.SignupFragment;
 import com.manhattan.blueprint.View.WelcomeFragment;
 
 import java.util.regex.Pattern;
 
 public class OnboardingActivity extends FragmentActivity implements SurfaceHolder.Callback {
-    private static final int PAGE_COUNT = 5;
+    private static final int PAGE_COUNT = 4;
     // PageIDs
     private static final int WELCOME = 0;
     private static final int LOCATION_PERMISSION = 1;
     private static final int CAMERA_PERMISSION = 2;
     private static final int LOGIN = 3;
-    private static final int SIGNUP = 4;
 
     private final int maxUsernameLength = 16;
+    private MediaPlayer player;
     private SurfaceView surface;
     private ControlledViewPager pager;
     private PermissionManager locationPermissionManager;
     private PermissionManager cameraPermissionManager;
     private LoginFragment loginFragment;
-    private SignupFragment signupFragment;
     private BlueprintAPI api;
-    private Point screenSize;
 
-    private String testURL = "https://redirector.googlevideo.com/videoplayback?expire=1550602960&ratebypass=yes&mt=1550580666&fvip=3&mn=sn-x0gvfxc-vu2e%2Csn-c0q7lnsl&ei=cP5rXP6MGsLTgQe-mrDgDg&ip=185.225.17.253&ms=au%2Crdu&mv=u&source=youtube&signature=5A85872D3AAE0969ACABF6520A645A7D3A376DB8.19092F1BC74F940B65846DD6F472DE9EE17897B6&key=yt6&mime=video%2Fmp4&lmt=1541586802171970&dur=313.840&txp=5531232&pl=25&id=o-AIL4J8xHUYBsZ2-1A8L83TQQGGigoD0DXtRXViSRZ3N2&sparams=dur%2Cei%2Cid%2Cip%2Cipbits%2Citag%2Clmt%2Cmime%2Cmm%2Cmn%2Cms%2Cmv%2Cpl%2Cratebypass%2Crequiressl%2Csource%2Cexpire&itag=22&requiressl=yes&ipbits=0&mm=31%2C29&c=WEB&title=COSTA+RICA%20IN%204K%2060fps%20HDR%20(ULTRA%20HD)";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,11 +67,14 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        String videoPath = "android.resource://" + getPackageName() + "/" + R.raw.test_hex;
         try {
-            MediaPlayer player = new MediaPlayer();
+            // Player must be class variable to prevent GC removing
+            player = new MediaPlayer();
             player.setDisplay(holder);
-            player.setDataSource(testURL);
+            player.setDataSource(this, Uri.parse(videoPath));
             player.prepare();
+            player.setLooping(true);
             player.setAudioStreamType(AudioManager.STREAM_MUSIC);
             player.setOnPreparedListener(mp -> player.start());
         } catch(Exception e){
@@ -111,7 +109,7 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
                 // Location Permission
                 case 1:
                     PermissionFragment locationFragment = new PermissionFragment();
-                    locationFragment.setConfiguration("🗺",
+                    locationFragment.setConfiguration(BitmapFactory.decodeResource(getResources(), R.drawable.hex_map),
                             getString(R.string.permission_location_title),
                             getString(R.string.permission_location_description),
                             permissionClick(locationPermissionManager));
@@ -120,7 +118,7 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
                 // Camera Permission
                 case 2:
                     PermissionFragment cameraFragment = new PermissionFragment();
-                    cameraFragment.setConfiguration("📷",
+                    cameraFragment.setConfiguration(BitmapFactory.decodeResource(getResources(), R.drawable.hex_map),
                             getString(R.string.permission_camera_title),
                             getString(R.string.permission_camera_description),
                             permissionClick(cameraPermissionManager));
@@ -129,12 +127,8 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
                 // Login Fragment
                 case 3:
                     loginFragment = new LoginFragment();
-                    loginFragment.setConfiguration(loginClick(), toSignupClick());
+                    loginFragment.setConfiguration(loginClick());
                     return loginFragment;
-                case 4:
-                    signupFragment = new SignupFragment();
-                    signupFragment.setConfiguration(signupClick(), toLoginClick());
-                    return signupFragment;
 
                 default:
                     return null;
@@ -214,57 +208,9 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
         };
     }
 
-    private View.OnClickListener signupClick() {
-        return v -> {
-            String usernameText = signupFragment.getUsername();
-            String passwordText = signupFragment.getPassword();
-
-            // Validate user input
-            if (usernameText.isEmpty() || usernameText.length() > maxUsernameLength) {
-                signupFragment.setUsernameInvalid(getString(R.string.invalid_username));
-                return;
-            } else if (!isValidPassword(passwordText)) {
-                signupFragment.setPasswordInvalid(getString(R.string.invalid_password));
-                return;
-            }
-
-            api.signup(new UserCredentials(usernameText, passwordText), new APICallback<Void>() {
-                @Override
-                public void success(Void response) {
-                    LoginManager loginManager = new LoginManager(OnboardingActivity.this);
-                    loginManager.login(usernameText);
-
-                    // Launch Map View
-                    Intent toMapView = new Intent(OnboardingActivity.this, MapViewActivity.class);
-                    startActivity(toMapView);
-                    finish();
-                }
-
-                @Override
-                public void failure(int code, String error) {
-                    AlertDialog.Builder failedLoginDlg = new AlertDialog.Builder(OnboardingActivity.this);
-                    failedLoginDlg.setTitle("Sign up failed");
-                    failedLoginDlg.setMessage(error);
-                    failedLoginDlg.setCancelable(true);
-                    failedLoginDlg.setPositiveButton(R.string.positive_response, (dialog, which) -> dialog.dismiss());
-                    failedLoginDlg.create().show();
-                }
-            });
-
-        };
-    }
-
     private boolean isValidPassword(String password) {
         Pattern pattern = Pattern.compile(getResources().getString(R.string.password_regex));
         return pattern.matcher(password).matches();
-    }
-
-    private View.OnClickListener toSignupClick() {
-        return v -> pager.setCurrentItem(SIGNUP);
-    }
-
-    private View.OnClickListener toLoginClick() {
-        return v -> pager.setCurrentItem(LOGIN);
     }
 
     @Override

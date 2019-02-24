@@ -18,27 +18,22 @@ public class LoginFragment extends Fragment {
     private EditText usernameInput;
     private EditText passwordInput;
     private Button loginButton;
-    private TextView signupTextView;
     private View.OnClickListener onLoginClickListener;
-    private View.OnClickListener onSignupClickListener;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ViewGroup fragment = (ViewGroup) inflater.inflate(R.layout.fragment_login, container, false);
         loginButton = fragment.findViewById(R.id.loginButton);
-        signupTextView = fragment.findViewById(R.id.signupTextView);
         usernameInput = fragment.findViewById(R.id.usernameInput);
         passwordInput = fragment.findViewById(R.id.passwordInput);
         loginButton.setOnClickListener(onLoginClickListener);
-        signupTextView.setOnClickListener(onSignupClickListener);
 
         return fragment;
     }
 
-    public void setConfiguration(View.OnClickListener onLoginClickListener, View.OnClickListener onSignupClickListener) {
+    public void setConfiguration(View.OnClickListener onLoginClickListener) {
         this.onLoginClickListener = onLoginClickListener;
-        this.onSignupClickListener = onSignupClickListener;
     }
 
     public String getUsername() {
