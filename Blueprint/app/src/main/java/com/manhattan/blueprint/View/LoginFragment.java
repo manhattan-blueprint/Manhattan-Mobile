@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.manhattan.blueprint.R;
@@ -18,6 +19,7 @@ public class LoginFragment extends Fragment {
     private EditText usernameInput;
     private EditText passwordInput;
     private Button loginButton;
+    private ProgressBar progressBar;
     private View.OnClickListener onLoginClickListener;
 
     @Nullable
@@ -27,7 +29,10 @@ public class LoginFragment extends Fragment {
         loginButton = fragment.findViewById(R.id.loginButton);
         usernameInput = fragment.findViewById(R.id.usernameInput);
         passwordInput = fragment.findViewById(R.id.passwordInput);
+        progressBar = fragment.findViewById(R.id.progressBar);
         loginButton.setOnClickListener(onLoginClickListener);
+
+        hideSpinner();
 
         return fragment;
     }
@@ -50,5 +55,15 @@ public class LoginFragment extends Fragment {
 
     public void setPasswordInvalid(String description) {
         passwordInput.setError(description);
+    }
+
+    public void showSpinner() {
+        progressBar.setAlpha(1);
+        loginButton.setAlpha(0);
+    }
+
+    public void hideSpinner() {
+        progressBar.setAlpha(0);
+        loginButton.setAlpha(1);
     }
 }

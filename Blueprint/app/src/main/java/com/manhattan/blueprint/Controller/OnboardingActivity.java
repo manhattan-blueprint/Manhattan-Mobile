@@ -7,12 +7,15 @@ import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Debug;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -29,8 +32,6 @@ import com.manhattan.blueprint.View.LoginFragment;
 import com.manhattan.blueprint.View.PermissionFragment;
 import com.manhattan.blueprint.View.WelcomeFragment;
 
-import java.util.regex.Pattern;
-
 public class OnboardingActivity extends FragmentActivity implements SurfaceHolder.Callback {
     private static final int PAGE_COUNT = 4;
     // PageIDs
@@ -40,6 +41,7 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
     private static final int LOGIN = 3;
 
     private final int maxUsernameLength = 16;
+    private final int maxPasswordLength = 16;
     private MediaPlayer player;
     private SurfaceView surface;
     private ControlledViewPager pager;
@@ -77,6 +79,14 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
             player.setLooping(true);
             player.setAudioStreamType(AudioManager.STREAM_MUSIC);
             player.setOnPreparedListener(mp -> player.start());
+            player.setOnVideoSizeChangedListener((mp, width, height) -> {
+                DisplayMetrics metrics = this.getResources().getDisplayMetrics();
+                int surfaceWidth = metrics.widthPixels;
+                int surfaceHeight = metrics.heightPixels;
+                float heightRatio = surfaceHeight / (float) height;
+                surface.getLayoutParams().width = (int) (surfaceWidth * heightRatio);
+                surface.requestLayout();
+            });
         } catch(Exception e){
             e.printStackTrace();
         }
@@ -109,7 +119,7 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
                 // Location Permission
                 case 1:
                     PermissionFragment locationFragment = new PermissionFragment();
-                    locationFragment.setConfiguration(BitmapFactory.decodeResource(getResources(), R.drawable.hex_map),
+                    locationFragment.setConfiguration(getDrawable(R.drawable.onboarding_hexmap),
                             getString(R.string.permission_location_title),
                             getString(R.string.permission_location_description),
                             permissionClick(locationPermissionManager));
@@ -118,7 +128,7 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
                 // Camera Permission
                 case 2:
                     PermissionFragment cameraFragment = new PermissionFragment();
-                    cameraFragment.setConfiguration(BitmapFactory.decodeResource(getResources(), R.drawable.hex_camera),
+                    cameraFragment.setConfiguration(getDrawable(R.drawable.onboarding_hexcamera),
                             getString(R.string.permission_camera_title),
                             getString(R.string.permission_camera_description),
                             permissionClick(cameraPermissionManager));
@@ -178,11 +188,12 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
             if (usernameText.isEmpty() || usernameText.length() > maxUsernameLength) {
                 loginFragment.setUsernameInvalid(getString(R.string.invalid_username));
                 return;
-            } else if (!isValidPassword(passwordText)) {
+            } else if (passwordText.isEmpty() || passwordText.length() > maxPasswordLength) {
                 loginFragment.setPasswordInvalid(getString(R.string.invalid_password));
                 return;
             }
 
+            loginFragment.showSpinner();
             api.login(new UserCredentials(usernameText, passwordText), new APICallback<Void>() {
                 @Override
                 public void success(Void response) {
@@ -203,14 +214,10 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
                     failedLoginDlg.setCancelable(true);
                     failedLoginDlg.setPositiveButton(R.string.positive_response, (dialog, which) -> dialog.dismiss());
                     failedLoginDlg.create().show();
+                    loginFragment.hideSpinner();
                 }
             });
         };
-    }
-
-    private boolean isValidPassword(String password) {
-        Pattern pattern = Pattern.compile(getResources().getString(R.string.password_regex));
-        return pattern.matcher(password).matches();
     }
 
     @Override

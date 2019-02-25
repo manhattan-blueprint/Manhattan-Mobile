@@ -6,7 +6,7 @@
 
     <SurfaceView
         android:id="@+id/surface"
-        android:layout_width="1100dp"
+        android:layout_width="match_parent"
         android:layout_gravity="center_vertical"
         android:layout_height="match_parent" />
 

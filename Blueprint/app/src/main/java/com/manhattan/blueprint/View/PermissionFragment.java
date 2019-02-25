@@ -1,6 +1,5 @@
 package com.manhattan.blueprint.View;
 
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -15,7 +14,7 @@ import com.manhattan.blueprint.R;
 
 public class PermissionFragment extends Fragment {
 
-    private Bitmap bitmap;
+    private Drawable icon;
     private String title;
     private String description;
     private View.OnClickListener onClickListener;
@@ -29,7 +28,7 @@ public class PermissionFragment extends Fragment {
         TextView descriptionText = fragment.findViewById(R.id.permissionDescription);
         Button permissionAccess = fragment.findViewById(R.id.permissionAccess);
 
-        image.setImageBitmap(bitmap);
+        image.setImageDrawable(icon);
         titleText.setText(title);
         descriptionText.setText(description);
         permissionAccess.setOnClickListener(onClickListener);
@@ -37,8 +36,8 @@ public class PermissionFragment extends Fragment {
         return fragment;
     }
 
-    public void setConfiguration(Bitmap bitmap, String title, String description, View.OnClickListener onClickListener) {
-        this.bitmap = bitmap;
+    public void setConfiguration(Drawable icon, String title, String description, View.OnClickListener onClickListener) {
+        this.icon = icon;
         this.title = title;
         this.description = description;
         this.onClickListener = onClickListener;
