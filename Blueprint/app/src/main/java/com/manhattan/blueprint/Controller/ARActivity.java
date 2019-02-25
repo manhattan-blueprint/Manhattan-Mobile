@@ -12,7 +12,6 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Handler;
@@ -34,7 +33,6 @@ import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationExceptio
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.rendering.ModelRenderable;
-import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 import com.manhattan.blueprint.Model.API.APICallback;
@@ -48,9 +46,8 @@ import com.manhattan.blueprint.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import static android.view.KeyEvent.ACTION_DOWN;
 import static android.view.KeyEvent.ACTION_UP;
@@ -60,12 +57,11 @@ public class ARActivity extends AppCompatActivity {
     private ArFragment arFragment;
 
     private boolean userRequestedARInstall = false;
-    private ModelRenderable ingot;
+    private ModelRenderable resourceModel;
+    private HashMap<Integer, String> modelsMap = new HashMap<>();
     private Resource resourceToCollect;
-    private Anchor anchor;
     private AnchorNode anchorNode;
-    private TransformableNode transformableNode;
-
+    private Anchor anchor;
 
     private final int swipesRequired = 5;
     private int collectCounter;
@@ -78,18 +74,18 @@ public class ARActivity extends AppCompatActivity {
     private TextView snackbarTextView;
     private FrameLayout snackbarView;
 
+    float Xp, Yp = 0; // previous coords
+    float X0, Y0 = 0; // initial  coords
+    float X,  Y  = 0; // current  coords
     float rotation;
-    float Xp = 0;
-    float Yp = 0;
-    float X0 = 0;
-    float Y0 = 0;
-    float X  = 0;
-    float Y  = 0;
-    boolean failed = true;
+    int maxAngleError = 38;
+    float minDistance = 0.75f;
+    boolean swipeFailed = true;
     boolean minigameReady = true;
-    View vi;
     GradientDrawable drawable;
+    View boxView;
 
+    // box corners
     int A[] = new int[2];
     int B[] = new int[2];
     int D[] = new int[2];
@@ -99,12 +95,11 @@ public class ARActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
-        vi = (View) findViewById(R.id.Minigame);
+        boxView = (View) findViewById(R.id.Minigame);
         drawable = (GradientDrawable) getResources().getDrawable(R.drawable.ar_gesture);
         drawable.setStroke(10, Color.argb(255,0,0,255));
-        vi.setForeground(drawable);
-        rotation = vi.getRotation();
-        vi.bringToFront();
+        boxView.setForeground(drawable);
+        rotation = boxView.getRotation();
 
         holoButton = findViewById(R.id.HoloButton);
         holoButton.setAlpha(0.35f);
@@ -126,6 +121,10 @@ public class ARActivity extends AppCompatActivity {
         itemWasPlaced = false;
         planeWasDetected = false;
         collectCounter = swipesRequired - 1;
+
+        modelsMap.put(1, "wood.sfb");
+        modelsMap.put(2, "rocks.sfb");
+        modelsMap.put(4, "ingot.sfb");
     }
 
     public void onUpdate(FrameTime frameTime) {
@@ -160,16 +159,12 @@ public class ARActivity extends AppCompatActivity {
     private void startAr() {
         // Build renderable object
         ModelRenderable.builder()
-                .setSource(this, Uri.parse("Ingot.sfb"))
+                .setSource(this, Uri.parse( modelsMap.get(resourceToCollect.getId()) ))
                 .build()
                 .thenAccept(renderable -> {
-                    ingot = renderable;
+                    resourceModel = renderable;
                 })
-                .exceptionally(
-                        throwable -> {
-                            Log.d("cartita", "Unable to load Renderable.", throwable);
-                            return null;
-                        });
+                .exceptionally(throwable -> null);
 
         // Start AR:
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
@@ -182,26 +177,26 @@ public class ARActivity extends AppCompatActivity {
                         double diff;
                         switch(sceneMotionEvent.getAction()) {
                             case ACTION_UP:
-                                if (failed || !minigameReady) {
+                                if (swipeFailed || !minigameReady) {
                                     break;
                                 }
                                 X = sceneMotionEvent.getX();
                                 Y = sceneMotionEvent.getY();
                                 if (outOfBounds(new int[] {(int) X, (int) Y})) {
-                                    failed = true;
-                                    setSnackbar("You went outside the box, try again!");
-                                    newMinigame(false);
+                                    swipeFailed = true;
+                                    setSnackbar(getString(R.string.out_of_bounds_failed));
+                                    newMinigame(false, true);
                                     return true;
                                 }
                                 double dist = Math.sqrt((X - X0) * (X - X0) + (Y - Y0) * (Y - Y0));
-                                if (dist  < 0.75f * vi.getHeight()) {
-                                    failed = true;
-                                    setSnackbar("You didn't swipe far enough, try again!");
-                                    newMinigame(false);
+                                if (dist  < minDistance * boxView.getHeight()) {
+                                    swipeFailed = true;
+                                    setSnackbar(getString(R.string.swipe_too_short_failed));
+                                    newMinigame(false, true);
                                     return true;
                                 }
                                 onSuccessfulSwipe();
-                                newMinigame(true);
+                                newMinigame(true, true);
                                 break;
 
                             case ACTION_DOWN:
@@ -210,22 +205,22 @@ public class ARActivity extends AppCompatActivity {
                                 }
                                 minigameReady = true;
                                 setSnackbar("GO!");
-                                failed = false;
+                                swipeFailed = false;
                                 getCorners();
                                 X0 = sceneMotionEvent.getX();
                                 Y0 = sceneMotionEvent.getY();
                                 Xp = X0;
                                 Yp = Y0;
                                 if ( outOfBounds(new int[] {(int) X0, (int) Y0}) ) {
-                                    failed = true;
-                                    setSnackbar("You went outside the box, try again!");
-                                    newMinigame(false);
+                                    swipeFailed = true;
+                                    setSnackbar(getString(R.string.out_of_bounds_failed));
+                                    newMinigame(false, true);
                                     return true;
                                 }
                                 break;
 
                             case ACTION_MOVE:
-                                if (failed || !minigameReady) {
+                                if (swipeFailed || !minigameReady) {
                                     break;
                                 }
                                 setSnackbar("...");
@@ -233,15 +228,15 @@ public class ARActivity extends AppCompatActivity {
                                 Y = sceneMotionEvent.getY();
                                 diff = getAngleError();
                                 if (outOfBounds(new int[] {(int) X, (int) Y})) {
-                                    failed = true;
-                                    setSnackbar("You went outside the box, try again!");
-                                    newMinigame(false);
+                                    swipeFailed = true;
+                                    setSnackbar(getString(R.string.out_of_bounds_failed));
+                                    newMinigame(false, true);
                                     return true;
                                 }
-                                if (diff > 35) {
-                                    failed = true;
-                                    setSnackbar("You didn't swipe in a straight line, try again!");
-                                    newMinigame(false);
+                                if (diff > maxAngleError) {
+                                    swipeFailed = true;
+                                    setSnackbar(getString(R.string.out_of_bounds_failed));
+                                    newMinigame(false, true);
                                     return true;
                                 }
                                 Xp = X;
@@ -263,7 +258,6 @@ public class ARActivity extends AppCompatActivity {
     }
 
     public void onSceneUpdate(FrameTime frameTime) {
-        vi.bringToFront();
         arFragment.onUpdate(frameTime);
         Frame frame = arFragment.getArSceneView().getArFrame();
 
@@ -271,9 +265,9 @@ public class ARActivity extends AppCompatActivity {
             Vector3 worldPos = anchorNode.getWorldPosition();
             Vector3 screnPos = arFragment.getArSceneView().getScene().getCamera().worldToScreenPoint(worldPos);
             if ( outOfBounds(new int[] {(int) screnPos.x, (int) screnPos.y}) ) {
-                failed = true;
-                setSnackbar("Resource is out of view!");
-                newMinigame(false);
+                swipeFailed = true;
+                setSnackbar(getString(R.string.resource_out_of_view_failed));
+                newMinigame(false, false);
             }
         }
 
@@ -287,10 +281,12 @@ public class ARActivity extends AppCompatActivity {
                         anchorNode.setParent(arFragment.getArSceneView().getScene());
 
                         // Create the transformable node and add it to the anchor.
-                        transformableNode = new TransformableNode(arFragment.getTransformationSystem());
-                        transformableNode.setLocalScale(new Vector3(0.02f, 0.02f, 0.02f));
+                        TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
+                        transformableNode.getScaleController().setMaxScale(100000f);
+                        transformableNode.getScaleController().setMinScale(0.0001f);
+                        transformableNode.setLocalScale(new Vector3(0.5f, 0.5f, 0.5f));
                         transformableNode.setParent(anchorNode);
-                        transformableNode.setRenderable(ingot);
+                        transformableNode.setRenderable(resourceModel);
                         transformableNode.select();
                         transformableNode.getTranslationController().setEnabled(false);
 
@@ -301,6 +297,7 @@ public class ARActivity extends AppCompatActivity {
                     }
 
                     arSnackbarMessage.setText(getString(R.string.place_resource_instruction));
+                    boxView.bringToFront();
                     planeWasDetected = true;
                     break;
                 }
@@ -308,41 +305,36 @@ public class ARActivity extends AppCompatActivity {
         }
     }
 
-    private void newMinigame(boolean completed) {
+    private void newMinigame(boolean completed, boolean newRotation) {
         minigameReady = false;
         if (completed) {
             drawable.setStroke(10, Color.argb(155,0,255,0));
             drawable.setColor(Color.argb(100,0,255,0));
-            vi.setForeground(drawable);
+            boxView.setForeground(drawable);
         } else {
             drawable.setStroke(10, Color.argb(155,255,0,0));
             drawable.setColor(Color.argb(100,255,0,0));
-            vi.setForeground(drawable);
+            boxView.setForeground(drawable);
         }
         final Handler handler = new Handler();
         handler.postDelayed(() -> {
-            // Do something after 2s
-            Random rand = new Random();
-            do {
-                rotation = rand.nextInt(180) - 90;
-            } while (rotation == 90);
-            vi.setRotation(rotation);
+            // Do something after 800ms
+            if (newRotation) {
+                Random rand = new Random();
+                do {
+                    rotation = rand.nextInt(180) - 90;
+                } while (rotation == 90);
+                boxView.setRotation(rotation);
+            }
             drawable.setStroke(10, Color.argb(255,0,0,255));
             drawable.setColor(Color.argb(0,0,0,0));
-            vi.setForeground(drawable);
+            boxView.setForeground(drawable);
             minigameReady = true;
-        }, 2000);
+        }, 800);
     }
 
     private void onSuccessfulSwipe() {
         if (collectCounter > 0) {
-//            if (collectCounter == swipesRequired - 1) {
-//                arSnackbarMessage.dismiss();
-//            }
-//
-//            if (arToastMessage != null) {
-//                arToastMessage.cancel();
-//            }
             int progress = ((swipesRequired - collectCounter) * 100) / swipesRequired;
             String progress_msg = String.format(getString(R.string.collection_progress), progress);
             setSnackbar(progress_msg);
@@ -369,7 +361,7 @@ public class ARActivity extends AppCompatActivity {
                 }
             });
         }
-        vi.bringToFront();
+        boxView.bringToFront();
     }
 
     private void createDialog(String title, String message, DialogInterface.OnClickListener onClick) {
@@ -398,31 +390,30 @@ public class ARActivity extends AppCompatActivity {
     }
 
     private void getCorners() {
-        vi.getLocationOnScreen(A);
+        boxView.getLocationOnScreen(A);
 
-        B[0] = (int) (A[0] + vi.getWidth() * Math.cos(rotation * Math.PI / 180));
-        B[1] = (int) (A[1] + vi.getWidth() * Math.sin(rotation * Math.PI / 180));
+        B[0] = (int) (A[0] + boxView.getWidth() * Math.cos(rotation * Math.PI / 180));
+        B[1] = (int) (A[1] + boxView.getWidth() * Math.sin(rotation * Math.PI / 180));
 
-        D[0] = (int) (A[0] - vi.getHeight() * Math.sin(rotation * Math.PI / 180));
-        D[1] = (int) (A[1] + vi.getHeight() * Math.cos(rotation * Math.PI / 180));
+        D[0] = (int) (A[0] - boxView.getHeight() * Math.sin(rotation * Math.PI / 180));
+        D[1] = (int) (A[1] + boxView.getHeight() * Math.cos(rotation * Math.PI / 180));
 
-        C[0] = (int) (D[0] + vi.getWidth() * Math.cos(rotation * Math.PI / 180));
-        C[1] = (int) (D[1] + vi.getWidth() * Math.sin(rotation * Math.PI / 180));
+        C[0] = (int) (D[0] + boxView.getWidth() * Math.cos(rotation * Math.PI / 180));
+        C[1] = (int) (D[1] + boxView.getWidth() * Math.sin(rotation * Math.PI / 180));
     }
 
     private int area(int[] A, int[] B, int[] C) {
         return Math.abs( (A[0] * B[1] + A[1] * C[0] + B[0] * C[1] ) -
-                         (C[0] * B[1] + A[1] * B[0] + C[1] * A[0] ) ) / 2;
+                (C[0] * B[1] + A[1] * B[0] + C[1] * A[0] ) ) / 2;
     }
 
     private boolean outOfBounds(int[] P) {
-        // PAB + PBC + PCD + PDA
         int PAB = area(P, A, B);
         int PBC = area(P, B, C);
         int PCD = area(P, C, D);
         int PDA = area(P, D, A);
         int totalArea = PAB + PBC + PCD + PDA;
-        int rectArea = vi.getWidth() * vi.getHeight();
+        int rectArea = boxView.getWidth() * boxView.getHeight();
         return totalArea > rectArea + 2000;
     }
 
@@ -434,8 +425,6 @@ public class ARActivity extends AppCompatActivity {
         double diff;
         diff = Math.abs(angle - (90 - rotation));
         diff = Math.min(diff, 180 - diff);
-        Log.d("angle", "Angle: " + angle);
-        Log.d("angle", "Error: " + diff);
         return diff;
     }
 }
