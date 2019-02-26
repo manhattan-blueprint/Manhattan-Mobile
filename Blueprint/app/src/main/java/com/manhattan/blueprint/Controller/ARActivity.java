@@ -5,6 +5,7 @@ import com.google.ar.core.TrackingState;
 import com.google.ar.sceneform.HitTestResult;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.math.Vector3;
+import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -74,9 +75,9 @@ public class ARActivity extends AppCompatActivity {
     private TextView snackbarTextView;
     private FrameLayout snackbarView;
 
-    float Xp, Yp = 0; // previous coords
-    float X0, Y0 = 0; // initial  coords
-    float X,  Y  = 0; // current  coords
+    float prevX, prevY = 0; // previous coords
+    float initX, initY = 0; // initial  coords
+    float currX, currY = 0; // current  coords
     float rotation;
     int maxAngleError = 38;
     float minDistance = 0.75f;
@@ -86,10 +87,10 @@ public class ARActivity extends AppCompatActivity {
     View boxView;
 
     // box corners
-    int A[] = new int[2];
-    int B[] = new int[2];
-    int D[] = new int[2];
-    int C[] = new int[2];
+    int topLeft[]     = new int[2];
+    int topRight[]    = new int[2];
+    int bottomLeft[]  = new int[2];
+    int bottomRight[] = new int[2];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,92 +164,13 @@ public class ARActivity extends AppCompatActivity {
                 .build()
                 .thenAccept(renderable -> {
                     resourceModel = renderable;
-                })
-                .exceptionally(throwable -> null);
+                });
 
         // Start AR:
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
         Scene arScene = arFragment.getArSceneView().getScene();
         arScene.addOnUpdateListener(this::onSceneUpdate);
-        arScene.setOnTouchListener(
-                (HitTestResult hitTestResult, MotionEvent sceneMotionEvent) -> {
-
-                    if (itemWasPlaced) {
-                        double diff;
-                        switch(sceneMotionEvent.getAction()) {
-                            case ACTION_UP:
-                                if (swipeFailed || !minigameReady) {
-                                    break;
-                                }
-                                X = sceneMotionEvent.getX();
-                                Y = sceneMotionEvent.getY();
-                                if (outOfBounds(new int[] {(int) X, (int) Y})) {
-                                    swipeFailed = true;
-                                    setSnackbar(getString(R.string.out_of_bounds_failed));
-                                    newMinigame(false, true);
-                                    return true;
-                                }
-                                double dist = Math.sqrt((X - X0) * (X - X0) + (Y - Y0) * (Y - Y0));
-                                if (dist  < minDistance * boxView.getHeight()) {
-                                    swipeFailed = true;
-                                    setSnackbar(getString(R.string.swipe_too_short_failed));
-                                    newMinigame(false, true);
-                                    return true;
-                                }
-                                onSuccessfulSwipe();
-                                newMinigame(true, true);
-                                break;
-
-                            case ACTION_DOWN:
-                                if (!minigameReady) {
-                                    break;
-                                }
-                                minigameReady = true;
-                                setSnackbar("GO!");
-                                swipeFailed = false;
-                                getCorners();
-                                X0 = sceneMotionEvent.getX();
-                                Y0 = sceneMotionEvent.getY();
-                                Xp = X0;
-                                Yp = Y0;
-                                if ( outOfBounds(new int[] {(int) X0, (int) Y0}) ) {
-                                    swipeFailed = true;
-                                    setSnackbar(getString(R.string.out_of_bounds_failed));
-                                    newMinigame(false, true);
-                                    return true;
-                                }
-                                break;
-
-                            case ACTION_MOVE:
-                                if (swipeFailed || !minigameReady) {
-                                    break;
-                                }
-                                setSnackbar("...");
-                                X = sceneMotionEvent.getX();
-                                Y = sceneMotionEvent.getY();
-                                diff = getAngleError();
-                                if (outOfBounds(new int[] {(int) X, (int) Y})) {
-                                    swipeFailed = true;
-                                    setSnackbar(getString(R.string.out_of_bounds_failed));
-                                    newMinigame(false, true);
-                                    return true;
-                                }
-                                if (diff > maxAngleError) {
-                                    swipeFailed = true;
-                                    setSnackbar(getString(R.string.out_of_bounds_failed));
-                                    newMinigame(false, true);
-                                    return true;
-                                }
-                                Xp = X;
-                                Yp = Y;
-                                break;
-                        }
-
-                        return true;
-                    } else {
-                        return false;
-                    }
-                });
+        arScene.setOnTouchListener( this::onSceneTouch);
 
         // TODO: Uncomment to remove icon of a hand with device
         // arFragment.getPlaneDiscoveryController().hide();
@@ -271,37 +193,36 @@ public class ARActivity extends AppCompatActivity {
             }
         }
 
-        if (!planeWasDetected) {
-            // Check if a plane was detected
-            for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
-                if (plane.getTrackingState() == TrackingState.TRACKING) {
-                    if (anchor == null) {
-                        anchor = plane.createAnchor(plane.getCenterPose());
-                        anchorNode = new AnchorNode(anchor);
-                        anchorNode.setParent(arFragment.getArSceneView().getScene());
+        if (planeWasDetected) {
+            return;
+        }
+        // Check if a plane was detected
+        for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
+            if (plane.getTrackingState() == TrackingState.TRACKING && (anchor == null) ) {
+                anchor = plane.createAnchor(plane.getCenterPose());
+                anchorNode = new AnchorNode(anchor);
+                anchorNode.setParent(arFragment.getArSceneView().getScene());
 
-                        // Create the transformable node and add it to the anchor.
-                        TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
-                        transformableNode.getScaleController().setMaxScale(100000f);
-                        transformableNode.getScaleController().setMinScale(0.0001f);
-                        transformableNode.setLocalScale(new Vector3(0.5f, 0.5f, 0.5f));
-                        transformableNode.setParent(anchorNode);
-                        transformableNode.setRenderable(resourceModel);
-                        transformableNode.select();
-                        transformableNode.getTranslationController().setEnabled(false);
+                // Create the transformable node and add it to the anchor.
+                TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
+                transformableNode.getScaleController().setMaxScale(100000f);
+                transformableNode.getScaleController().setMinScale(0.0001f);
+                transformableNode.setLocalScale(new Vector3(0.5f, 0.5f, 0.5f));
+                transformableNode.setParent(anchorNode);
+                transformableNode.setRenderable(resourceModel);
+                transformableNode.select();
+                transformableNode.getTranslationController().setEnabled(false);
 
-                        // Remove plane renderer
-                        arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
-                        arSnackbarMessage.setText(getString(R.string.resource_collection_instruction));
-                        itemWasPlaced = true;
-                    }
-
-                    arSnackbarMessage.setText(getString(R.string.place_resource_instruction));
-                    boxView.bringToFront();
-                    planeWasDetected = true;
-                    break;
-                }
+                // Remove plane renderer
+                arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
+                arSnackbarMessage.setText(getString(R.string.resource_collection_instruction));
+                itemWasPlaced = true;
             }
+
+            arSnackbarMessage.setText(getString(R.string.place_resource_instruction));
+            boxView.bringToFront();
+            planeWasDetected = true;
+            break;
         }
     }
 
@@ -390,16 +311,16 @@ public class ARActivity extends AppCompatActivity {
     }
 
     private void getCorners() {
-        boxView.getLocationOnScreen(A);
+        boxView.getLocationOnScreen(topLeft);
 
-        B[0] = (int) (A[0] + boxView.getWidth() * Math.cos(rotation * Math.PI / 180));
-        B[1] = (int) (A[1] + boxView.getWidth() * Math.sin(rotation * Math.PI / 180));
+        topRight[0] = (int) (topLeft[0] + boxView.getWidth() * Math.cos(rotation * Math.PI / 180));
+        topRight[1] = (int) (topLeft[1] + boxView.getWidth() * Math.sin(rotation * Math.PI / 180));
 
-        D[0] = (int) (A[0] - boxView.getHeight() * Math.sin(rotation * Math.PI / 180));
-        D[1] = (int) (A[1] + boxView.getHeight() * Math.cos(rotation * Math.PI / 180));
+        bottomLeft[0] = (int) (topLeft[0] - boxView.getHeight() * Math.sin(rotation * Math.PI / 180));
+        bottomLeft[1] = (int) (topLeft[1] + boxView.getHeight() * Math.cos(rotation * Math.PI / 180));
 
-        C[0] = (int) (D[0] + boxView.getWidth() * Math.cos(rotation * Math.PI / 180));
-        C[1] = (int) (D[1] + boxView.getWidth() * Math.sin(rotation * Math.PI / 180));
+        bottomRight[0] = (int) (bottomLeft[0] + boxView.getWidth() * Math.cos(rotation * Math.PI / 180));
+        bottomRight[1] = (int) (bottomLeft[1] + boxView.getWidth() * Math.sin(rotation * Math.PI / 180));
     }
 
     private int area(int[] A, int[] B, int[] C) {
@@ -408,17 +329,17 @@ public class ARActivity extends AppCompatActivity {
     }
 
     private boolean outOfBounds(int[] P) {
-        int PAB = area(P, A, B);
-        int PBC = area(P, B, C);
-        int PCD = area(P, C, D);
-        int PDA = area(P, D, A);
+        int PAB = area(P, topLeft, topRight);
+        int PBC = area(P, topRight, bottomRight);
+        int PCD = area(P, bottomRight, bottomLeft);
+        int PDA = area(P, bottomLeft, topLeft);
         int totalArea = PAB + PBC + PCD + PDA;
         int rectArea = boxView.getWidth() * boxView.getHeight();
         return totalArea > rectArea + 2000;
     }
 
     private double getAngleError() {
-        double angle = Math.atan2(Yp - Y, X - Xp) * 180 / Math.PI;
+        double angle = Math.atan2(prevY - currY, currX - prevX) * 180 / Math.PI;
         if (angle < 0) {
             angle = 180 + angle;
         }
@@ -426,5 +347,80 @@ public class ARActivity extends AppCompatActivity {
         diff = Math.abs(angle - (90 - rotation));
         diff = Math.min(diff, 180 - diff);
         return diff;
+    }
+
+    private boolean onSceneTouch(HitTestResult hitTestResult, MotionEvent sceneMotionEvent) {
+        if (!itemWasPlaced) {
+            return false;
+        }
+        double diff;
+        switch (sceneMotionEvent.getAction()) {
+            case ACTION_UP:
+                if (swipeFailed || !minigameReady) {
+                    break;
+                }
+                currX = sceneMotionEvent.getX();
+                currY = sceneMotionEvent.getY();
+                if (outOfBounds(new int[]{(int) currX, (int) currY})) {
+                    swipeFailed = true;
+                    setSnackbar(getString(R.string.out_of_bounds_failed));
+                    newMinigame(false, true);
+                    return true;
+                }
+                double dist = Math.sqrt((currX - initX) * (currX - initX) + (currY - initY) * (currY - initY));
+                if (dist < minDistance * boxView.getHeight()) {
+                    swipeFailed = true;
+                    setSnackbar(getString(R.string.swipe_too_short_failed));
+                    newMinigame(false, true);
+                    return true;
+                }
+                onSuccessfulSwipe();
+                newMinigame(true, true);
+                break;
+
+            case ACTION_DOWN:
+                if (!minigameReady) {
+                    break;
+                }
+                setSnackbar("GO!");
+                swipeFailed = false;
+                getCorners();
+                initX = sceneMotionEvent.getX();
+                initY = sceneMotionEvent.getY();
+                prevX = initX;
+                prevY = initY;
+                if (outOfBounds(new int[]{(int) initX, (int) initY})) {
+                    swipeFailed = true;
+                    setSnackbar(getString(R.string.out_of_bounds_failed));
+                    newMinigame(false, true);
+                    return true;
+                }
+                break;
+
+            case ACTION_MOVE:
+                if (swipeFailed || !minigameReady) {
+                    break;
+                }
+                setSnackbar("...");
+                currX = sceneMotionEvent.getX();
+                currY = sceneMotionEvent.getY();
+                diff = getAngleError();
+                if (outOfBounds(new int[]{(int) currX, (int) currY})) {
+                    swipeFailed = true;
+                    setSnackbar(getString(R.string.out_of_bounds_failed));
+                    newMinigame(false, true);
+                    return true;
+                }
+                if (diff > maxAngleError) {
+                    swipeFailed = true;
+                    setSnackbar(getString(R.string.out_of_bounds_failed));
+                    newMinigame(false, true);
+                    return true;
+                }
+                prevX = currX;
+                prevY = currY;
+                break;
+        }
+        return true;
     }
 }
