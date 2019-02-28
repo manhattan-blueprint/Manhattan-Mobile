@@ -5,13 +5,10 @@ import com.google.ar.core.TrackingState;
 import com.google.ar.sceneform.HitTestResult;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.math.Vector3;
-import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import android.Manifest;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -20,7 +17,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -44,6 +40,8 @@ import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.R;
+import com.manhattan.blueprint.Utils.ArMathUtils;
+import com.manhattan.blueprint.Utils.ViewUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -115,9 +113,9 @@ public class ARActivity extends AppCompatActivity {
 
         PermissionManager cameraPermissionManager = new PermissionManager(0, Manifest.permission.CAMERA);
         if (!cameraPermissionManager.hasPermission(this)) {
-            createDialog(getString(R.string.permission_camera_title),
-                    getString(R.string.permission_camera_description),
-                    (dialog, which) -> finish());
+            ViewUtils.createDialog(ARActivity.this, getString(R.string.permission_camera_title),
+                                          getString(R.string.permission_camera_description),
+                                          (dialog, which) -> finish());
         }
         itemWasPlaced = false;
         planeWasDetected = false;
@@ -147,11 +145,11 @@ public class ARActivity extends AppCompatActivity {
                     userRequestedARInstall = true;
             }
         } catch (UnavailableUserDeclinedInstallationException e) {
-            createDialog(getString(R.string.ar_install_title),
+            ViewUtils.createDialog(ARActivity.this, getString(R.string.ar_install_title),
                     getString(R.string.ar_install_description),
                     (dialog, which) -> finish());
         } catch (Exception e) {
-            createDialog(getString(R.string.whoops_title),
+            ViewUtils.createDialog(ARActivity.this, getString(R.string.whoops_title),
                     getString(R.string.whoops_description) + e.toString(),
                     (dialog, which) -> finish());
         }
@@ -186,7 +184,9 @@ public class ARActivity extends AppCompatActivity {
         if (anchorNode != null && minigameReady) {
             Vector3 worldPos = anchorNode.getWorldPosition();
             Vector3 screnPos = arFragment.getArSceneView().getScene().getCamera().worldToScreenPoint(worldPos);
-            if ( outOfBounds(new int[] {(int) screnPos.x, (int) screnPos.y}) ) {
+            if (ArMathUtils.outOfBounds(new int[]{(int) screnPos.x, (int) screnPos.y},
+                                        topLeft, topRight, bottomLeft, bottomRight,
+                                        boxView.getWidth(), boxView.getHeight())) {
                 swipeFailed = true;
                 setSnackbar(getString(R.string.resource_out_of_view_failed));
                 newMinigame(false, false);
@@ -207,7 +207,7 @@ public class ARActivity extends AppCompatActivity {
                 TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
                 transformableNode.getScaleController().setMaxScale(100000f);
                 transformableNode.getScaleController().setMinScale(0.0001f);
-                transformableNode.setLocalScale(new Vector3(0.5f, 0.5f, 0.5f));
+                transformableNode.setLocalScale(new Vector3(0.1f, 0.1f, 0.1f));
                 transformableNode.setParent(anchorNode);
                 transformableNode.setRenderable(resourceModel);
                 transformableNode.select();
@@ -278,22 +278,12 @@ public class ARActivity extends AppCompatActivity {
 
                 @Override
                 public void failure(int code, String error) {
-                    createDialog(getString(R.string.collection_failure_title), error, (dialog, which) -> dialog.dismiss());
+                    ViewUtils.createDialog(ARActivity.this, getString(R.string.collection_failure_title), error,
+                                                 (dialog, which) -> dialog.dismiss());
                 }
             });
         }
         boxView.bringToFront();
-    }
-
-    private void createDialog(String title, String message, DialogInterface.OnClickListener onClick) {
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(ARActivity.this);
-        alertDialog.setTitle(title);
-        alertDialog.setMessage(message);
-        alertDialog.setPositiveButton(R.string.positive_response, (dialog, which) -> {
-            dialog.dismiss();
-            onClick.onClick(dialog, which);
-        });
-        alertDialog.create().show();
     }
 
     private void createSnackbar() {
@@ -324,37 +314,6 @@ public class ARActivity extends AppCompatActivity {
         bottomRight[1] = (int) (bottomLeft[1] + boxView.getWidth() * Math.sin(rotation * Math.PI / 180));
     }
 
-    /* Area of ∆ABC using the shoelace formula:
-     *                    | x1 y1 1 |
-     * Area(∆ABC) = 1/2 • | x2 y2 1 |
-     *                    | x3 y3 1 |
-    */
-    private int area(int[] A, int[] B, int[] C) {
-        return Math.abs( (A[0] * B[1] + A[1] * C[0] + B[0] * C[1] ) -
-                (C[0] * B[1] + A[1] * B[0] + C[1] * A[0] ) ) / 2;
-    }
-
-    private boolean outOfBounds(int[] P) {
-        int PAB = area(P, topLeft, topRight);
-        int PBC = area(P, topRight, bottomRight);
-        int PCD = area(P, bottomRight, bottomLeft);
-        int PDA = area(P, bottomLeft, topLeft);
-        int totalArea = PAB + PBC + PCD + PDA;
-        int rectArea = boxView.getWidth() * boxView.getHeight();
-        return totalArea > rectArea + 2000;
-    }
-
-    private double getAngleError() {
-        double angle = Math.atan2(prevY - currY, currX - prevX) * 180 / Math.PI;
-        if (angle < 0) {
-            angle = 180 + angle;
-        }
-        double diff;
-        diff = Math.abs(angle - (90 - rotation));
-        diff = Math.min(diff, 180 - diff);
-        return diff;
-    }
-
     private boolean onSceneTouch(HitTestResult hitTestResult, MotionEvent sceneMotionEvent) {
         if (!itemWasPlaced) {
             return false;
@@ -367,7 +326,9 @@ public class ARActivity extends AppCompatActivity {
                 }
                 currX = sceneMotionEvent.getX();
                 currY = sceneMotionEvent.getY();
-                if (outOfBounds(new int[]{(int) currX, (int) currY})) {
+                if (ArMathUtils.outOfBounds(new int[]{(int) currX, (int) currY},
+                                            topLeft, topRight, bottomLeft, bottomRight,
+                                            boxView.getWidth(), boxView.getHeight())) {
                     swipeFailed = true;
                     setSnackbar(getString(R.string.out_of_bounds_failed));
                     newMinigame(false, true);
@@ -395,7 +356,9 @@ public class ARActivity extends AppCompatActivity {
                 initY = sceneMotionEvent.getY();
                 prevX = initX;
                 prevY = initY;
-                if (outOfBounds(new int[]{(int) initX, (int) initY})) {
+                if (ArMathUtils.outOfBounds(new int[]{(int) initX, (int) initY},
+                                            topLeft, topRight, bottomLeft, bottomRight,
+                                            boxView.getWidth(), boxView.getHeight())) {
                     swipeFailed = true;
                     setSnackbar(getString(R.string.out_of_bounds_failed));
                     newMinigame(false, true);
@@ -410,8 +373,10 @@ public class ARActivity extends AppCompatActivity {
                 setSnackbar("...");
                 currX = sceneMotionEvent.getX();
                 currY = sceneMotionEvent.getY();
-                diff = getAngleError();
-                if (outOfBounds(new int[]{(int) currX, (int) currY})) {
+                diff = ArMathUtils.getAngleError(currX, currY, prevX, prevY, rotation);
+                if (ArMathUtils.outOfBounds(new int[]{(int) currX, (int) currY},
+                                            topLeft, topRight, bottomLeft, bottomRight,
+                                            boxView.getWidth(), boxView.getHeight())) {
                     swipeFailed = true;
                     setSnackbar(getString(R.string.out_of_bounds_failed));
                     newMinigame(false, true);
