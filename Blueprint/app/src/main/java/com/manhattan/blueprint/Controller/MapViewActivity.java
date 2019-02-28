@@ -1,6 +1,7 @@
 package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
@@ -38,10 +39,17 @@ import com.manhattan.blueprint.Utils.ViewUtils;
 
 import android.support.design.widget.*;
 import android.support.v4.app.FragmentActivity;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AnticipateInterpolator;
+import android.view.animation.AnticipateOvershootInterpolator;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
@@ -49,8 +57,7 @@ import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class MapViewActivity extends FragmentActivity implements OnMapReadyCallback,
-        BottomNavigationView.OnNavigationItemSelectedListener, GoogleMap.OnMarkerClickListener {
+public class MapViewActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     // Default to the VR Lab
     private final int DEFAULT_ZOOM = 18;
@@ -61,17 +68,23 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     private final int FASTEST_GPS_INTERVAL = 500;
     private final int NETWORK_CHECK_REFRESH = 10000;
 
+    private Button developerModeButton;
+    private Button menuButton;
+    private Button backpackButton;
+    private Button settingsButton;
+    private Button blueprintButton;
+    private ImageView blurView;
+
     private BlueprintAPI blueprintAPI;
     private ItemManager itemManager;
     private FusedLocationProviderClient fusedLocationProviderClient;
-    private BottomNavigationView bottomView;
-    private Button developerModeButton;
     private GoogleMap googleMap;
     private HashMap<Marker, Resource> markerResourceMap = new HashMap<>();
     private LatLng lastLocationRequestedForResources;
     // Default to VR lab
     private LatLng currentLocation = new LatLng(51.449946, -2.599858);
     private boolean inDeveloperMode = false;
+    private boolean isMenuOpen = false;
 
 
     @Override
@@ -79,10 +92,14 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_view);
 
-        bottomView = findViewById(R.id.bottom_menu);
-        bottomView.setOnNavigationItemSelectedListener(this);
+        developerModeButton = findViewById(R.id.developerButton);
+        menuButton = findViewById(R.id.menuButton);
+        backpackButton = findViewById(R.id.backpackButton);
+        settingsButton = findViewById(R.id.settingsButton);
+        blueprintButton = findViewById(R.id.blueprintButton);
+        blurView = findViewById(R.id.blurView);
+        blurView.animate().alpha(0);
 
-        developerModeButton = findViewById(R.id.developer_button);
         developerModeButton.setVisibility(View.GONE);
         developerModeButton.setOnClickListener(v -> {
             inDeveloperMode = !inDeveloperMode;
@@ -94,6 +111,12 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             onMapReady(googleMap);
         });
         developerModeButton.setBackground(new ColorDrawable(getColor(R.color.red)));
+
+        // Menu Buttons
+        menuButton.setOnClickListener(didTapMenuButton());
+        settingsButton.setOnClickListener(didTapSettingsButton());
+        backpackButton.setOnClickListener(didTapBackpackButton());
+        blueprintButton.setOnClickListener(didTapBlueprintButton());
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -331,6 +354,92 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             .show();
     }
 
+    // Menu Button Handlers
+    private View.OnClickListener didTapMenuButton(){
+       return v -> {
+           long duration = 300;
+           DisplayMetrics displayMetrics = new DisplayMetrics();
+           getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+
+           if (isMenuOpen) {
+               AnticipateInterpolator interpolator = new AnticipateInterpolator();
+               float originX = menuButton.getX() + menuButton.getWidth() / 8;
+               float originY = menuButton.getY() + menuButton.getHeight() / 8;
+               backpackButton.animate()
+                       .x(originX)
+                       .y(originY)
+                       .setDuration(duration)
+                       .setStartDelay(0)
+                       .setInterpolator(interpolator);
+
+               settingsButton.animate()
+                       .y(originY)
+                       .x(originX)
+                       .setDuration(duration)
+                       .setStartDelay(0)
+                       .setInterpolator(interpolator);
+
+               blueprintButton.animate()
+                       .y(originY)
+                       .x(originX)
+                       .setDuration(duration)
+                       .setStartDelay(0)
+                       .setInterpolator(interpolator);
+
+               blurView.animate()
+                       .alpha(0)
+                       .setDuration(duration);
+           } else {
+               OvershootInterpolator interpolator = new OvershootInterpolator();
+               float backpackY = menuButton.getY() - backpackButton.getLayoutParams().height - 100;
+               float settingsBlueprintY = menuButton.getY() - (settingsButton.getLayoutParams().height / 2) - 100;
+               float blueprintX = displayMetrics.widthPixels / 2 - (blueprintButton.getLayoutParams().width * 2);
+               float settingsX = displayMetrics.widthPixels / 2 + (settingsButton.getLayoutParams().width);
+
+               blueprintButton.animate()
+                       .y(settingsBlueprintY)
+                       .x(blueprintX)
+                       .setStartDelay(0)
+                       .setDuration(duration)
+                       .setInterpolator(interpolator);
+
+               backpackButton.animate()
+                       .y(backpackY)
+                       .setDuration(duration)
+                       .setStartDelay(duration/3)
+                       .setInterpolator(interpolator);
+
+               settingsButton.animate()
+                       .y(settingsBlueprintY)
+                       .x(settingsX)
+                       .setStartDelay(2*duration/3)
+                       .setDuration(duration)
+                       .setInterpolator(interpolator);
+
+               blurView.animate()
+                       .alpha(1)
+                       .setDuration(duration);
+           }
+           isMenuOpen = !isMenuOpen;
+       };
+    }
+
+    private View.OnClickListener didTapSettingsButton() {
+        return v -> {
+            // TODO
+        };
+    }
+
+    private View.OnClickListener didTapBackpackButton() {
+        return v -> startActivity(new Intent(MapViewActivity.this, InventoryActivity.class));
+    }
+
+    private View.OnClickListener didTapBlueprintButton() {
+        return v -> {
+            // TODO
+        };
+    }
+
     // Developer mode functions
     private void addResource(Resource resource) {
         blueprintAPI.makeRequest(blueprintAPI.resourceService.addResources(new ResourceSet(resource)), new APICallback<Void>() {
@@ -358,26 +467,5 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
                 ViewUtils.showError(MapViewActivity.this, "Couldn't delete resource", error);
             }
         });
-    }
-
-
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        for (int i = 0; i < bottomView.getMenu().size(); i++) {
-            MenuItem menuItem = bottomView.getMenu().getItem(i);
-            boolean isChecked = menuItem.getItemId() == item.getItemId();
-            menuItem.setChecked(isChecked);
-        }
-
-        switch (item.getItemId()) {
-            case R.id.inventory:
-                Intent toInventory = new Intent(MapViewActivity.this, InventoryActivity.class);
-                startActivity(toInventory);
-                break;
-            case R.id.shopping_list:
-                break;
-            case R.id.settings:
-                break;
-        }
-        return true;
     }
 }
