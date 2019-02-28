@@ -310,6 +310,7 @@ public class ARActivity extends AppCompatActivity {
         arSnackbarMessage.setText(msg);
     }
 
+    // Store the (x,y) coordinates of each corner of the "gesture box"
     private void getCorners() {
         boxView.getLocationOnScreen(topLeft);
 
@@ -323,6 +324,11 @@ public class ARActivity extends AppCompatActivity {
         bottomRight[1] = (int) (bottomLeft[1] + boxView.getWidth() * Math.sin(rotation * Math.PI / 180));
     }
 
+    /* Area of ∆ABC using the shoelace formula:
+     *                    | x1 y1 1 |
+     * Area(∆ABC) = 1/2 • | x2 y2 1 |
+     *                    | x3 y3 1 |
+    */
     private int area(int[] A, int[] B, int[] C) {
         return Math.abs( (A[0] * B[1] + A[1] * C[0] + B[0] * C[1] ) -
                 (C[0] * B[1] + A[1] * B[0] + C[1] * A[0] ) ) / 2;
