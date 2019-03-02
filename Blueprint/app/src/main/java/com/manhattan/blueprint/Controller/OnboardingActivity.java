@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.AccountType;
 import com.manhattan.blueprint.Model.Managers.LoginManager;
 import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.UserCredentials;
@@ -151,11 +152,11 @@ public class OnboardingActivity extends FragmentActivity {
                 return;
             }
 
-            api.login(new UserCredentials(usernameText, passwordText), new APICallback<Void>() {
+            api.login(new UserCredentials(usernameText, passwordText), new APICallback<AccountType>() {
                 @Override
-                public void success(Void response) {
+                public void success(AccountType response) {
                     LoginManager loginManager = new LoginManager(OnboardingActivity.this);
-                    loginManager.login(usernameText);
+                    loginManager.login(usernameText, response);
 
                     // Launch Map View
                     Intent toMapView = new Intent(OnboardingActivity.this, MapViewActivity.class);
@@ -190,11 +191,11 @@ public class OnboardingActivity extends FragmentActivity {
                 return;
             }
 
-            api.signup(new UserCredentials(usernameText, passwordText), new APICallback<Void>() {
+            api.signup(new UserCredentials(usernameText, passwordText), new APICallback<AccountType>() {
                 @Override
-                public void success(Void response) {
+                public void success(AccountType response) {
                     LoginManager loginManager = new LoginManager(OnboardingActivity.this);
-                    loginManager.login(usernameText);
+                    loginManager.login(usernameText, response);
 
                     // Launch Map View
                     Intent toMapView = new Intent(OnboardingActivity.this, MapViewActivity.class);
