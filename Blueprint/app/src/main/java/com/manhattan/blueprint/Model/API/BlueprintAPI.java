@@ -184,6 +184,7 @@ public final class BlueprintAPI {
                     callback.success(response.body());
                 } else {
                     try {
+                        Log.d("RESPONSE", response.errorBody().string());
                         APIError error = new Gson().fromJson(response.errorBody().string(), APIError.class);
                         callback.failure(response.code(), error.getError());
                     } catch (IOException e) {

@@ -1,13 +1,11 @@
 package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
-import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.drawable.ColorDrawable;
+import android.os.Looper;
 import android.provider.Settings;
 import android.app.AlertDialog;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
 
@@ -16,14 +14,8 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
+import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.Location;
@@ -36,16 +28,22 @@ import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.LocationUtils;
 import com.manhattan.blueprint.Utils.NetworkUtils;
 import com.manhattan.blueprint.Utils.ViewUtils;
+import com.manhattan.blueprint.View.MapGestureListener;
+import com.mapbox.android.gestures.AndroidGesturesManager;
+import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.mapbox.mapboxsdk.annotations.Marker;
+import com.mapbox.mapboxsdk.annotations.MarkerOptions;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
+import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.mapbox.mapboxsdk.maps.MapView;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
-import android.support.design.widget.*;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AnticipateInterpolator;
-import android.view.animation.AnticipateOvershootInterpolator;
-import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -57,9 +55,8 @@ import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class MapViewActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMarkerClickListener, MapGestureListener.GestureDelegate {
 
-    // Default to the VR Lab
     private final int DEFAULT_ZOOM = 18;
     private final int MAX_DISTANCE_REFRESH = 500;
     private final int MAX_DISTANCE_COLLECT = 20;
@@ -68,21 +65,26 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     private final int FASTEST_GPS_INTERVAL = 500;
     private final int NETWORK_CHECK_REFRESH = 10000;
 
-    private Button developerModeButton;
+    private Button developerButton;
     private Button menuButton;
     private Button backpackButton;
     private Button settingsButton;
     private Button blueprintButton;
+    private Button closeButton;
     private ImageView blurView;
 
     private BlueprintAPI blueprintAPI;
     private ItemManager itemManager;
     private FusedLocationProviderClient fusedLocationProviderClient;
-    private GoogleMap googleMap;
+    private LoginManager loginManager;
+    private MapView mapView;
+    private MapboxMap mapboxMap;
     private HashMap<Marker, Resource> markerResourceMap = new HashMap<>();
     private LatLng lastLocationRequestedForResources;
+
     // Default to VR lab
     private LatLng currentLocation = new LatLng(51.449946, -2.599858);
+    private Marker currentLocationMarker;
     private boolean inDeveloperMode = false;
     private boolean isMenuOpen = false;
 
@@ -90,39 +92,34 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Mapbox.getInstance(this, BuildConfig.MapboxAPIKey);
         setContentView(R.layout.activity_map_view);
 
-        developerModeButton = findViewById(R.id.developerButton);
         menuButton = findViewById(R.id.menuButton);
+        developerButton = findViewById(R.id.developerButton);
         backpackButton = findViewById(R.id.backpackButton);
         settingsButton = findViewById(R.id.settingsButton);
         blueprintButton = findViewById(R.id.blueprintButton);
+        closeButton = findViewById(R.id.closeButton);
         blurView = findViewById(R.id.blurView);
-        blurView.animate().alpha(0);
+        mapView = findViewById(R.id.mapView);
 
-        developerModeButton.setVisibility(View.GONE);
-        developerModeButton.setOnClickListener(v -> {
-            inDeveloperMode = !inDeveloperMode;
-            if (inDeveloperMode) {
-                developerModeButton.setBackground(new ColorDrawable(getColor(R.color.green)));
-            } else {
-                developerModeButton.setBackground(new ColorDrawable(getColor(R.color.red)));
-            }
-            onMapReady(googleMap);
-        });
-        developerModeButton.setBackground(new ColorDrawable(getColor(R.color.red)));
+        blurView.animate().alpha(0);
+        closeButton.animate().scaleX(0).scaleY(0);
 
         // Menu Buttons
         menuButton.setOnClickListener(didTapMenuButton());
+        closeButton.setOnClickListener(didTapMenuButton());
+        developerButton.setOnClickListener(didTapDeveloperButton());
         settingsButton.setOnClickListener(didTapSettingsButton());
         backpackButton.setOnClickListener(didTapBackpackButton());
         blueprintButton.setOnClickListener(didTapBlueprintButton());
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        loginManager = new LoginManager(this);
 
         // If haven't logged in yet, or have revoked location, redirect
         PermissionManager locationManager = new PermissionManager(0, Manifest.permission.ACCESS_FINE_LOCATION);
-        LoginManager loginManager = new LoginManager(this);
         if (!loginManager.isLoggedIn()) {
             toOnboarding();
             return;
@@ -143,16 +140,10 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         // Load data required
         blueprintAPI = new BlueprintAPI(this);
         itemManager = ItemManager.getInstance(this);
-
-        if (loginManager.isDeveloper()){
-            developerModeButton.setVisibility(View.VISIBLE);
-        }
-
         itemManager.fetchData(new APICallback<Void>() {
             @Override
             public void success(Void response) {
-                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-                mapFragment.getMapAsync(MapViewActivity.this);
+                mapView.getMapAsync(MapViewActivity.this);
             }
 
             @Override
@@ -168,6 +159,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         if (!LocationUtils.isLocationEnabled(this)) {
             displayLocationServicesRequest();
         }
+        mapView.onResume();
     }
 
     private void configureNetworkChecker() {
@@ -202,45 +194,66 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     //region OnMapReadyCallback
     @SuppressLint("MissingPermission")
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        this.googleMap = googleMap;
-        // Configure UI
-        googleMap.setMyLocationEnabled(true);
-        // Only enable gestures if developer
-        googleMap.getUiSettings().setMyLocationButtonEnabled(inDeveloperMode);
-        googleMap.getUiSettings().setAllGesturesEnabled(inDeveloperMode);
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
-        googleMap.setOnMarkerClickListener(this);
-        googleMap.getUiSettings().setMapToolbarEnabled(false);
+    public void onMapReady(MapboxMap mapboxMap) {
+        this.mapboxMap = mapboxMap;
+        mapboxMap.setOnMarkerClickListener(this);
+
+        // Only enable all gestures if developer
+        if (inDeveloperMode) {
+            mapboxMap.setGesturesManager(new AndroidGesturesManager(MapViewActivity.this), true, true);
+            mapboxMap.getUiSettings().setAllGesturesEnabled(true);
+
+            mapboxMap.setOnMapLongClickListener(this::displayAddResourceDialog);
+            mapboxMap.setStyle(getString(R.string.developer_map_style));
+        } else {
+            mapboxMap.getUiSettings().setAllGesturesEnabled(false);
+            MapGestureListener mapGestureListener = new MapGestureListener(this);
+            AndroidGesturesManager gesturesManager = mapboxMap.getGesturesManager();
+            gesturesManager.setMoveGestureListener(mapGestureListener);
+            gesturesManager.setStandardScaleGestureListener(mapGestureListener);
+
+            mapboxMap.setOnMapLongClickListener(null);
+            mapboxMap.setStyle(getString(R.string.player_map_style));
+        }
+
 
         // Get user's location
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(DESIRED_GPS_INTERVAL);
         locationRequest.setFastestInterval(FASTEST_GPS_INTERVAL);
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationDidUpdate(), Looper.myLooper());
 
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest, new LocationCallback() {
+        // Move to default location
+        mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, DEFAULT_ZOOM));
+        addResourcesIfNeeded(false);
+    }
+
+    private LocationCallback locationDidUpdate() {
+        return new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
                 currentLocation = new LatLng(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude());
+
+                // Add icon to map
+                if (currentLocationMarker != null) {
+                    currentLocationMarker.remove();
+                }
+                MarkerOptions options = new MarkerOptions()
+                        .setIcon(IconFactory.getInstance(MapViewActivity.this).fromResource(inDeveloperMode ? R.drawable.will : R.drawable.man))
+                        .position(currentLocation);
+
+                currentLocationMarker = mapboxMap.addMarker(options);
+
                 // Don't move if in developer mode - may have panned to another location
-                if (!inDeveloperMode) googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, googleMap.getCameraPosition().zoom));
+                if (!inDeveloperMode)
+                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, mapboxMap.getCameraPosition().zoom));
                 addResourcesIfNeeded(false);
             }
-        }, Looper.myLooper());
-
-        // Configure Developer Mode
-        if (inDeveloperMode) {
-            googleMap.setOnMapLongClickListener(this::displayAddResourceDialog);
-        } else {
-            googleMap.setOnMapLongClickListener(null);
-        }
-
-        // Move to default location
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, DEFAULT_ZOOM));
-        addResourcesIfNeeded(false);
+        };
     }
+
     //endregion
 
     private void addResourcesIfNeeded(boolean force) {
@@ -253,7 +266,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         lastLocationRequestedForResources = currentLocation;
 
         blueprintAPI.makeRequest(blueprintAPI.resourceService.fetchResources(
-                currentLocation.latitude, currentLocation.longitude), new APICallback<ResourceSet>() {
+                currentLocation.getLatitude(), currentLocation.getLongitude()), new APICallback<ResourceSet>() {
             @Override
             public void success(ResourceSet response) {
                 markerResourceMap.forEach((marker, resource) -> marker.remove());
@@ -261,7 +274,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
                 for (Resource item : response.getItems()) {
                     LatLng itemLocation = new LatLng(item.getLocation().getLatitude(),
                             item.getLocation().getLongitude());
-                    Marker marker = googleMap.addMarker(new MarkerOptions()
+                    Marker marker = mapboxMap.addMarker(new MarkerOptions()
                             .title(itemManager.getName(item.getId()).getWithDefault("Item " + item.getId()))
                             .position(itemLocation));
                     markerResourceMap.put(marker, item);
@@ -278,8 +291,10 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     // region OnMarkerClickListener
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
+        if (marker.equals(currentLocationMarker)) return false;
+
         Resource resource = markerResourceMap.get(marker);
-        marker.showInfoWindow();
+        marker.showInfoWindow(mapboxMap, mapView);
 
         // Developers delete instead of AR
         if (inDeveloperMode) {
@@ -318,7 +333,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         alertDialog.show();
     }
 
-    private void displayAddResourceDialog(LatLng latlng){
+    private void displayAddResourceDialog(LatLng latLng){
         // Configure Spinner
         View view = getLayoutInflater().inflate(R.layout.alert_add_resource, null);
         Spinner resourceNameSpinner = view.findViewById(R.id.resource_name_spinner);
@@ -346,7 +361,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
                 dialog.dismiss();
 
                 int resourceId = itemManager.getId((String) resourceNameSpinner.getSelectedItem()).getWithDefault(0);
-                Location location = new Location(latlng.latitude, latlng.longitude);
+                Location location = new Location(latLng.getLatitude(), latLng.getLongitude());
                 int quantity = quantities.get(resourceQuantitySpinner.getSelectedItemPosition());
 
                 addResource(new Resource(resourceId, location, quantity));
@@ -354,44 +369,66 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             .show();
     }
 
-    // Menu Button Handlers
+    // region  Menu Button Handlers
     private View.OnClickListener didTapMenuButton(){
        return v -> {
            long duration = 300;
            DisplayMetrics displayMetrics = new DisplayMetrics();
            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+           OvershootInterpolator overshootInterpolator = new OvershootInterpolator();
+           AnticipateInterpolator anticipateInterpolator = new AnticipateInterpolator();
 
            if (isMenuOpen) {
-               AnticipateInterpolator interpolator = new AnticipateInterpolator();
                float originX = menuButton.getX() + menuButton.getWidth() / 8;
                float originY = menuButton.getY() + menuButton.getHeight() / 8;
                backpackButton.animate()
-                       .x(originX)
                        .y(originY)
+                       .x(originX)
                        .setDuration(duration)
                        .setStartDelay(0)
-                       .setInterpolator(interpolator);
+                       .setInterpolator(anticipateInterpolator);
 
                settingsButton.animate()
                        .y(originY)
                        .x(originX)
                        .setDuration(duration)
                        .setStartDelay(0)
-                       .setInterpolator(interpolator);
+                       .setInterpolator(anticipateInterpolator);
 
                blueprintButton.animate()
                        .y(originY)
                        .x(originX)
                        .setDuration(duration)
                        .setStartDelay(0)
-                       .setInterpolator(interpolator);
+                       .setInterpolator(anticipateInterpolator);
+
+               developerButton.animate()
+                       .y(originY)
+                       .x(originX)
+                       .setDuration(duration)
+                       .setStartDelay(0)
+                       .setInterpolator(anticipateInterpolator);
+
+               menuButton.animate()
+                       .scaleX(1)
+                       .scaleY(1)
+                       .setStartDelay(duration)
+                       .setDuration(duration)
+                       .setInterpolator(overshootInterpolator);
+
+               closeButton.animate()
+                       .scaleX(0)
+                       .scaleY(0)
+                       .setStartDelay(0)
+                       .setDuration(duration)
+                       .setInterpolator(anticipateInterpolator);
 
                blurView.animate()
                        .alpha(0)
                        .setDuration(duration);
            } else {
-               OvershootInterpolator interpolator = new OvershootInterpolator();
                float backpackY = menuButton.getY() - backpackButton.getLayoutParams().height - 100;
+               float developerY = menuButton.getY() - (developerButton.getLayoutParams().height * 2) - 175;
                float settingsBlueprintY = menuButton.getY() - (settingsButton.getLayoutParams().height / 2) - 100;
                float blueprintX = displayMetrics.widthPixels / 2 - (blueprintButton.getLayoutParams().width * 2);
                float settingsX = displayMetrics.widthPixels / 2 + (settingsButton.getLayoutParams().width);
@@ -401,27 +438,57 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
                        .x(blueprintX)
                        .setStartDelay(0)
                        .setDuration(duration)
-                       .setInterpolator(interpolator);
+                       .setInterpolator(overshootInterpolator);
 
                backpackButton.animate()
                        .y(backpackY)
                        .setDuration(duration)
                        .setStartDelay(duration/3)
-                       .setInterpolator(interpolator);
+                       .setInterpolator(overshootInterpolator);
 
                settingsButton.animate()
                        .y(settingsBlueprintY)
                        .x(settingsX)
                        .setStartDelay(2*duration/3)
                        .setDuration(duration)
-                       .setInterpolator(interpolator);
+                       .setInterpolator(overshootInterpolator);
+
+               if (loginManager.isDeveloper()) {
+                   developerButton.animate()
+                           .y(developerY)
+                           .setStartDelay(duration)
+                           .setDuration(duration)
+                           .setInterpolator(overshootInterpolator);
+               }
+
+               menuButton.animate()
+                       .scaleX(0)
+                       .scaleY(0)
+                       .setStartDelay(duration)
+                       .setDuration(duration)
+                       .setInterpolator(anticipateInterpolator);
+
+               closeButton.animate()
+                       .scaleX(1)
+                       .scaleY(1)
+                       .setStartDelay(duration * 2)
+                       .setDuration(duration)
+                       .setInterpolator(overshootInterpolator);
 
                blurView.animate()
                        .alpha(1)
                        .setDuration(duration);
+
            }
            isMenuOpen = !isMenuOpen;
        };
+    }
+
+    private View.OnClickListener didTapDeveloperButton() {
+        return v -> {
+            inDeveloperMode = !inDeveloperMode;
+            onMapReady(mapboxMap);
+        };
     }
 
     private View.OnClickListener didTapSettingsButton() {
@@ -439,8 +506,9 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             // TODO
         };
     }
+    // endregion
 
-    // Developer mode functions
+    // region Developer mode functions
     private void addResource(Resource resource) {
         blueprintAPI.makeRequest(blueprintAPI.resourceService.addResources(new ResourceSet(resource)), new APICallback<Void>() {
             @Override
@@ -468,4 +536,77 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             }
         });
     }
+    // endregion
+
+    // region GestureDelegate
+    @Override
+    public void panBy(float dx) {
+        mapboxMap.moveCamera(CameraUpdateFactory.bearingTo(mapboxMap.getCameraPosition().bearing - dx));
+    }
+
+    @Override
+    public void scaleBy(float amount) {
+        float minZoom = 17;
+        float maxZoom = 20;
+
+        float minTilt = 40;
+        float maxTilt = 75;
+
+        float hardnessFactor = 0.1f;
+
+        // Scale factor needs to be negative if zooming out
+        // Also easier to zoom in than out, so add additional "hardness"
+        float delta = amount > 1 ? amount * (hardnessFactor * 0.2f) : -amount * hardnessFactor;
+        float scaleFactor = (float) (mapboxMap.getCameraPosition().zoom + delta);
+
+        // Bound zoom between min and max values
+        float zoomLevel = Math.max(minZoom, Math.min(scaleFactor, maxZoom));
+        mapboxMap.moveCamera(CameraUpdateFactory.zoomTo(zoomLevel));
+
+        // Zoom level will be scaled  between min and max zoom
+        // Apply that same scaling to the tilt
+
+        float zoomPercentage = (scaleFactor - minZoom) / (maxZoom - minZoom);
+        float tilt = minTilt + (zoomPercentage * (maxTilt - minTilt));
+        mapboxMap.moveCamera(CameraUpdateFactory.tiltTo(tilt));
+    }
+    // endregion
+
+    // region Mapbox overrides
+    @Override
+    public void onStart() {
+        super.onStart();
+        mapView.onStart();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mapView.onSaveInstanceState(outState);
+    }
+    // endregion
 }

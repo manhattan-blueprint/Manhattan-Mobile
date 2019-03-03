@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Blueprint</string>
 
+    <string name="player_map_style">mapbox://styles/jaylees/cjssvf5j8201r1fo8j2inchnm</string>
+    <string name="developer_map_style">mapbox://styles/jaylees/cjssxbxy321ti1fo8mmdvdnra</string>
+
     <string name="permission_location_title">Location</string>
     <string name="permission_location_description">We require access to your location to show collectible resources around you</string>
     <string name="permission_camera_title">Camera</string>
