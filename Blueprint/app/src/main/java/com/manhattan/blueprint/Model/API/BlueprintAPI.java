@@ -1,5 +1,6 @@
 package com.manhattan.blueprint.Model.API;
 
+import android.accounts.Account;
 import android.content.Context;
 import android.util.Log;
 
@@ -7,6 +8,7 @@ import com.google.gson.Gson;
 import com.manhattan.blueprint.Model.API.Services.AuthenticateService;
 import com.manhattan.blueprint.Model.API.Services.InventoryService;
 import com.manhattan.blueprint.Model.API.Services.ResourceService;
+import com.manhattan.blueprint.Model.AccountType;
 import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
 import com.manhattan.blueprint.Model.DAO.DAO;
 import com.manhattan.blueprint.Model.ItemSchema;
@@ -101,13 +103,13 @@ public final class BlueprintAPI {
     }
 
     // Login requires a specific method so we can grab the auth token and store it for later requests
-    public void login(UserCredentials userCredentials, final APICallback<Void> callback) {
-        authenticateService.login(userCredentials).enqueue(new Callback<TokenPair>() {
+    public void login(UserCredentials userCredentials, final APICallback<AccountType> callback) {
+        authenticateService.login(userCredentials).enqueue(new Callback<ServerSession>() {
             @Override
-            public void onResponse(@NotNull Call<TokenPair> call, @NotNull Response<TokenPair> response) {
+            public void onResponse(@NotNull Call<ServerSession> call, @NotNull Response<ServerSession> response) {
                 if (response.code() == HttpURLConnection.HTTP_OK) {
-                    dao.setTokenPair(response.body());
-                    callback.success(null);
+                    dao.setTokenPair(response.body().getTokenPair());
+                    callback.success(accountTypeFromString(response.body().getAccountType()));
                 } else {
                     try {
                         APIError error = new Gson().fromJson(response.errorBody().string(), APIError.class);
@@ -119,20 +121,20 @@ public final class BlueprintAPI {
             }
 
             @Override
-            public void onFailure(@NotNull Call<TokenPair> call, @NotNull Throwable t) {
+            public void onFailure(@NotNull Call<ServerSession> call, @NotNull Throwable t) {
                 callback.failure(-1, t.toString());
             }
         });
     }
 
     // Signup requires a specific method so we can grab the auth token and store for later requests
-    public void signup(UserCredentials userCredentials, final APICallback<Void> callback) {
-        authenticateService.register(userCredentials).enqueue(new Callback<TokenPair>() {
+    public void signup(UserCredentials userCredentials, final APICallback<AccountType> callback) {
+        authenticateService.register(userCredentials).enqueue(new Callback<ServerSession>() {
             @Override
-            public void onResponse(Call<TokenPair> call, Response<TokenPair> response) {
+            public void onResponse(Call<ServerSession> call, Response<ServerSession> response) {
                 if (response.code() == HttpURLConnection.HTTP_OK) {
-                    dao.setTokenPair(response.body());
-                    callback.success(null);
+                    dao.setTokenPair(response.body().getTokenPair());
+                    callback.success(accountTypeFromString(response.body().getAccountType()));
                 } else {
                     try {
                         APIError error = new Gson().fromJson(response.errorBody().string(), APIError.class);
@@ -144,7 +146,7 @@ public final class BlueprintAPI {
             }
 
             @Override
-            public void onFailure(Call<TokenPair> call, Throwable t) {
+            public void onFailure(Call<ServerSession> call, Throwable t) {
                 callback.failure(-1, t.toString());
             }
         });
@@ -205,12 +207,12 @@ public final class BlueprintAPI {
         }
         TokenPair tokenPair = dao.getTokenPair().get();
 
-        authenticateService.refreshToken(new RefreshBody(tokenPair.getRefreshToken())).enqueue(new Callback<TokenPair>() {
+        authenticateService.refreshToken(new RefreshBody(tokenPair.getRefreshToken())).enqueue(new Callback<ServerSession>() {
             @Override
-            public void onResponse(@NotNull Call<TokenPair> call, @NotNull Response<TokenPair> response) {
+            public void onResponse(@NotNull Call<ServerSession> call, @NotNull Response<ServerSession> response) {
                 if (response.code() == HttpURLConnection.HTTP_OK) {
                     // Persist new token
-                    dao.setTokenPair(response.body());
+                    dao.setTokenPair(response.body().getTokenPair());
                     // Repeat original request, must clone to remove "executed" status
                     originalCall.clone().enqueue(new Callback<T>() {
                         @Override
@@ -243,9 +245,19 @@ public final class BlueprintAPI {
             }
 
             @Override
-            public void onFailure(@NotNull Call<TokenPair> call, @NotNull Throwable t) {
+            public void onFailure(@NotNull Call<ServerSession> call, @NotNull Throwable t) {
                 originalCallback.failure(-1, t.toString());
             }
         });
+    }
+
+    private AccountType accountTypeFromString(String raw) {
+        if (raw.toUpperCase().equals("DEVELOPER")) {
+            return AccountType.DEVELOPER;
+        } else if (raw.toUpperCase().equals("LECTURER")) {
+            return AccountType.LECTURER;
+        }
+        // Default to player
+        return AccountType.PLAYER;
     }
 }

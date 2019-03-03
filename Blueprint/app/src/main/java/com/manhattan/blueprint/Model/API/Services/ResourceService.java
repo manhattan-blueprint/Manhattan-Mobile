@@ -1,11 +1,9 @@
 package com.manhattan.blueprint.Model.API.Services;
 
-import com.manhattan.blueprint.Model.API.Developer;
 import com.manhattan.blueprint.Model.ResourceSet;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
-import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.HTTP;
 import retrofit2.http.POST;
@@ -15,13 +13,9 @@ public interface ResourceService {
     @GET("resources")
     Call<ResourceSet> fetchResources(@Query("lat") double latitude, @Query("long") double longitude);
 
-    @GET("resources/dev")
-    Call<Developer> validateDeveloper();
-
     @POST("resources")
     Call<Void> addResources(@Body ResourceSet resources);
 
     @HTTP(method = "DELETE", path = "resources", hasBody = true)
     Call<Void> deleteResources(@Body ResourceSet resources);
-
 }
