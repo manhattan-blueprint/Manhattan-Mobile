@@ -2,6 +2,7 @@ package com.manhattan.blueprint;
 
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.AccountType;
 import com.manhattan.blueprint.Model.DAO.DAO;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.InventoryItem;
@@ -26,6 +27,7 @@ public class BlueprintAPITests {
     private CountDownLatch lock = new CountDownLatch(1);
 
     // Responses
+    private AccountType accountType;
     private Inventory inventory;
     private ResourceSet resourceSet;
     private String errorString;
@@ -34,6 +36,7 @@ public class BlueprintAPITests {
     public void setUp() {
         mockDAO = new MockDAO();
         api = new BlueprintAPI(new MockClient().client, mockDAO);
+        accountType = null;
         inventory = null;
         resourceSet = null;
         errorString = null;
@@ -42,9 +45,10 @@ public class BlueprintAPITests {
     // Validate that a user can successfully login AND the DAO gets updated
     @Test
     public void testAuthenticate() throws Exception {
-        api.login(new UserCredentials("foo", "bar"), new APICallback<Void>() {
+        api.login(new UserCredentials("foo", "bar"), new APICallback<AccountType>() {
             @Override
-            public void success(Void response) {
+            public void success(AccountType account) {
+                accountType = account;
                 lock.countDown();
             }
 
@@ -57,6 +61,7 @@ public class BlueprintAPITests {
 
         lock.await(2000, TimeUnit.MILLISECONDS);
         assertNull(errorString);
+        assertEquals(MockData.accountType, accountType);
         assertTrue(mockDAO.getTokenPair().isPresent());
         assertEquals(mockDAO.getTokenPair().get(), MockData.tokenPair);
     }

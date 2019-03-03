@@ -25,7 +25,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
-import com.manhattan.blueprint.Model.API.Developer;
 import com.manhattan.blueprint.Model.Location;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.LoginManager;
@@ -46,9 +45,7 @@ import android.widget.Button;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -123,29 +120,21 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         // Load data required
         blueprintAPI = new BlueprintAPI(this);
         itemManager = ItemManager.getInstance(this);
-        blueprintAPI.makeRequest(blueprintAPI.resourceService.validateDeveloper(), new APICallback<Developer>() {
-            @Override
-            public void success(Developer response) {
-                if (response.isDeveloper()) {
-                    developerModeButton.setVisibility(View.VISIBLE);
-                }
-                itemManager.fetchData(new APICallback<Void>() {
-                    @Override
-                    public void success(Void response) {
-                        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-                        mapFragment.getMapAsync(MapViewActivity.this);
-                    }
 
-                    @Override
-                    public void failure(int code, String error) {
-                        ViewUtils.showError(MapViewActivity.this, "Whoops! Could not fetch resource schema", error);
-                    }
-                });
+        if (loginManager.isDeveloper()){
+            developerModeButton.setVisibility(View.VISIBLE);
+        }
+
+        itemManager.fetchData(new APICallback<Void>() {
+            @Override
+            public void success(Void response) {
+                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+                mapFragment.getMapAsync(MapViewActivity.this);
             }
 
             @Override
             public void failure(int code, String error) {
-                ViewUtils.showError(MapViewActivity.this, "Whoops! Could not determine developer role", error);
+                ViewUtils.showError(MapViewActivity.this, "Whoops! Could not fetch resource schema", error);
             }
         });
     }
