@@ -11,7 +11,6 @@ import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.R;
 
 import java.util.List;
-import java.util.Locale;
 
 import android.widget.TextView;
 
@@ -47,7 +46,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Inve
     @Override
     public void onBindViewHolder(InventoryViewHolder holder, int position) {
         InventoryItem item = inventoryItems.get(position);
-        holder.resource.setText(ItemManager.getInstance(context).getName(item.getId()).getWithDefault("Unknown"));
+        holder.resource.setText(ItemManager.getInstance(context).getName(item.getId()).withDefault("Unknown"));
         holder.quantity.setText(String.valueOf(item.getQuantity()));
     }
 

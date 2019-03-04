@@ -12,7 +12,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -126,7 +125,7 @@ public class ARActivity extends AppCompatActivity {
                     testViewRenderable = renderable;
                     TextView resourceView = renderable.getView().findViewById(R.id.Resource_AR);
                     ItemManager itemManager = ItemManager.getInstance(this);
-                    String resourceText = itemManager.getName(resourceToCollect.getId()).getWithDefault("Resource");
+                    String resourceText = itemManager.getName(resourceToCollect.getId()).withDefault("Resource");
                     resourceView.setText(resourceText);
                 });
 
@@ -209,7 +208,7 @@ public class ARActivity extends AppCompatActivity {
                 @Override
                 public void success(Void response) {
                     // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
-                    String itemName = ItemManager.getInstance(ARActivity.this).getName(resourceToCollect.getId()).getWithDefault("items");
+                    String itemName = ItemManager.getInstance(ARActivity.this).getName(resourceToCollect.getId()).withDefault("items");
                     String successMsg = String.format(getString(R.string.collection_success), resourceToCollect.getQuantity(), itemName);
                     Toast.makeText(ARActivity.this, successMsg, Toast.LENGTH_LONG).show();
                     finish();
