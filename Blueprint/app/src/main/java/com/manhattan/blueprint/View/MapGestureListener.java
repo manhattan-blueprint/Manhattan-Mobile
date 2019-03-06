@@ -7,7 +7,6 @@ import com.mapbox.android.gestures.MoveGestureDetector;
 import com.mapbox.android.gestures.StandardScaleGestureDetector;
 
 public class MapGestureListener implements MoveGestureDetector.OnMoveGestureListener, StandardScaleGestureDetector.StandardOnScaleGestureListener {
-
     public interface GestureDelegate {
         void panBy(float amount);
         void scaleBy(float amount);
@@ -52,6 +51,6 @@ public class MapGestureListener implements MoveGestureDetector.OnMoveGestureList
     }
 
     @Override
-    public void onMoveEnd(MoveGestureDetector detector, float velocityX, float velocityY) {  }
+    public void onMoveEnd(MoveGestureDetector detector, float velocityX, float velocityY) { }
     // endregion
 }
