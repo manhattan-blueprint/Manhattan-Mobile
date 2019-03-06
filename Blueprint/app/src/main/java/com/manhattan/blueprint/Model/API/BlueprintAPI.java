@@ -127,31 +127,6 @@ public final class BlueprintAPI {
         });
     }
 
-    // Signup requires a specific method so we can grab the auth token and store for later requests
-    public void signup(UserCredentials userCredentials, final APICallback<AccountType> callback) {
-        authenticateService.register(userCredentials).enqueue(new Callback<ServerSession>() {
-            @Override
-            public void onResponse(Call<ServerSession> call, Response<ServerSession> response) {
-                if (response.code() == HttpURLConnection.HTTP_OK) {
-                    dao.setTokenPair(response.body().getTokenPair());
-                    callback.success(accountTypeFromString(response.body().getAccountType()));
-                } else {
-                    try {
-                        APIError error = new Gson().fromJson(response.errorBody().string(), APIError.class);
-                        callback.failure(response.code(), error.getError());
-                    } catch (IOException e) {
-                        callback.failure(response.code(), "An unknown error occurred");
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ServerSession> call, Throwable t) {
-                callback.failure(-1, t.toString());
-            }
-        });
-    }
-
     public void getSchema(final APICallback<ItemSchema> callback) {
         authenticateService.itemSchema().enqueue(new Callback<ItemSchema>() {
             @Override
@@ -184,7 +159,6 @@ public final class BlueprintAPI {
                     callback.success(response.body());
                 } else {
                     try {
-                        Log.d("RESPONSE", response.errorBody().string());
                         APIError error = new Gson().fromJson(response.errorBody().string(), APIError.class);
                         callback.failure(response.code(), error.getError());
                     } catch (IOException e) {
