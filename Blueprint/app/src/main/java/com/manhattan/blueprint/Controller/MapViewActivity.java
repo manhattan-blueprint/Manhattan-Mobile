@@ -25,6 +25,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
 import com.manhattan.blueprint.Model.HololensClient;
 import com.manhattan.blueprint.Model.Location;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
@@ -274,19 +275,23 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
 
         // Only collect if close enough
         } else if (LocationUtils.distanceBetween(marker.getPosition(), currentLocation) <= MAX_DISTANCE_COLLECT) {
-            if (false) { // TODO
-                Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
-                Bundle resourceToCollect = new Bundle();
-                resourceToCollect.putString("resource", (new Gson()).toJson(resource));
-                intentAR.putExtras(resourceToCollect);
-                startActivity(intentAR);
-            } else if (true) { // TODO
-                Intent intentHololens = new Intent(MapViewActivity.this, HololensActivity.class);
-                Bundle resourceToCollect = new Bundle();
-                resourceToCollect.putString("resource", (new Gson()).toJson(resource));
-                intentHololens.putExtras(resourceToCollect);
-                startActivity(intentHololens);
-            }
+            BlueprintDAO.getInstance(this).getSession().ifPresent(session -> {
+                if (session.isHololensConnected()) {
+                    // Stay in MapView, connect to Hololens
+                    Intent intentHololens = new Intent(MapViewActivity.this, HololensActivity.class);
+                    Bundle resourceToCollect = new Bundle();
+                    resourceToCollect.putString("resource", (new Gson()).toJson(resource));
+                    intentHololens.putExtras(resourceToCollect);
+                    startActivity(intentHololens);
+                } else {
+                    // Go to AR View
+                    Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
+                    Bundle resourceToCollect = new Bundle();
+                    resourceToCollect.putString("resource", (new Gson()).toJson(resource));
+                    intentAR.putExtras(resourceToCollect);
+                    startActivity(intentAR);
+                }
+            });
         }
         return true;
     }

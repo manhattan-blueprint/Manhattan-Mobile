@@ -40,7 +40,7 @@ public class HololensActivity extends AppCompatActivity {
         HololensClient client = new HololensClient();
 
         client.setSocket(ipAddress, 9050);
-        if (ipAddress.isEmpty()) {
+        if (ipAddress == null) {
             updateStatus("Please go to settings and set the IP address.");
             return;
         }
