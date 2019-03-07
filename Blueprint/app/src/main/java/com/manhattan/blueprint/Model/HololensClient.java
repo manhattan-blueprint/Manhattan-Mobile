@@ -1,129 +1,78 @@
 package com.manhattan.blueprint.Model;
 
-/*
-Implements the the Client API, designed for custom low level communication as
-outlined in Hololens "Communication V1.png".
-*/
-
 import android.util.Log;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.InputStreamReader;
 import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.net.Socket;
 
 
-
 public class HololensClient {
 
-    enum State {
-        IDLE,    // - Device socket not set yet
-        GREET,   // - Send greet message to Hololens until response,
-                 // send connected message to Hololens once received.
-        IDLE_IP, // - If there is anything in the buffer it tries to send
-                 // it repeatedly until it gets a mirrored response.
-    }
-
-    private String greetMessage;
     private String serverAddress;
-    private State state;
-    private int port;
-    private long delayedTime;
+    private int    port;
+    private ArrayList<String> buffer;
 
-    // First item in the buffer is treated as the head
-    ArrayList<String> buffer;
-
-    // Sets up the class, defining the strings used for communication.
-    public HololensClient(String greetMessage) {
-        this.greetMessage = greetMessage;
-        this.state = State.IDLE;
-        buffer = new ArrayList<String>();
-
-        // Having this here makes timing logic more concise.
-        this.delayedTime = System.currentTimeMillis();
+    public HololensClient() {
+        buffer = new ArrayList<>();
     }
 
     public void setSocket(String serverAddress, int port) {
         this.serverAddress = serverAddress;
-        this.port = port;
-        Log.d("HOLOLENS","Socket set to (" + serverAddress + ", " + port + ")");
-        this.state = State.IDLE_IP;
+        this.port          = port;
     }
 
-    public Boolean isRunning() {
-        if (state != State.IDLE) { return true; }
-        return false;
-    }
-
-    public void addItemToBuffer(String Item) {
+    public void addItem(String Item) {
         buffer.add(Item);
-        Log.d("HOLOLENS", "Item " + Item + " added to buffer");
     }
 
-    public String sendAndRecv(String message) throws Exception {
-        Socket clientSocket = new Socket(serverAddress, 9050);
+    private String sendAndRecv(String message) throws Exception {
+        Socket clientSocket = new Socket(serverAddress, port);
+        clientSocket.setSoTimeout(10000);
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        String sentence = "hello_blueprint";
-        Log.d("HOLOLENS", "Sending: " + message);
-        outToServer.writeUTF(message);
+        BufferedReader  inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        Log.d("hololog", "Sending... " + message);
+        outToServer.writeBytes(message);
         outToServer.flush();
-        message = new String(inFromServer.readLine());
-        Log.d("HOLOLENS","Received: " + message);
+        message = inFromServer.readLine();
+        Log.d("hololog","Received... " + message);
         clientSocket.close();
         return message;
     }
 
-    public void update() throws Exception {
-        long currentTime = System.currentTimeMillis();
+    public void run() {
+        Log.d("hololog", "New instance of run");
+        if (buffer.size() > 0) {
+            sendBuffer();
+        }
+    }
 
-        if (currentTime >= delayedTime) {
-            switch(state) {
-                case IDLE:
-                    idle();
-                    break;
-
-                case GREET:
-                    greet();
-                    break;
-
-                case IDLE_IP:
-                    idleIP();
-                    break;
+    private void sendBuffer() {
+        int idx = 0;
+        do {
+            Log.d("hololog", "\n");
+            Log.d("hololog","Buffer size: " + buffer.size());
+            Log.d("hololog","Sending item at index " + idx);
+            String item = buffer.get(idx);
+            String response = null;
+            try {
+                response = sendAndRecv(item);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            delayedTime = System.currentTimeMillis() + 1000;
-        }
-    }
 
-    public void idle() {
-        // Nothing to do :)
-    }
-
-    public void greet() throws Exception {
-        String response = sendAndRecv(greetMessage);
-        if (greetMessage.equals(response)) {
-            System.out.println("Greeting established! Swapping to state 'IDLE_IP'.");
-            state = State.IDLE_IP;
-        }
-    }
-
-    public void idleIP() throws Exception {
-        if (buffer.size() > 0) { // No need to check anything if the buffer is empty
-            String object = buffer.get(0);
-            String response = sendAndRecv(object);
-
-            // byte[] objB = object.getBytes();
-            // byte[] resB = response.getBytes();
-            // System.out.println("Checking string <" + object + "> equals <" + response + ">");
-            // System.out.println("Checking bytes <" + objB + "> equals <" + resB + ">");
-
-            // if (object.equals(response)) {
-            Log.d("HOLOLENS","Object display acknowledged for " + object + "!");
-            buffer.remove(object);
-            // }
-        }
+            if (response == null) {
+                Log.d("hololog","No response!");
+                // try again
+            } else if (response.equals(item)) {
+                buffer.remove(item);
+                buffer.trimToSize();
+                idx = idx % buffer.size();
+            } else if (response.equals("Not Complete")) {
+                idx = (idx + 1) % buffer.size();
+            }
+        } while (!buffer.isEmpty());
     }
 }
