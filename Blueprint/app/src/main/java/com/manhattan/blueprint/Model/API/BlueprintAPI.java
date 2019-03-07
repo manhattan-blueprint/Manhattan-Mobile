@@ -7,6 +7,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.manhattan.blueprint.Model.API.Services.AuthenticateService;
 import com.manhattan.blueprint.Model.API.Services.InventoryService;
+import com.manhattan.blueprint.Model.API.Services.ProgressService;
 import com.manhattan.blueprint.Model.API.Services.ResourceService;
 import com.manhattan.blueprint.Model.AccountType;
 import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
@@ -33,11 +34,13 @@ public final class BlueprintAPI {
     private AuthenticateService authenticateService;
     public InventoryService inventoryService;
     public ResourceService resourceService;
+    public ProgressService progressService;
 
     private static String baseURL = "http://smithwjv.ddns.net";
     private static String baseAuthenticateURL = baseURL + ":8000/api/v1/";
     private static String baseInventoryURL = baseURL + ":8001/api/v1/";
     private static String baseResourceURL = baseURL + ":8002/api/v1/";
+    private static String baseProgressURL = baseURL + ":8003/api/v1/";
     private DAO dao;
 
     // Allow client dependency injection
@@ -60,6 +63,12 @@ public final class BlueprintAPI {
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(client)
                 .build().create(ResourceService.class);
+
+        this.progressService = new Retrofit.Builder()
+                .baseUrl(baseProgressURL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(client)
+                .build().create(ProgressService.class);
 
         this.dao = dao;
     }
@@ -99,6 +108,12 @@ public final class BlueprintAPI {
                 .client(httpClient.build())
                 .build().create(InventoryService.class);
 
+        this.progressService = new Retrofit.Builder()
+                .baseUrl(baseProgressURL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(httpClient.build())
+                .build().create(ProgressService.class);
+
         this.dao = BlueprintDAO.getInstance(context);
     }
 
@@ -128,7 +143,7 @@ public final class BlueprintAPI {
     }
 
     public void getSchema(final APICallback<ItemSchema> callback) {
-        authenticateService.itemSchema().enqueue(new Callback<ItemSchema>() {
+        progressService.itemSchema().enqueue(new Callback<ItemSchema>() {
             @Override
             public void onResponse(Call<ItemSchema> call, Response<ItemSchema> response) {
                 if (response.code() == HttpURLConnection.HTTP_OK) {
