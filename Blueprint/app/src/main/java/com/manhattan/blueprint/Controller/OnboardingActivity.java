@@ -3,17 +3,27 @@ package com.manhattan.blueprint.Controller;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Debug;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Toast;
 
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.AccountType;
 import com.manhattan.blueprint.Model.Managers.LoginManager;
 import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.UserCredentials;
@@ -21,27 +31,26 @@ import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.View.ControlledViewPager;
 import com.manhattan.blueprint.View.LoginFragment;
 import com.manhattan.blueprint.View.PermissionFragment;
-import com.manhattan.blueprint.View.SignupFragment;
 import com.manhattan.blueprint.View.WelcomeFragment;
 
-import java.util.regex.Pattern;
-
-public class OnboardingActivity extends FragmentActivity {
-    private static final int PAGE_COUNT = 5;
+public class OnboardingActivity extends FragmentActivity implements SurfaceHolder.Callback {
+    private static final int PAGE_COUNT = 4;
     // PageIDs
     private static final int WELCOME = 0;
     private static final int LOCATION_PERMISSION = 1;
     private static final int CAMERA_PERMISSION = 2;
     private static final int LOGIN = 3;
-    private static final int SIGNUP = 4;
 
     private final int maxUsernameLength = 16;
+    private final int maxPasswordLength = 16;
+    private MediaPlayer player;
+    private SurfaceView surface;
     private ControlledViewPager pager;
     private PermissionManager locationPermissionManager;
     private PermissionManager cameraPermissionManager;
     private LoginFragment loginFragment;
-    private SignupFragment signupFragment;
     private BlueprintAPI api;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +61,46 @@ public class OnboardingActivity extends FragmentActivity {
         pager.setAdapter(new ScreenSlidePagerAdapter(getSupportFragmentManager()));
         api = new BlueprintAPI(this);
 
+        surface = findViewById(R.id.surface);
+        surface.getHolder().addCallback(this);
+
         locationPermissionManager = new PermissionManager(LOCATION_PERMISSION, Manifest.permission.ACCESS_FINE_LOCATION);
         cameraPermissionManager = new PermissionManager(CAMERA_PERMISSION, Manifest.permission.CAMERA);
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        String videoPath = "android.resource://" + getPackageName() + "/" + R.raw.test_hex;
+        try {
+            // Player must be class variable to prevent GC removing
+            player = new MediaPlayer();
+            player.setDisplay(holder);
+            player.setDataSource(this, Uri.parse(videoPath));
+            player.prepare();
+            player.setLooping(true);
+            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            player.setOnPreparedListener(mp -> player.start());
+            player.setOnVideoSizeChangedListener((mp, width, height) -> {
+                DisplayMetrics metrics = this.getResources().getDisplayMetrics();
+                int surfaceWidth = metrics.widthPixels;
+                int surfaceHeight = metrics.heightPixels;
+                float heightRatio = surfaceHeight / (float) height;
+                surface.getLayoutParams().width = (int) (surfaceWidth * heightRatio);
+                surface.requestLayout();
+            });
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
@@ -73,7 +120,7 @@ public class OnboardingActivity extends FragmentActivity {
                 // Location Permission
                 case 1:
                     PermissionFragment locationFragment = new PermissionFragment();
-                    locationFragment.setConfiguration("🗺",
+                    locationFragment.setConfiguration(getDrawable(R.drawable.onboarding_hexmap),
                             getString(R.string.permission_location_title),
                             getString(R.string.permission_location_description),
                             permissionClick(locationPermissionManager));
@@ -82,7 +129,7 @@ public class OnboardingActivity extends FragmentActivity {
                 // Camera Permission
                 case 2:
                     PermissionFragment cameraFragment = new PermissionFragment();
-                    cameraFragment.setConfiguration("📷",
+                    cameraFragment.setConfiguration(getDrawable(R.drawable.onboarding_hexcamera),
                             getString(R.string.permission_camera_title),
                             getString(R.string.permission_camera_description),
                             permissionClick(cameraPermissionManager));
@@ -91,12 +138,8 @@ public class OnboardingActivity extends FragmentActivity {
                 // Login Fragment
                 case 3:
                     loginFragment = new LoginFragment();
-                    loginFragment.setConfiguration(loginClick(), toSignupClick());
+                    loginFragment.setConfiguration(loginClick());
                     return loginFragment;
-                case 4:
-                    signupFragment = new SignupFragment();
-                    signupFragment.setConfiguration(signupClick(), toLoginClick());
-                    return signupFragment;
 
                 default:
                     return null;
@@ -146,16 +189,17 @@ public class OnboardingActivity extends FragmentActivity {
             if (usernameText.isEmpty() || usernameText.length() > maxUsernameLength) {
                 loginFragment.setUsernameInvalid(getString(R.string.invalid_username));
                 return;
-            } else if (!isValidPassword(passwordText)) {
+            } else if (passwordText.isEmpty() || passwordText.length() > maxPasswordLength) {
                 loginFragment.setPasswordInvalid(getString(R.string.invalid_password));
                 return;
             }
 
-            api.login(new UserCredentials(usernameText, passwordText), new APICallback<Void>() {
+            loginFragment.showSpinner();
+            api.login(new UserCredentials(usernameText, passwordText), new APICallback<AccountType>() {
                 @Override
-                public void success(Void response) {
+                public void success(AccountType response) {
                     LoginManager loginManager = new LoginManager(OnboardingActivity.this);
-                    loginManager.login(usernameText);
+                    loginManager.login(usernameText, response);
 
                     // Launch Map View
                     Intent toMapView = new Intent(OnboardingActivity.this, MapViewActivity.class);
@@ -171,65 +215,9 @@ public class OnboardingActivity extends FragmentActivity {
                     failedLoginDlg.setCancelable(true);
                     failedLoginDlg.setPositiveButton(R.string.positive_response, (dialog, which) -> dialog.dismiss());
                     failedLoginDlg.create().show();
+                    loginFragment.hideSpinner();
                 }
             });
-        };
-    }
-
-    private View.OnClickListener signupClick() {
-        return v -> {
-            String usernameText = signupFragment.getUsername();
-            String passwordText = signupFragment.getPassword();
-
-            // Validate user input
-            if (usernameText.isEmpty() || usernameText.length() > maxUsernameLength) {
-                signupFragment.setUsernameInvalid(getString(R.string.invalid_username));
-                return;
-            } else if (!isValidPassword(passwordText)) {
-                signupFragment.setPasswordInvalid(getString(R.string.invalid_password));
-                return;
-            }
-
-            api.signup(new UserCredentials(usernameText, passwordText), new APICallback<Void>() {
-                @Override
-                public void success(Void response) {
-                    LoginManager loginManager = new LoginManager(OnboardingActivity.this);
-                    loginManager.login(usernameText);
-
-                    // Launch Map View
-                    Intent toMapView = new Intent(OnboardingActivity.this, MapViewActivity.class);
-                    startActivity(toMapView);
-                    finish();
-                }
-
-                @Override
-                public void failure(int code, String error) {
-                    AlertDialog.Builder failedLoginDlg = new AlertDialog.Builder(OnboardingActivity.this);
-                    failedLoginDlg.setTitle("Sign up failed");
-                    failedLoginDlg.setMessage(error);
-                    failedLoginDlg.setCancelable(true);
-                    failedLoginDlg.setPositiveButton(R.string.positive_response, (dialog, which) -> dialog.dismiss());
-                    failedLoginDlg.create().show();
-                }
-            });
-
-        };
-    }
-
-    private boolean isValidPassword(String password) {
-        Pattern pattern = Pattern.compile(getResources().getString(R.string.password_regex));
-        return pattern.matcher(password).matches();
-    }
-
-    private View.OnClickListener toSignupClick() {
-        return v -> {
-            pager.setCurrentItem(SIGNUP);
-        };
-    }
-
-    private View.OnClickListener toLoginClick() {
-        return v -> {
-            pager.setCurrentItem(LOGIN);
         };
     }
 

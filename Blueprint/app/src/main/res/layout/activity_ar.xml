@@ -7,6 +7,14 @@
     android:id="@+id/ARview"
     tools:context=".Controller.ARActivity">
 
+    <View
+        android:id="@+id/Minigame"
+        android:rotation="-30"
+        android:layout_gravity="center"
+        android:layout_width="100dp"
+        android:layout_height="300dp"
+        android:foreground="@drawable/ar_gesture" />
+
     <fragment android:name="com.google.ar.sceneform.ux.ArFragment"
         android:id="@+id/ux_fragment"
         android:layout_width="match_parent"
@@ -16,9 +24,12 @@
         android:id="@+id/HoloButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|right"
+        android:layout_gravity="top|end"
         android:src="@drawable/ic_switch_hololens"
         android:layout_margin="10dp"
-        app:backgroundTint="@color/white_smoke"/>
+        app:backgroundTint="@color/white_smoke" />
 
 </FrameLayout>
+
+
+

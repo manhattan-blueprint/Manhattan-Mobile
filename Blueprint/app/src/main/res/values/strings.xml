@@ -1,32 +1,44 @@
 <resources>
     <string name="app_name">Blueprint</string>
-    <string name="mapbox_map_style" translatable="false">mapbox://styles/jaylees/cjo8kdzej10ew2rl2e91ovdim</string>
-    <string name="permission_location_title">Location Permission</string>
-    <string name="permission_location_description">Access to your location is required to show resources near you.</string>
-    <string name="permission_camera_title">Camera Permission</string>
-    <string name="permission_camera_description">Please grant access to your camera so Blueprint can show resources around you.</string>
-    <string name="permission_camera_description_1">Access to your camera is required to show resources in Augmented Reality.</string>
+
+    <string name="permission_location_title">Location</string>
+    <string name="permission_location_description">We require access to your location to show collectible resources around you</string>
+    <string name="permission_camera_title">Camera</string>
+    <string name="permission_camera_description">We require access to your camera to show resources around you in Augmented Reality</string>
+
     <string name="enable_location_title">Location Services</string>
-    <string name="enable_location_description">To continue, please turn on location services and set your location mode to high accuracy.</string>
+    <string name="enable_location_description">To continue, please turn on location services and set your location mode to high accuracy</string>
     <string name="enable_location_positive_response">Enable location services</string>
+
     <string name="no_network_title">No Network Connection</string>
-    <string name="no_network_description">Internet not available, to continue please turn on wi-fi.</string>
-    <string name="no_network_positive_response">Enable wi-fi</string>
-    <string name="ar_install_title">ARCore required!</string>
-    <string name="ar_install_description">We require ARCore to show you resources, please install and try again.</string>
-    <string name="whoops_title">Whoops!</string>
+    <string name="no_network_description">Internet not available, to continue please turn on Wi-Fi</string>
+    <string name="no_network_positive_response">Enable Wi-Fi</string>
+
+    <string name="ar_install_title">ARCore required</string>
+    <string name="ar_install_description">We require ARCore to show you resources, please install and try again</string>
+
+    <string name="whoops_title">Whoops</string>
     <string name="whoops_description">Something went wrong: </string>
+
     <string name="collection_progress">Progress: %d %%</string>
     <string name="collection_success">You collected %d %s. Well done!</string>
-    <string name="collection_failure_title">Item collection failed!</string>
+    <string name="collection_failure_title">Item collection failed</string>
+
     <string name="plane_discovery_instruction">Look around on the ground for the resource</string>
-    <string name="place_resource_instruction">Tap on the plane to place a resource</string>
+    <string name="place_resource_instruction">Keep the resource centered and swipe within the blue box to collect it</string>
     <string name="resource_collection_instruction">Tap on the resource to collect it</string>
+
     <string name="positive_response">OK</string>
     <string name="negative_response">No thanks</string>
+    <string name="out_of_bounds_failed">You went outside the box, try again!</string>
+    <string name="swipe_too_short_failed">You didn\'t swipe far enough, try again!</string>
+    <string name="swipe_not_straight_failed">You didn\'t swipe in a straight line, try again!</string>
+    <string name="resource_out_of_view_failed">Resource is out of view!</string>
 
-    <string name="invalid_username">Invalid username, it must have less than 16 characters.</string>
-    <string name="invalid_password">Invalid password, it must be between 5 and 16 characters and contain at least 1 number, lowercase and uppercase character.</string>
+    <string name="developer_delete_resource">Are you sure you want to delete %d %s?</string>
+
+    <string name="invalid_username">Invalid username, it must have less than 16 characters</string>
+    <string name="invalid_password">Invalid password, it must be between 5 and 16 characters and contain at least 1 number, lowercase and uppercase character</string>
     <!-- A password between 5 and 16 characters in length,
          which must contain at least 1 number, lowercase and uppercase character -->
     <string name="password_regex">(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{5,16}</string>

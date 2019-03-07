@@ -1,14 +1,40 @@
 <resources>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar"/>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+    <style name="Logo">
+        <item name="android:text">@string/app_name</item>
+        <item name="android:textSize">50sp</item>
+        <item name="android:letterSpacing">0.05</item>
+        <item name="android:fontFamily">@font/meckablecka_regular</item>
+        <item name="android:textColor">@color/brandPrimaryDark</item>
+    </style>
 
-        <!-- enable window content transitions -->
-        <item name="android:windowActivityTransitions">true</item>
+    <style name="H1">
+        <item name="android:fontFamily">@font/helveticaneue_medium</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/brandPrimaryDark</item>
+    </style>
+
+    <style name="B1">
+        <item name="android:fontFamily">@font/helveticaneue_light</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/brandPrimaryDark</item>
+    </style>
+
+    <style name="B2">
+        <item name="android:fontFamily">@font/helveticaneue_light</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/brandPrimaryDark</item>
+    </style>
+
+    <style name="Button">
+        <item name="android:fontFamily">@font/helveticaneue_bold</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="B2_Bold" parent="B2">
+        <item name="android:fontFamily">@font/helveticaneue_bold</item>
     </style>
 
 </resources>

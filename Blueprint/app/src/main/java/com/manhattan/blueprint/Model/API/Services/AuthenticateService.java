@@ -1,5 +1,6 @@
 package com.manhattan.blueprint.Model.API.Services;
 
+import com.manhattan.blueprint.Model.API.ServerSession;
 import com.manhattan.blueprint.Model.ItemSchema;
 import com.manhattan.blueprint.Model.RefreshBody;
 import com.manhattan.blueprint.Model.TokenPair;
@@ -12,13 +13,13 @@ import retrofit2.http.POST;
 
 public interface AuthenticateService {
     @POST("authenticate")
-    Call<TokenPair> login(@Body UserCredentials credentials);
+    Call<ServerSession> login(@Body UserCredentials credentials);
 
     @POST("authenticate/register")
-    Call<TokenPair> register(@Body UserCredentials credentials);
+    Call<ServerSession> register(@Body UserCredentials credentials);
 
     @POST("authenticate/refresh")
-    Call<TokenPair> refreshToken(@Body RefreshBody refresh);
+    Call<ServerSession> refreshToken(@Body RefreshBody refresh);
 
     @GET("item-schema")
     Call<ItemSchema> itemSchema();
