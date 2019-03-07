@@ -20,6 +20,7 @@ public class MockData {
     private static Resource[] resources = new Resource[]{resourceA, resourceB, resourceC, resourceV, resourceR, resourceZ};
 
     public static TokenPair tokenPair = new TokenPair("refreshingToMeetYou", "helloWorld");
+    public static AccountType accountType = AccountType.PLAYER;
     public static TokenPair refreshTokenPair = new TokenPair("reallyRefreshingToMeetYou", "helloWorldAgain");
     public static Inventory inventory = new Inventory(new ArrayList<>(Arrays.asList(items)));
     public static ResourceSet resourceSet = new ResourceSet(new ArrayList<>(Arrays.asList(resources)));

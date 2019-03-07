@@ -73,22 +73,22 @@ public class ARActivity extends AppCompatActivity {
     private TextView snackbarTextView;
     private FrameLayout snackbarView;
 
-    float prevX, prevY = 0; // previous coords
-    float initX, initY = 0; // initial  coords
-    float currX, currY = 0; // current  coords
-    float rotation;
-    int maxAngleError = 38;
-    float minDistance = 0.75f;
-    boolean swipeFailed = true;
-    boolean minigameReady = true;
-    GradientDrawable drawable;
-    View boxView;
+    private float prevX, prevY = 0; // previous coords
+    private float initX, initY = 0; // initial  coords
+    private  float currX, currY = 0; // current  coords
+    private float rotation;
+    private int maxAngleError = 38;
+    private float minDistance = 0.75f;
+    private boolean swipeFailed = true;
+    private boolean minigameReady = true;
+    private GradientDrawable drawable;
+    private View boxView;
 
     // box corners
-    int topLeft[]     = new int[2];
-    int topRight[]    = new int[2];
-    int bottomLeft[]  = new int[2];
-    int bottomRight[] = new int[2];
+    private int topLeft[]     = new int[2];
+    private int topRight[]    = new int[2];
+    private int bottomLeft[]  = new int[2];
+    private int bottomRight[] = new int[2];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,7 +168,7 @@ public class ARActivity extends AppCompatActivity {
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
         Scene arScene = arFragment.getArSceneView().getScene();
         arScene.addOnUpdateListener(this::onSceneUpdate);
-        arScene.setOnTouchListener( this::onSceneTouch);
+        arScene.setOnTouchListener(this::onSceneTouch);
 
         // TODO: Uncomment to remove icon of a hand with device
         // arFragment.getPlaneDiscoveryController().hide();
@@ -182,9 +182,9 @@ public class ARActivity extends AppCompatActivity {
         Frame frame = arFragment.getArSceneView().getArFrame();
 
         if (anchorNode != null && minigameReady) {
-            Vector3 worldPos = anchorNode.getWorldPosition();
-            Vector3 screnPos = arFragment.getArSceneView().getScene().getCamera().worldToScreenPoint(worldPos);
-            if (ArMathUtils.outOfBounds(new int[]{(int) screnPos.x, (int) screnPos.y},
+            Vector3 worldPosition = anchorNode.getWorldPosition();
+            Vector3 screenPosition = arFragment.getArSceneView().getScene().getCamera().worldToScreenPoint(worldPosition);
+            if (ArMathUtils.outOfBounds(new int[]{(int) screenPosition.x, (int) screenPosition.y},
                                         topLeft, topRight, bottomLeft, bottomRight,
                                         boxView.getWidth(), boxView.getHeight())) {
                 swipeFailed = true;

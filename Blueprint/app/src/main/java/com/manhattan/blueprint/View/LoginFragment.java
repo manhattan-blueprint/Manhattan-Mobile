@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.manhattan.blueprint.R;
@@ -18,27 +19,26 @@ public class LoginFragment extends Fragment {
     private EditText usernameInput;
     private EditText passwordInput;
     private Button loginButton;
-    private TextView signupTextView;
+    private ProgressBar progressBar;
     private View.OnClickListener onLoginClickListener;
-    private View.OnClickListener onSignupClickListener;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ViewGroup fragment = (ViewGroup) inflater.inflate(R.layout.fragment_login, container, false);
         loginButton = fragment.findViewById(R.id.loginButton);
-        signupTextView = fragment.findViewById(R.id.signupTextView);
         usernameInput = fragment.findViewById(R.id.usernameInput);
         passwordInput = fragment.findViewById(R.id.passwordInput);
+        progressBar = fragment.findViewById(R.id.progressBar);
         loginButton.setOnClickListener(onLoginClickListener);
-        signupTextView.setOnClickListener(onSignupClickListener);
+
+        hideSpinner();
 
         return fragment;
     }
 
-    public void setConfiguration(View.OnClickListener onLoginClickListener, View.OnClickListener onSignupClickListener) {
+    public void setConfiguration(View.OnClickListener onLoginClickListener) {
         this.onLoginClickListener = onLoginClickListener;
-        this.onSignupClickListener = onSignupClickListener;
     }
 
     public String getUsername() {
@@ -55,5 +55,15 @@ public class LoginFragment extends Fragment {
 
     public void setPasswordInvalid(String description) {
         passwordInput.setError(description);
+    }
+
+    public void showSpinner() {
+        progressBar.setAlpha(1);
+        loginButton.setAlpha(0);
+    }
+
+    public void hideSpinner() {
+        progressBar.setAlpha(0);
+        loginButton.setAlpha(1);
     }
 }

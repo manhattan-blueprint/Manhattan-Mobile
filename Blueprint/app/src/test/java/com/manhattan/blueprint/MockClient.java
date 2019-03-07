@@ -2,7 +2,10 @@ package com.manhattan.blueprint;
 
 import com.google.gson.Gson;
 import com.manhattan.blueprint.Model.API.APIError;
+import com.manhattan.blueprint.Model.API.ServerSession;
 import com.manhattan.blueprint.Model.MockData;
+
+import org.mockito.Mock;
 
 import java.net.HttpURLConnection;
 
@@ -36,7 +39,9 @@ final class MockClient {
                 if (requestURL.contains("refresh")) {
                     json = gson.toJson(MockData.refreshTokenPair);
                 } else {
-                    json = gson.toJson(MockData.tokenPair);
+                    json = gson.toJson(new ServerSession(MockData.tokenPair.getRefreshToken(),
+                            MockData.tokenPair.getAccessToken(),
+                            "Player"));
                 }
             } else if (requestURL.contains("inventory")) {
                 json = original.method() == "POST" ? "" : gson.toJson(MockData.inventory);

@@ -21,8 +21,6 @@ public class ArMathUtils {
         int PDA = area(P, D, A);
         int totalArea = PAB + PBC + PCD + PDA;
         int rectArea = width * height;
-        Log.d("cartita", "coords " + P[0] + " " + P[1] + " A" + A[0] + " " + A[1] + " B" + B[0] + " " + B[1] + " C" + C[0] + " " + C[1] + " D" + D[0] + " " + D[1]);
-        Log.d("cartita", "total=" + totalArea + " rect=" + rectArea);
         return totalArea > rectArea + 2000;
     }
 
