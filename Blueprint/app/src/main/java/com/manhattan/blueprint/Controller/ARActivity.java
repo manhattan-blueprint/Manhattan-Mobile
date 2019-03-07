@@ -10,8 +10,6 @@ import com.google.gson.GsonBuilder;
 
 import android.Manifest;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -109,7 +107,7 @@ public class ARActivity extends AppCompatActivity {
         holoButton.setAlpha(0.35f);
         holoButton.setOnClickListener(v -> {
             // Go to Hololens
-            startActivity(new Intent(ARActivity.this, HololensCommsActivity.class));
+            startActivity(new Intent(ARActivity.this, HololensActivity.class));
         });
 
         String jsonResource = (String) getIntent().getExtras().get("resource");

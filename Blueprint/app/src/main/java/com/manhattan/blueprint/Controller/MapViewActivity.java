@@ -25,6 +25,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.HololensClient;
 import com.manhattan.blueprint.Model.Location;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.LoginManager;
@@ -273,11 +274,19 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
 
         // Only collect if close enough
         } else if (LocationUtils.distanceBetween(marker.getPosition(), currentLocation) <= MAX_DISTANCE_COLLECT) {
-            Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
-            Bundle resourceToCollect = new Bundle();
-            resourceToCollect.putString("resource", (new Gson()).toJson(resource));
-            intentAR.putExtras(resourceToCollect);
-            startActivity(intentAR);
+            if (false) { // TODO
+                Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
+                Bundle resourceToCollect = new Bundle();
+                resourceToCollect.putString("resource", (new Gson()).toJson(resource));
+                intentAR.putExtras(resourceToCollect);
+                startActivity(intentAR);
+            } else if (true) { // TODO
+                Intent intentHololens = new Intent(MapViewActivity.this, HololensActivity.class);
+                Bundle resourceToCollect = new Bundle();
+                resourceToCollect.putString("resource", (new Gson()).toJson(resource));
+                intentHololens.putExtras(resourceToCollect);
+                startActivity(intentHololens);
+            }
         }
         return true;
     }
@@ -359,7 +368,6 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             }
         });
     }
-
 
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         for (int i = 0; i < bottomView.getMenu().size(); i++) {
