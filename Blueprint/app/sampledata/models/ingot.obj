@@ -1,6 +1,6 @@
 # This file uses centimeters as units for non-parametric coordinates.
 
-mtllib Ingot.mtl
+mtllib ingot.mtl
 g default
 v 1.002336 0.059938 -1.852612
 v 1.481811 0.059938 -1.437673
