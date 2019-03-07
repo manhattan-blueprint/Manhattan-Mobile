@@ -21,6 +21,4 @@ public interface AuthenticateService {
     @POST("authenticate/refresh")
     Call<ServerSession> refreshToken(@Body RefreshBody refresh);
 
-    @GET("item-schema")
-    Call<ItemSchema> itemSchema();
 }
