@@ -31,6 +31,7 @@ import com.manhattan.blueprint.Utils.NetworkUtils.CheckNetworkConnectionThread;
 import com.manhattan.blueprint.Utils.ViewUtils;
 import com.manhattan.blueprint.View.MapGestureListener;
 import com.mapbox.android.gestures.AndroidGesturesManager;
+import com.mapbox.android.gestures.MoveGestureDetector;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
@@ -212,7 +213,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         if (inDeveloperMode) {
             mapboxMap.setGesturesManager(new AndroidGesturesManager(MapViewActivity.this), true, true);
             mapboxMap.getUiSettings().setAllGesturesEnabled(true);
-
+            mapboxMap.addOnCameraMoveListener(() -> mapboxMap.getMarkers().forEach(Marker::hideInfoWindow));
+            // Hide marker info when move screen
             mapboxMap.setStyle(getString(R.string.developer_map_style));
         } else {
             mapboxMap.getUiSettings().setAllGesturesEnabled(false);
@@ -531,11 +533,13 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     // region GestureDelegate
     @Override
     public void panBy(float dx) {
+        if (menuOpen) return;
         mapboxMap.moveCamera(CameraUpdateFactory.bearingTo(mapboxMap.getCameraPosition().bearing - dx));
     }
 
     @Override
     public void scaleBy(float amount) {
+        if (menuOpen) return;
         float minZoom = 17;
         float maxZoom = 20;
         float minTilt = 40;
