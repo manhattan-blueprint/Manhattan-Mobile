@@ -64,6 +64,8 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
     private final int NETWORK_CHECK_REFRESH = 10000;
 
     private BlueprintAPI blueprintAPI;
+    private HololensClient hololensClient;
+    private int hololensCounter;
     private ItemManager itemManager;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private BottomNavigationView bottomView;
@@ -138,6 +140,12 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             public void failure(int code, String error) {
                 ViewUtils.showError(MapViewActivity.this, "Whoops! Could not fetch resource schema", error);
             }
+        });
+
+        hololensClient = new HololensClient(getApplicationContext());
+        hololensCounter = 0;
+        BlueprintDAO.getInstance(this).getSession().ifPresent(session -> {
+            hololensClient.startClient(session.hololensIP);
         });
     }
 
@@ -277,12 +285,8 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         } else if (LocationUtils.distanceBetween(marker.getPosition(), currentLocation) <= MAX_DISTANCE_COLLECT) {
             BlueprintDAO.getInstance(this).getSession().ifPresent(session -> {
                 if (session.isHololensConnected()) {
-                    // Stay in MapView, connect to Hololens
-                    Intent intentHololens = new Intent(MapViewActivity.this, HololensActivity.class);
-                    Bundle resourceToCollect = new Bundle();
-                    resourceToCollect.putString("resource", (new Gson()).toJson(resource));
-                    intentHololens.putExtras(resourceToCollect);
-                    startActivity(intentHololens);
+                    // Connect to Hololens
+                    hololensClient.addItem(resource.getId(), resource.getQuantity(), hololensCounter++);
                 } else {
                     // Go to AR View
                     Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);

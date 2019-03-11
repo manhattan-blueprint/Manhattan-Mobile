@@ -1,31 +1,58 @@
 package com.manhattan.blueprint.Model;
 
+import android.content.Context;
 import android.util.Log;
+
+import com.manhattan.blueprint.Model.API.APICallback;
+import com.manhattan.blueprint.Model.API.BlueprintAPI;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.net.Socket;
+import java.util.Collections;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 public class HololensClient {
 
+    final private Context ctx;
     private String serverAddress;
     private int    port;
     private ArrayList<String> buffer;
 
-    public HololensClient() {
-        buffer = new ArrayList<>();
+    public HololensClient(Context ctx) {
+        this.ctx = ctx;
+        this.buffer = new ArrayList<>();
     }
 
-    public void setSocket(String serverAddress, int port) {
+    public void startClient(String ipAddress) {
+
+        this.setSocket(ipAddress, 9050);
+        if (ipAddress == null) {
+            return;
+        }
+
+        int connectionRefreshDelay = 5;
+        Executors.newScheduledThreadPool(2).scheduleWithFixedDelay(() -> {
+            try {
+                this.sendBuffer();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, 0, connectionRefreshDelay, TimeUnit.SECONDS);
+    }
+
+    public void addItem(int resourceId, int resourceQuantity, int counter) {
+        String msg = this.buildMessage(resourceId, resourceQuantity, counter);
+        this.buffer.add(msg);
+    }
+
+    private void setSocket(String serverAddress, int port) {
         this.serverAddress = serverAddress;
         this.port          = port;
-    }
-
-    public void addItem(String Item) {
-        buffer.add(Item);
     }
 
     private String sendAndRecv(String message) throws Exception {
@@ -42,16 +69,26 @@ public class HololensClient {
         return message;
     }
 
-    public void run() {
-        Log.d("hololog", "New instance of run");
-        if (buffer.size() > 0) {
-            sendBuffer();
-        }
+    private String buildMessage(int resId, int resQty, int ctr) {
+        String ctrId  = "000" + ctr;
+        String strId  = "000" + resId;
+        String strQty = "00"  + resQty;
+
+        return "I;" +
+                (ctrId).substring(ctrId.length() - 3) +
+                ";" +
+                "00000.00;00004.00;" +
+                (strId).substring(strId.length() - 2) +
+                ";" +
+                (strQty).substring(strQty.length() - 3);
     }
 
     private void sendBuffer() {
+        Log.d("hololog", "New call of run");
+        Log.d("hololog", "Buffer: " + this.buffer);
+
         int idx = 0;
-        do {
+        while (!buffer.isEmpty()) {
             Log.d("hololog", "\n");
             Log.d("hololog","Buffer size: " + buffer.size());
             Log.d("hololog","Sending item at index " + idx);
@@ -66,13 +103,32 @@ public class HololensClient {
             if (response == null) {
                 Log.d("hololog","No response!");
                 // try again
-            } else if (response.equals(item)) {
+            } else if (response.substring(0,3).equals(item.substring(0,3))) {
+                int resourceId  = Integer.parseInt(response.substring(24,26));
+                int resourceQty = Integer.parseInt(response.substring(27,30));
+
+                BlueprintAPI api = new BlueprintAPI(ctx);
+                InventoryItem itemCollected = new InventoryItem(resourceId, resourceQty);
+                Inventory inventoryToAdd = new Inventory(new ArrayList<>(Collections.singletonList(itemCollected)));
+                api.makeRequest(api.inventoryService.addToInventory(inventoryToAdd), new APICallback<Void>() {
+                    @Override
+                    public void success(Void response) {
+
+                    }
+
+                    @Override
+                    public void failure(int code, String error) {
+                        Log.d("hololog", "Error: " + error);
+
+                    }
+                });
+
                 buffer.remove(item);
                 buffer.trimToSize();
                 idx = idx % buffer.size();
             } else if (response.equals("Not Complete")) {
                 idx = (idx + 1) % buffer.size();
             }
-        } while (!buffer.isEmpty());
+        }
     }
 }

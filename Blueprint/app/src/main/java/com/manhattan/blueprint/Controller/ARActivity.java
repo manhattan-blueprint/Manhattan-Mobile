@@ -103,13 +103,6 @@ public class ARActivity extends AppCompatActivity {
         boxView.setForeground(drawable);
         rotation = boxView.getRotation();
 
-        holoButton = findViewById(R.id.HoloButton);
-        holoButton.setAlpha(0.35f);
-        holoButton.setOnClickListener(v -> {
-            // Go to Hololens
-            startActivity(new Intent(ARActivity.this, HololensActivity.class));
-        });
-
         String jsonResource = (String) getIntent().getExtras().get("resource");
         Gson gson = new GsonBuilder().create();
         resourceToCollect = gson.fromJson(jsonResource, Resource.class);
