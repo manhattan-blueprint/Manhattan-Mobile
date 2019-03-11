@@ -3,7 +3,7 @@ package com.manhattan.blueprint.Controller;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.os.Debug;
+import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.app.AlertDialog;
@@ -19,6 +19,7 @@ import com.google.gson.Gson;
 import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.Location;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.LoginManager;
@@ -29,9 +30,9 @@ import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.LocationUtils;
 import com.manhattan.blueprint.Utils.NetworkUtils.CheckNetworkConnectionThread;
 import com.manhattan.blueprint.Utils.ViewUtils;
+import com.manhattan.blueprint.View.BackpackView;
 import com.manhattan.blueprint.View.MapGestureListener;
 import com.mapbox.android.gestures.AndroidGesturesManager;
-import com.mapbox.android.gestures.MoveGestureDetector;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
@@ -43,11 +44,15 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AnticipateInterpolator;
+import android.view.animation.AnticipateOvershootInterpolator;
+import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -55,12 +60,17 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMarkerClickListener, MapGestureListener.GestureDelegate {
+
+    private enum MenuState {
+        CLOSED, NORMAL, BACKPACK
+    }
 
     private final int DEFAULT_ZOOM = 18;
     private final int MAX_REFRESH_DISTANCE = 500; // metres
@@ -78,6 +88,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private Button blueprintButton;
     private Button closeButton;
     private ImageView blurView;
+    private ViewGroup viewGroup;
+    private BackpackView backpackView;
 
     private BlueprintAPI blueprintAPI;
     private ItemManager itemManager;
@@ -92,7 +104,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private LatLng currentLocation = new LatLng(51.449946, -2.599858);
     private Marker currentLocationMarker;
     private boolean inDeveloperMode = false;
-    private boolean menuOpen = false;
+    private MenuState menuState = MenuState.CLOSED;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,6 +120,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         closeButton = findViewById(R.id.closeButton);
         blurView = findViewById(R.id.blurView);
         mapView = findViewById(R.id.mapView);
+        viewGroup = findViewById(R.id.mapConstraintLayout);
 
         // Menu Buttons
         menuButton.setOnClickListener(menuButtonClickListener);
@@ -116,6 +129,11 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         settingsButton.setOnClickListener(settingsButtonClickListener);
         backpackButton.setOnClickListener(backpackButtonClickListener);
         blueprintButton.setOnClickListener(blueprintButtonClickListener);
+
+        blurView.setOnClickListener(blurViewClickListener);
+        blurView.setVisibility(View.INVISIBLE);
+
+        viewGroup.post(() -> backpackView = new BackpackView(MapViewActivity.this, viewGroup));
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         loginManager = new LoginManager(this);
@@ -169,6 +187,19 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             displayLocationServicesRequest();
         }
         mapView.onResume();
+
+        // Reload inventory
+        blueprintAPI.makeRequest(blueprintAPI.inventoryService.fetchInventory(), new APICallback<Inventory>() {
+            @Override
+            public void success(Inventory response) {
+                backpackView.update(response);
+            }
+
+            @Override
+            public void failure(int code, String error) {
+                ViewUtils.showError(MapViewActivity.this, "Failed to retrieve inventory", error);
+            }
+        });
     }
 
     private void configureNetworkChecker() {
@@ -280,10 +311,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         lastResourceLocation = currentLocation;
 
-        blueprintAPI.makeRequest(
-                blueprintAPI.resourceService.fetchResources(
-                        currentLocation.getLatitude(),
-                        currentLocation.getLongitude()),
+        blueprintAPI.makeRequest(blueprintAPI.resourceService.fetchResources(currentLocation.getLatitude(), currentLocation.getLongitude()),
                 new APICallback<ResourceSet>() {
                     @Override
                     public void success(ResourceSet response) {
@@ -292,7 +320,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                         for (Resource item : response.getItems()) {
                             LatLng itemLocation = new LatLng(item.getLocation().getLatitude(),
                                     item.getLocation().getLongitude());
+                            Icon icon = IconFactory.getInstance(MapViewActivity.this).fromResource(R.drawable.sprite_default);
                             Marker marker = mapboxMap.addMarker(new MarkerOptions()
+                                    .icon(icon)
                                     .title(itemManager.getName(item.getId()).withDefault("Item " + item.getId()))
                                     .position(itemLocation));
                             markerResourceMap.put(marker, item);
@@ -398,104 +428,176 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         OvershootInterpolator overshootInterpolator = new OvershootInterpolator();
         AnticipateInterpolator anticipateInterpolator = new AnticipateInterpolator();
+        float backpackY = menuButton.getY() - backpackButton.getLayoutParams().height - 100;
+        float developerY = menuButton.getY() - (developerButton.getLayoutParams().height * 2) - 175;
+        float settingsBlueprintY = menuButton.getY() - (settingsButton.getLayoutParams().height / 2) - 100;
+        float blueprintX = (displayMetrics.widthPixels / 2) - (blueprintButton.getLayoutParams().width * 2);
+        float settingsX = (displayMetrics.widthPixels / 2) + (settingsButton.getLayoutParams().width);
 
-        if (menuOpen) {
-            for (Button button : new Button[]{ backpackButton, settingsButton, blueprintButton, developerButton}) {
-                button.animate()
-                        .y(menuButton.getY() + menuButton.getHeight() / 8)
-                        .x(menuButton.getX() + menuButton.getWidth() / 8)
-                        .setDuration(MENU_ANIMATION_DURATION)
-                        .setStartDelay(0)
-                        .setInterpolator(anticipateInterpolator);
-            }
+        switch (menuState) {
+            case NORMAL:
+                // Normal -> Closed
+                for (Button button : new Button[]{ backpackButton, settingsButton, blueprintButton, developerButton}) {
+                    button.animate()
+                            .y(menuButton.getY() + menuButton.getHeight() / 8)
+                            .x(menuButton.getX() + menuButton.getWidth() / 8)
+                            .setDuration(MENU_ANIMATION_DURATION)
+                            .setStartDelay(0)
+                            .setInterpolator(anticipateInterpolator);
+                }
 
-            menuButton.animate()
-                    .scaleX(1)
-                    .scaleY(1)
-                    .setStartDelay(MENU_ANIMATION_DURATION)
-                    .setDuration(MENU_ANIMATION_DURATION)
-                    .setInterpolator(overshootInterpolator);
-
-            closeButton.animate()
-                    .scaleX(0)
-                    .scaleY(0)
-                    .setStartDelay(0)
-                    .setDuration(MENU_ANIMATION_DURATION)
-                    .setInterpolator(anticipateInterpolator);
-
-            blurView.animate()
-                    .alpha(0)
-                    .setDuration(MENU_ANIMATION_DURATION);
-        } else {
-            float backpackY = menuButton.getY() - backpackButton.getLayoutParams().height - 100;
-            float developerY = menuButton.getY() - (developerButton.getLayoutParams().height * 2) - 175;
-            float settingsBlueprintY = menuButton.getY() - (settingsButton.getLayoutParams().height / 2) - 100;
-            float blueprintX = (displayMetrics.widthPixels / 2) - (blueprintButton.getLayoutParams().width * 2);
-            float settingsX = (displayMetrics.widthPixels / 2) + (settingsButton.getLayoutParams().width);
-
-            blueprintButton.animate()
-                    .y(settingsBlueprintY)
-                    .x(blueprintX)
-                    .setStartDelay(0)
-                    .setDuration(MENU_ANIMATION_DURATION)
-                    .setInterpolator(overshootInterpolator);
-
-            backpackButton.animate()
-                    .y(backpackY)
-                    .setDuration(MENU_ANIMATION_DURATION)
-                    .setStartDelay(MENU_ANIMATION_DURATION / 3)
-                    .setInterpolator(overshootInterpolator);
-
-            settingsButton.animate()
-                    .y(settingsBlueprintY)
-                    .x(settingsX)
-                    .setStartDelay(MENU_ANIMATION_DURATION * 2 / 3)
-                    .setDuration(MENU_ANIMATION_DURATION)
-                    .setInterpolator(overshootInterpolator);
-
-            if (loginManager.isDeveloper()) {
-                developerButton.animate()
-                        .y(developerY)
+                menuButton.animate()
+                        .scaleX(1)
+                        .scaleY(1)
                         .setStartDelay(MENU_ANIMATION_DURATION)
                         .setDuration(MENU_ANIMATION_DURATION)
                         .setInterpolator(overshootInterpolator);
-            }
 
-            menuButton.animate()
-                    .scaleX(0)
-                    .scaleY(0)
-                    .setStartDelay(MENU_ANIMATION_DURATION)
-                    .setDuration(MENU_ANIMATION_DURATION)
-                    .setInterpolator(anticipateInterpolator);
+                closeButton.animate()
+                        .scaleX(0)
+                        .scaleY(0)
+                        .setStartDelay(0)
+                        .setDuration(MENU_ANIMATION_DURATION)
+                        .setInterpolator(anticipateInterpolator);
 
-            closeButton.animate()
-                    .scaleX(1)
-                    .scaleY(1)
-                    .setStartDelay(MENU_ANIMATION_DURATION * 2)
-                    .setDuration(MENU_ANIMATION_DURATION)
-                    .setInterpolator(overshootInterpolator);
+                blurView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        blurView.setVisibility(View.INVISIBLE);
+                    }
+                }, MENU_ANIMATION_DURATION + 100);
+                blurView.animate()
+                        .alpha(0)
+                        .setDuration(MENU_ANIMATION_DURATION);
+                menuState = MenuState.CLOSED;
+                break;
 
-            blurView.animate()
-                    .alpha(1)
-                    .setDuration(MENU_ANIMATION_DURATION);
+            case CLOSED:
+                // Closed -> Normal
+                blueprintButton.animate()
+                        .y(settingsBlueprintY)
+                        .x(blueprintX)
+                        .setStartDelay(0)
+                        .setDuration(MENU_ANIMATION_DURATION)
+                        .setInterpolator(overshootInterpolator);
+
+                backpackButton.animate()
+                        .y(backpackY)
+                        .setDuration(MENU_ANIMATION_DURATION)
+                        .setStartDelay(MENU_ANIMATION_DURATION / 3)
+                        .setInterpolator(overshootInterpolator);
+
+                settingsButton.animate()
+                        .y(settingsBlueprintY)
+                        .x(settingsX)
+                        .setStartDelay(MENU_ANIMATION_DURATION * 2 / 3)
+                        .setDuration(MENU_ANIMATION_DURATION)
+                        .setInterpolator(overshootInterpolator);
+
+                if (loginManager.isDeveloper()) {
+                    developerButton.animate()
+                            .y(developerY)
+                            .setStartDelay(MENU_ANIMATION_DURATION)
+                            .setDuration(MENU_ANIMATION_DURATION)
+                            .setInterpolator(overshootInterpolator);
+                }
+
+                menuButton.animate()
+                        .scaleX(0)
+                        .scaleY(0)
+                        .setStartDelay(MENU_ANIMATION_DURATION)
+                        .setDuration(MENU_ANIMATION_DURATION)
+                        .setInterpolator(anticipateInterpolator);
+
+                closeButton.animate()
+                        .scaleX(1)
+                        .scaleY(1)
+                        .setStartDelay(MENU_ANIMATION_DURATION * 2)
+                        .setDuration(MENU_ANIMATION_DURATION)
+                        .setInterpolator(overshootInterpolator);
+
+                blurView.animate()
+                        .alpha(1)
+                        .setDuration(MENU_ANIMATION_DURATION);
+                blurView.setVisibility(View.VISIBLE);
+                menuState = MenuState.NORMAL;
+                break;
+            case BACKPACK:
+                // Backpack -> Normal
+                backpackView.hide(500);
+                backpackButton.animate()
+                        .scaleX(1.2f)
+                        .scaleY(1.2f)
+                        .setDuration(200)
+                        .setInterpolator(new LinearInterpolator())
+                        .setStartDelay(300);
+
+                new ArrayList<>(Arrays.asList(developerButton, settingsButton, blueprintButton)).forEach(b -> {
+                    b.animate().alpha(1).setDuration(500).setStartDelay(700);
+                });
+
+                new Handler().postDelayed(() -> {
+                    backpackButton.animate()
+                            .scaleX(1)
+                            .scaleY(1)
+                            .y(backpackY)
+                            .setDuration(300)
+                            .setStartDelay(0)
+                            .setInterpolator(overshootInterpolator);
+                    menuState = MenuState.NORMAL;
+                    backpackView.remove();
+                }, 550);
+                menuButton.bringToFront();
+                break;
+
         }
-        menuOpen = !menuOpen;
     };
 
     private View.OnClickListener developerButtonClickListener = v -> {
+        if (menuState != MenuState.NORMAL) return;
         inDeveloperMode = !inDeveloperMode;
         onMapReady(mapboxMap);
     };
 
     private View.OnClickListener settingsButtonClickListener = v -> {
+        if (menuState != MenuState.NORMAL) return;
         // TODO
     };
 
-    private View.OnClickListener backpackButtonClickListener = v ->
-        startActivity(new Intent(MapViewActivity.this, InventoryActivity.class));
+    private View.OnClickListener backpackButtonClickListener = v -> {
+        if (menuState != MenuState.NORMAL) return;
+
+        menuState = MenuState.BACKPACK;
+
+        // Move backpack to center
+        viewGroup.bringChildToFront(backpackButton);
+        backpackButton.animate()
+                .x(viewGroup.getWidth() / 2 - backpackButton.getWidth() / 2)
+                .y(viewGroup.getHeight() / 2 - backpackButton.getHeight() / 2)
+                .setInterpolator(new AnticipateOvershootInterpolator())
+                .setStartDelay(0)
+                .setDuration(500);
+
+        // Hide everything else
+        new ArrayList<>(Arrays.asList(developerButton, settingsButton, blueprintButton)).forEach(b -> {
+            b.animate().alpha(0).setDuration(500).setStartDelay(0);
+        });
+
+        // Spawn cells
+        backpackView.animate(550);
+
+    };
 
     private View.OnClickListener blueprintButtonClickListener = v -> {
         // TODO
+    };
+
+    private View.OnClickListener blurViewClickListener = v -> {
+        if (menuState == MenuState.BACKPACK){
+            backpackView.jumpToEndPosition();
+        } else if (menuState == MenuState.NORMAL){
+            menuButtonClickListener.onClick(v);
+        }
     };
 
     // endregion
@@ -533,13 +635,13 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     // region GestureDelegate
     @Override
     public void panBy(float dx) {
-        if (menuOpen) return;
+        if (menuState != MenuState.CLOSED) return;
         mapboxMap.moveCamera(CameraUpdateFactory.bearingTo(mapboxMap.getCameraPosition().bearing - dx));
     }
 
     @Override
     public void scaleBy(float amount) {
-        if (menuOpen) return;
+        if (menuState != MenuState.CLOSED) return;
         float minZoom = 17;
         float maxZoom = 20;
         float minTilt = 40;

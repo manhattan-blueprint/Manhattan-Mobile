@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.manhattan.blueprint.View.AnimatableLayout
+    android:layout_width="60dp"
+    android:layout_height="68dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+        android:id="@+id/inventory_item_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_empty_hex" />
+
+    <ImageView
+        android:id="@+id/inventory_item_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="0dp"
+        android:foregroundGravity="top"
+        android:paddingBottom="25dp"
+        android:src="@drawable/sprite_default"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:scaleType="fitCenter"/>
+
+    <TextView
+        android:id="@+id/inventory_item_quantity"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:textSize="12sp"
+        android:textColor="@color/white"
+        android:fontFamily="@font/helveticaneue_medium"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="0dp"
+        android:textAlignment="center"/>
+
+
+</com.manhattan.blueprint.View.AnimatableLayout>
