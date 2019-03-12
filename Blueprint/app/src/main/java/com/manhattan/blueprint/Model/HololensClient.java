@@ -1,10 +1,15 @@
 package com.manhattan.blueprint.Model;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.Managers.ItemManager;
+import com.manhattan.blueprint.R;
+import com.manhattan.blueprint.Utils.ViewUtils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -28,7 +33,7 @@ public class HololensClient {
         this.buffer = new ArrayList<>();
     }
 
-    public void startClient(String ipAddress) {
+    public void run(String ipAddress) {
 
         this.setSocket(ipAddress, 9050);
         if (ipAddress == null) {
@@ -113,19 +118,23 @@ public class HololensClient {
                 api.makeRequest(api.inventoryService.addToInventory(inventoryToAdd), new APICallback<Void>() {
                     @Override
                     public void success(Void response) {
-
+                        String itemName = ItemManager.getInstance(ctx).getName(resourceId).getWithDefault("items");
+                        String successMsg = String.format("You collected %d %s. Well done!", resourceQty, itemName);
+                        Toast.makeText(ctx, successMsg, Toast.LENGTH_LONG).show();
                     }
 
                     @Override
                     public void failure(int code, String error) {
-                        Log.d("hololog", "Error: " + error);
-
+                        ViewUtils.createDialog(ctx, "Item collection failed", error,
+                                (dialog, which) -> dialog.dismiss());
                     }
                 });
 
                 buffer.remove(item);
                 buffer.trimToSize();
-                idx = idx % buffer.size();
+                if (buffer.size() > 0) {
+                    idx = idx % buffer.size();
+                }
             } else if (response.equals("Not Complete")) {
                 idx = (idx + 1) % buffer.size();
             }

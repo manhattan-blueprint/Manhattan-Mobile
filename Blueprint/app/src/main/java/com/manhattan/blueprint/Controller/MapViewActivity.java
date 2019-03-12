@@ -145,7 +145,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
         hololensClient = new HololensClient(getApplicationContext());
         hololensCounter = 0;
         BlueprintDAO.getInstance(this).getSession().ifPresent(session -> {
-            hololensClient.startClient(session.hololensIP);
+            hololensClient.run(session.hololensIP);
         });
     }
 

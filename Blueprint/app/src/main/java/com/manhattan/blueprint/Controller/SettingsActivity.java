@@ -16,8 +16,8 @@ import com.manhattan.blueprint.R;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private int toggleOnColor  = Color.argb(255,0,200,0);
-    private int toggleOffColor = Color.argb(255,255,0,0);
+    private int toggleOnColor  = Color.argb(255,0,180,0);
+    private int toggleOffColor = Color.argb(255,235,0,0);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
