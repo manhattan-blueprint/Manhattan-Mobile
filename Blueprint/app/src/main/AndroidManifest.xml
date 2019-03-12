@@ -28,7 +28,6 @@
 
         </activity>
         <activity android:name=".Controller.OnboardingActivity" android:screenOrientation="portrait"/>
-        <activity android:name=".Controller.InventoryActivity" android:screenOrientation="portrait" />
         <activity android:name=".Controller.ARActivity" android:screenOrientation="portrait" />
 
         <meta-data
