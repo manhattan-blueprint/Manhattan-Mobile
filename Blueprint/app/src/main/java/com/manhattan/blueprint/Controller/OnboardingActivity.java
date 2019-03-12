@@ -70,7 +70,7 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        String videoPath = "android.resource://" + getPackageName() + "/" + R.raw.test_hex;
+        String videoPath = "android.resource://" + getPackageName() + "/" + R.raw.hex;
         try {
             // Player must be class variable to prevent GC removing
             player = new MediaPlayer();

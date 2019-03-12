@@ -1,6 +1,5 @@
 package com.manhattan.blueprint.Model;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.annotations.SerializedName;
 
 public class Location {

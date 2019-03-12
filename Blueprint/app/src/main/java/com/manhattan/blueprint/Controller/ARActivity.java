@@ -270,7 +270,7 @@ public class ARActivity extends AppCompatActivity {
                 @Override
                 public void success(Void response) {
                     // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
-                    String itemName = ItemManager.getInstance(ARActivity.this).getName(resourceToCollect.getId()).getWithDefault("items");
+                    String itemName = ItemManager.getInstance(ARActivity.this).getName(resourceToCollect.getId()).withDefault("items");
                     String successMsg = String.format(getString(R.string.collection_success), resourceToCollect.getQuantity(), itemName);
                     setSnackbar(successMsg);
                     finish();
