@@ -1,15 +1,11 @@
 package com.manhattan.blueprint.Model;
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
-import com.manhattan.blueprint.R;
-import com.manhattan.blueprint.Utils.ViewUtils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -33,12 +29,14 @@ public class HololensClient {
         this.buffer = new ArrayList<>();
     }
 
-    public void run(String ipAddress) {
-
-        this.setSocket(ipAddress, 9050);
+    public void setIP(String ipAddress) {
         if (ipAddress == null) {
             return;
         }
+        this.setSocket(ipAddress, 9050);
+    }
+
+    public void run() {
 
         int connectionRefreshDelay = 5;
         Executors.newScheduledThreadPool(2).scheduleWithFixedDelay(() -> {
@@ -65,11 +63,9 @@ public class HololensClient {
         clientSocket.setSoTimeout(10000);
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
         BufferedReader  inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        Log.d("hololog", "Sending... " + message);
         outToServer.writeBytes(message);
         outToServer.flush();
         message = inFromServer.readLine();
-        Log.d("hololog","Received... " + message);
         clientSocket.close();
         return message;
     }
@@ -89,14 +85,9 @@ public class HololensClient {
     }
 
     private void sendBuffer() {
-        Log.d("hololog", "New call of run");
-        Log.d("hololog", "Buffer: " + this.buffer);
 
         int idx = 0;
         while (!buffer.isEmpty()) {
-            Log.d("hololog", "\n");
-            Log.d("hololog","Buffer size: " + buffer.size());
-            Log.d("hololog","Sending item at index " + idx);
             String item = buffer.get(idx);
             String response = null;
             try {
@@ -106,7 +97,6 @@ public class HololensClient {
             }
 
             if (response == null) {
-                Log.d("hololog","No response!");
                 // try again
             } else if (response.substring(0,3).equals(item.substring(0,3))) {
                 int resourceId  = Integer.parseInt(response.substring(24,26));
@@ -125,8 +115,7 @@ public class HololensClient {
 
                     @Override
                     public void failure(int code, String error) {
-                        ViewUtils.createDialog(ctx, "Item collection failed", error,
-                                (dialog, which) -> dialog.dismiss());
+                        Toast.makeText(ctx, "Item collection failed!", Toast.LENGTH_LONG).show();
                     }
                 });
 

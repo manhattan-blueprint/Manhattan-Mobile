@@ -144,9 +144,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
 
         hololensClient = new HololensClient(getApplicationContext());
         hololensCounter = 0;
-        BlueprintDAO.getInstance(this).getSession().ifPresent(session -> {
-            hololensClient.run(session.hololensIP);
-        });
+        hololensClient.run();
     }
 
     @Override
@@ -286,6 +284,7 @@ public class MapViewActivity extends FragmentActivity implements OnMapReadyCallb
             BlueprintDAO.getInstance(this).getSession().ifPresent(session -> {
                 if (session.isHololensConnected()) {
                     // Connect to Hololens
+                    hololensClient.setIP(session.hololensIP);
                     hololensClient.addItem(resource.getId(), resource.getQuantity(), hololensCounter++);
                 } else {
                     // Go to AR View
