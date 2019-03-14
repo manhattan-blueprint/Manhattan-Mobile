@@ -34,7 +34,7 @@ public final class Maybe<T> {
         if (value != null) consumer.consume(value);
     }
 
-    public T getWithDefault(T def){
+    public T withDefault(T def){
         return isPresent() ? value : def;
     }
 
