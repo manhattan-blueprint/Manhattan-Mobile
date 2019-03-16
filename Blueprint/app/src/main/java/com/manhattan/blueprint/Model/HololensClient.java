@@ -1,6 +1,7 @@
 package com.manhattan.blueprint.Model;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.manhattan.blueprint.Model.API.APICallback;
@@ -23,27 +24,34 @@ public class HololensClient {
     private String serverAddress;
     private int    port;
     private ArrayList<String> buffer;
+    private BlueprintAPI api;
 
     public HololensClient(Context ctx) {
         this.ctx = ctx;
         this.buffer = new ArrayList<>();
+        this.api= new BlueprintAPI(ctx);
     }
 
-    public void setIP(String ipAddress) {
+    public boolean setIP(String ipAddress) {
         if (ipAddress == null) {
-            return;
+            return false;
         }
-        this.setSocket(ipAddress, 9050);
+        try {
+            this.setSocket(ipAddress, 9050);
+        } catch (Exception e) {
+            Log.e("hololens", e.getMessage());
+            return false;
+        }
+        return true;
     }
 
     public void run() {
-
         int connectionRefreshDelay = 5;
         Executors.newScheduledThreadPool(2).scheduleWithFixedDelay(() -> {
             try {
                 this.sendBuffer();
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e("hololens", e.getMessage());
             }
         }, 0, connectionRefreshDelay, TimeUnit.SECONDS);
     }
@@ -84,6 +92,12 @@ public class HololensClient {
                 (strQty).substring(strQty.length() - 3);
     }
 
+    /* Send item at position i in the buffer
+     *   Receive the same item from the socket  -> Remove item from buffer
+     *   Receive "Not complete" from the socket -> Send next item in the buffer
+     *   No reply from the socket after 10s     -> Send the same item again
+     *   Receive last item back from the socket -> Finished!
+     */
     private void sendBuffer() {
 
         int idx = 0;
@@ -102,13 +116,12 @@ public class HololensClient {
                 int resourceId  = Integer.parseInt(response.substring(24,26));
                 int resourceQty = Integer.parseInt(response.substring(27,30));
 
-                BlueprintAPI api = new BlueprintAPI(ctx);
                 InventoryItem itemCollected = new InventoryItem(resourceId, resourceQty);
                 Inventory inventoryToAdd = new Inventory(new ArrayList<>(Collections.singletonList(itemCollected)));
                 api.makeRequest(api.inventoryService.addToInventory(inventoryToAdd), new APICallback<Void>() {
                     @Override
                     public void success(Void response) {
-                        String itemName = ItemManager.getInstance(ctx).getName(resourceId).getWithDefault("items");
+                        String itemName = ItemManager.getInstance(ctx).getName(resourceId).withDefault("items");
                         String successMsg = String.format("You collected %d %s. Well done!", resourceQty, itemName);
                         Toast.makeText(ctx, successMsg, Toast.LENGTH_LONG).show();
                     }

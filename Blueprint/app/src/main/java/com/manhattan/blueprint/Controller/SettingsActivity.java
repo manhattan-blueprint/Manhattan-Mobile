@@ -1,5 +1,6 @@
 package com.manhattan.blueprint.Controller;
 
+import android.app.Notification;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
@@ -16,52 +17,57 @@ import com.manhattan.blueprint.R;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private int toggleOnColor  = Color.argb(255,0,180,0);
-    private int toggleOffColor = Color.argb(255,235,0,0);
+    public int toggleOnColor;
+    public int toggleOffColor;
+    Button toggleHololens;
+    EditText hololensIP;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        Button toggleHololens = findViewById(R.id.toggle_hololens);
-        EditText hololensIP = findViewById(R.id.settings_hololens_ip);
+        this.toggleHololens = findViewById(R.id.toggle_hololens);
+        this.hololensIP = findViewById(R.id.settings_hololens_ip);
+        this.toggleOffColor = getResources().getColor(R.color.red);
+        this.toggleOnColor  = getResources().getColor(R.color.lime_green);
 
         BlueprintDAO dao = BlueprintDAO.getInstance(this);
-
         dao.getSession().ifPresent(session -> {
-                    hololensIP.setText(session.hololensIP);
-                    if (session.isHololensConnected()) {
-                        toggleHololens.setTextColor(toggleOnColor);
-                    } else {
-                        toggleHololens.setTextColor(toggleOffColor);
-                    }
-                });
+            hololensIP.setText(session.hololensIP);
+            if (session.isHololensConnected()) {
+                toggleHololens.setTextColor(toggleOnColor);
+            } else {
+                toggleHololens.setTextColor(toggleOffColor);
+            }
+        });
 
-            toggleHololens.setOnClickListener(v -> {
-                dao.getSession().ifPresent(session -> {
-                    dao.setSession(new Session(session.getUsername(),
-                            session.getAccountType(),
-                            hololensIP.getText().toString(),
-                            !session.isHololensConnected()));
-                int currentColor = toggleHololens.getCurrentTextColor();
-                if (currentColor == toggleOnColor) {
-                    toggleHololens.setTextColor(toggleOffColor);
-                } else if (currentColor == toggleOffColor) {
-                    toggleHololens.setTextColor(toggleOnColor);
-                }
-                });
-            });
+        toggleHololens.setOnClickListener(this::onToggleClickListener);
+        findViewById(R.id.settings_save).setOnClickListener(this::onSaveClickListener);
+    }
 
-            findViewById(R.id.settings_save).setOnClickListener(v -> {
-                dao.getSession().ifPresent(session -> {
-                dao.setSession(new Session(session.getUsername(),
-                                           session.getAccountType(),
-                                           hololensIP.getText().toString(),
-                                           session.isHololensConnected()));
-                this.runOnUiThread(this::finish);
-            });
+    private void onSaveClickListener(View view) {
+        BlueprintDAO dao = BlueprintDAO.getInstance(this);
+        dao.getSession().ifPresent(session -> {
+            dao.setSession(new Session(session.getUsername(),
+                    session.getAccountType(),
+                    hololensIP.getText().toString(),
+                    session.isHololensConnected()));
+            this.runOnUiThread(this::finish);
         });
     }
 
-
+    private void onToggleClickListener(View view) {
+        BlueprintDAO dao = BlueprintDAO.getInstance(this);
+        dao.getSession().ifPresent(session -> {
+            dao.setSession(new Session(session.getUsername(),
+                               session.getAccountType(),
+                               hololensIP.getText().toString(),
+                               !session.isHololensConnected()));
+            if (dao.getSession().get().isHololensConnected()) {
+                toggleHololens.setTextColor(toggleOnColor);
+            } else {
+                toggleHololens.setTextColor(toggleOffColor);
+            }
+        });
+    }
 }

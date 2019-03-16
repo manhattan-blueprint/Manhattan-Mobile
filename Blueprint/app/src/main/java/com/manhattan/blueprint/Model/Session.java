@@ -9,22 +9,20 @@ public class Session extends RealmObject {
     public  String hololensIP;
     private String username;
     private String accountTypeDescription;
-    public  boolean hololensConnected;
+    private boolean hololensConnected;
 
     public Session() {
         this.username = null;
-        this.hololensIP = null;
         this.accountTypeDescription = null;
+        this.hololensIP = null;
         this.hololensConnected = false;
     }
 
     public Session(String username, AccountType accountType) {
         this.username = username;
         this.accountTypeDescription = accountType.toString();
-    }
-
-    public AccountType getAccountType() {
-        return AccountType.valueOf(accountTypeDescription);
+        this.hololensIP = null;
+        this.hololensConnected = false;
     }
 
     public Session(String username, AccountType accountType, String hololensIP, boolean hololensConnected) {
@@ -32,6 +30,10 @@ public class Session extends RealmObject {
         this.accountTypeDescription = accountType.toString();
         this.hololensIP = hololensIP;
         this.hololensConnected = hololensConnected;
+    }
+
+    public AccountType getAccountType() {
+        return AccountType.valueOf(accountTypeDescription);
     }
 
     public String getUsername() {

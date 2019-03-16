@@ -20,6 +20,7 @@ import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
+import com.manhattan.blueprint.Model.DAO.Consumer;
 import com.manhattan.blueprint.Model.HololensClient;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.Location;
@@ -366,12 +367,13 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     .setNegativeButton(getString(R.string.negative_response), null)
                     .show();
 
-        } else if (LocationUtils.distanceBetween(marker.getPosition(), currentLocation) <= MAX_DISTANCE_COLLECT) {
+        } else if (LocationUtils.distanceBetween(marker.getPosition(), currentLocation) <= MAX_COLLECT_DISTANCE) {
             BlueprintDAO.getInstance(this).getSession().ifPresent(session -> {
                 if (session.isHololensConnected()) {
                     // Connect to Hololens
-                    hololensClient.setIP(session.hololensIP);
-                    hololensClient.addItem(resource.getId(), resource.getQuantity(), hololensCounter++);
+                    if (hololensClient.setIP(session.hololensIP)) {
+                        hololensClient.addItem(resource.getId(), resource.getQuantity(), hololensCounter++);
+                    }
                 } else {
                     // Go to AR View
                     Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
@@ -380,6 +382,10 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     intentAR.putExtras(resourceToCollect);
                     startActivity(intentAR);
                 }
+            }).ifNotPresent(v -> {
+                ViewUtils.showError(MapViewActivity.this,
+                                            getResources().getString(R.string.session_error_title),
+                                            getResources().getString(R.string.session_error_msg));
             });
         }
         return true;
