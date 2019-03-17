@@ -9,7 +9,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import android.Manifest;
-import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Handler;
@@ -77,8 +76,8 @@ public class ARActivity extends AppCompatActivity {
     private float initX, initY = 0; // initial  coords
     private  float currX, currY = 0; // current  coords
     private float rotation;
-    private int maxAngleError = 38;
-    private float minDistance = 0.75f;
+    private int maxAngleError = 42;
+    private float minDistance = 0.70f;
     private boolean swipeFailed = true;
     private boolean minigameReady = true;
     private GradientDrawable drawable;
@@ -96,7 +95,7 @@ public class ARActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ar);
         boxView = (View) findViewById(R.id.Minigame);
         drawable = (GradientDrawable) getResources().getDrawable(R.drawable.ar_gesture);
-        drawable.setStroke(10, Color.argb(255,0,0,255));
+        drawable.setStroke(10, getResources().getColor(R.color.minigame_outline_neutral));
         boxView.setForeground(drawable);
         rotation = boxView.getRotation();
 
@@ -229,12 +228,12 @@ public class ARActivity extends AppCompatActivity {
     private void newMinigame(boolean completed, boolean newRotation) {
         minigameReady = false;
         if (completed) {
-            drawable.setStroke(10, Color.argb(155,0,255,0));
-            drawable.setColor(Color.argb(100,0,255,0));
+            drawable.setStroke(10, getResources().getColor(R.color.minigame_outline_success));
+            drawable.setColor(getResources().getColor(R.color.minigame_fill_success));
             boxView.setForeground(drawable);
         } else {
-            drawable.setStroke(10, Color.argb(155,255,0,0));
-            drawable.setColor(Color.argb(100,255,0,0));
+            drawable.setStroke(10, getResources().getColor(R.color.minigame_outline_fail));
+            drawable.setColor(getResources().getColor(R.color.minigame_fill_fail));
             boxView.setForeground(drawable);
         }
         final Handler handler = new Handler();
@@ -247,8 +246,8 @@ public class ARActivity extends AppCompatActivity {
                 } while (rotation == 90);
                 boxView.setRotation(rotation);
             }
-            drawable.setStroke(10, Color.argb(255,0,0,255));
-            drawable.setColor(Color.argb(0,0,0,0));
+            drawable.setStroke(10, getResources().getColor(R.color.minigame_outline_neutral));
+            drawable.setColor(getResources().getColor(R.color.minigame_fill_neutral));
             boxView.setForeground(drawable);
             minigameReady = true;
         }, 800);

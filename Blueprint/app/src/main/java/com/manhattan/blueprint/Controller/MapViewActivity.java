@@ -192,7 +192,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         blueprintAPI.makeRequest(blueprintAPI.inventoryService.fetchInventory(), new APICallback<Inventory>() {
             @Override
             public void success(Inventory response) {
-                backpackView.update(response);
+                if (backpackView != null)
+                    backpackView.update(response);
             }
 
             @Override
