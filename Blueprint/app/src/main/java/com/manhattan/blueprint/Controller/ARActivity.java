@@ -121,9 +121,16 @@ public class ARActivity extends AppCompatActivity {
         planeWasDetected = false;
         collectCounter = swipesRequired - 1;
 
-        modelsMap.put(1, "wood.sfb");
-        modelsMap.put(2, "rocks.sfb");
-        modelsMap.put(4, "ingot.sfb");
+        modelsMap.put(1,  "model_1.sfb");
+        modelsMap.put(2,  "model_2.sfb");
+        modelsMap.put(3,  "model_3.sfb");
+        modelsMap.put(4,  "model_4.sfb");
+        modelsMap.put(5,  "model_5.sfb");
+        modelsMap.put(6,  "model_6.sfb");
+        modelsMap.put(7,  "model_7.sfb");
+        modelsMap.put(8,  "model_8.sfb");
+        modelsMap.put(9,  "model_9.sfb");
+        modelsMap.put(10, "model_10.sfb");
     }
 
     public void onUpdate(FrameTime frameTime) {
