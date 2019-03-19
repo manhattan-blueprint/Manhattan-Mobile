@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".View.LoginFragment">
 
-    <TextView
+    <android.support.v7.widget.AppCompatTextView
         android:id="@+id/welcomeTitle"
         style="@style/H1"
         android:layout_width="wrap_content"
@@ -20,7 +20,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
+    <android.support.v7.widget.AppCompatEditText
         android:id="@+id/usernameInput"
         style="@style/B1"
         android:layout_width="0dp"
@@ -38,7 +38,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/welcomeTitle" />
 
-    <EditText
+    <android.support.v7.widget.AppCompatEditText
         style="@style/B1"
         android:id="@+id/passwordInput"
         android:layout_width="0dp"
@@ -60,7 +60,7 @@
         app:layout_constraintTop_toBottomOf="@+id/usernameInput" />
 
 
-    <Button
+    <android.support.v7.widget.AppCompatButton
         android:id="@+id/loginButton"
         style="@style/Button"
         android:layout_width="0dp"
