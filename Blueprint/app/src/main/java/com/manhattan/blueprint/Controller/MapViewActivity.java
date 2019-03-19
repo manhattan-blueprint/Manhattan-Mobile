@@ -133,7 +133,10 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         blurView.setOnClickListener(blurViewClickListener);
         blurView.setVisibility(View.INVISIBLE);
 
-        viewGroup.post(() -> backpackView = new BackpackView(MapViewActivity.this, viewGroup));
+        viewGroup.post(() -> {
+            backpackView = new BackpackView(MapViewActivity.this, viewGroup);
+            updateInventory();
+        });
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         loginManager = new LoginManager(this);
@@ -188,10 +191,14 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
         mapView.onResume();
 
+    }
+
+    private void updateInventory(){
         // Reload inventory
         blueprintAPI.makeRequest(blueprintAPI.inventoryService.fetchInventory(), new APICallback<Inventory>() {
             @Override
             public void success(Inventory response) {
+                if (backpackView == null) return;
                 backpackView.update(response);
             }
 
