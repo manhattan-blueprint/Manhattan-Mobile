@@ -9,10 +9,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import android.Manifest;
+
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Handler;
+
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -99,13 +102,6 @@ public class ARActivity extends AppCompatActivity {
         drawable.setStroke(10, Color.argb(255,0,0,255));
         boxView.setForeground(drawable);
         rotation = boxView.getRotation();
-
-        holoButton = findViewById(R.id.HoloButton);
-        holoButton.setAlpha(0.35f);
-        holoButton.setOnClickListener(v -> {
-            // TODO Go to Hololens
-            // startActivity(new Intent(ARActivity.this, HOLOLENS.class));
-        });
 
         String jsonResource = (String) getIntent().getExtras().get("resource");
         Gson gson = new GsonBuilder().create();
