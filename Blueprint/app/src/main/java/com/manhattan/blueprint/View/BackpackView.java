@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.InventoryItem;
 import com.manhattan.blueprint.R;
+import com.manhattan.blueprint.Utils.SpriteManager;
 import com.manhattan.blueprint.Utils.ViewUtils;
 
 import java.util.ArrayList;
@@ -155,8 +156,7 @@ public class BackpackView {
                 TextView quantityText = layout.findViewById(R.id.inventory_item_quantity);
                 ImageView imageView = layout.findViewById(R.id.inventory_item_image);
                 quantityText.post(() -> quantityText.setText(String.valueOf(item.getQuantity())));
-                // TODO: Get bitmap from asset manager
-                imageView.post(() -> imageView.setImageBitmap(bitmap));
+                imageView.post(() -> imageView.setImageBitmap(SpriteManager.getInstance(context).fetch(item.getId())));
             }
 
         }).start();
