@@ -56,3 +56,54 @@ dependencies {
     implementation 'com.android.support:design:28.0.0'
     testImplementation 'org.mockito:mockito-core:1.10.19'
 }
+
+
+sceneform.asset('sampledata/models/model_1.fbx',
+        'default',
+        'sampledata/models/model_1.sfa',
+        'src/main/assets/model_1')
+
+sceneform.asset('sampledata/models/model_2.fbx',
+        'default',
+        'sampledata/models/model_2.sfa',
+        'src/main/assets/model_2')
+
+sceneform.asset('sampledata/models/model_3.fbx',
+        'default',
+        'sampledata/models/model_3.sfa',
+        'src/main/assets/model_3')
+
+sceneform.asset('sampledata/models/model_4.fbx',
+        'default',
+        'sampledata/models/model_4.sfa',
+        'src/main/assets/model_4')
+
+sceneform.asset('sampledata/models/model_5.fbx',
+        'default',
+        'sampledata/models/model_5.sfa',
+        'src/main/assets/model_5')
+
+sceneform.asset('sampledata/models/model_6.fbx',
+        'default',
+        'sampledata/models/model_6.sfa',
+        'src/main/assets/model_6')
+
+sceneform.asset('sampledata/models/model_7.fbx',
+        'default',
+        'sampledata/models/model_7.sfa',
+        'src/main/assets/model_7')
+
+sceneform.asset('sampledata/models/model_8.fbx',
+        'default',
+        'sampledata/models/model_8.sfa',
+        'src/main/assets/model_8')
+
+sceneform.asset('sampledata/models/model_9.fbx',
+        'default',
+        'sampledata/models/model_9.sfa',
+        'src/main/assets/model_9')
+
+sceneform.asset('sampledata/models/model_10.fbx',
+        'default',
+        'sampledata/models/model_10.sfa',
+        'src/main/assets/model_10')

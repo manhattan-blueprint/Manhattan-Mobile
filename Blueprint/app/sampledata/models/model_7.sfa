@@ -1,0 +1,106 @@
+{
+  animations: [
+    {
+      clips: [
+        {
+          name: 'Take 001',
+          runtime_name: 'model_7',
+        },
+      ],
+      path: 'sampledata/models/model_7.fbx',
+    },
+  ],
+  materials: [
+    {
+      name: 'iron_ore1:RockTexture',
+      parameters: [
+        {
+          baseColor: [
+            0.38030000000000003,
+            0.38030000000000003,
+            0.38030000000000003,
+            1,
+          ],
+        },
+        {
+          baseColorMap: null,
+        },
+        {
+          normalMap: null,
+        },
+        {
+          interpolatedColor: null,
+        },
+        {
+          metallic: 0,
+        },
+        {
+          metallicMap: null,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          roughnessMap: null,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/fbx_material.sfm',
+    },
+    {
+      name: 'Diamond3',
+      parameters: [
+        {
+          baseColor: [
+            0.120819,
+            0.44248700000000002,
+            0.55421699999999996,
+            1,
+          ],
+        },
+        {
+          baseColorMap: null,
+        },
+        {
+          normalMap: null,
+        },
+        {
+          interpolatedColor: null,
+        },
+        {
+          metallic: 0,
+        },
+        {
+          metallicMap: null,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          roughnessMap: null,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/fbx_material.sfm',
+    },
+  ],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+      'BoneIndices',
+      'BoneWeights',
+    ],
+    collision: {},
+    file: 'sampledata/models/model_7.fbx',
+    name: 'model_7',
+    recenter: 'root',
+    scale: 2.4809939999999999,
+  },
+  version: '0.54:2',
+}

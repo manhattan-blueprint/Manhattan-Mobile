@@ -1,0 +1,68 @@
+{
+  animations: [
+    {
+      clips: [
+        {
+          name: 'Take 001',
+          runtime_name: 'model_2',
+        },
+      ],
+      path: 'sampledata/models/model_2.fbx',
+    },
+  ],
+  materials: [
+    {
+      name: 'rocks:RockTexture',
+      parameters: [
+        {
+          baseColor: [
+            0.38030000000000003,
+            0.38030000000000003,
+            0.38030000000000003,
+            1,
+          ],
+        },
+        {
+          baseColorMap: null,
+        },
+        {
+          normalMap: null,
+        },
+        {
+          interpolatedColor: null,
+        },
+        {
+          metallic: 0,
+        },
+        {
+          metallicMap: null,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          roughnessMap: null,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/fbx_material.sfm',
+    },
+  ],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+      'BoneIndices',
+      'BoneWeights',
+    ],
+    collision: {},
+    file: 'sampledata/models/model_2.fbx',
+    name: 'model_2',
+    recenter: 'root',
+    scale: 1.3861300000000001,
+  },
+  version: '0.54:2',
+}
