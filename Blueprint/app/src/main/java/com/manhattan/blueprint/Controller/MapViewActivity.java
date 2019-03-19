@@ -47,10 +47,8 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
-import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnticipateInterpolator;
@@ -138,7 +136,10 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         blurView.setOnClickListener(blurViewClickListener);
         blurView.setVisibility(View.INVISIBLE);
 
-        viewGroup.post(() -> backpackView = new BackpackView(MapViewActivity.this, viewGroup));
+        viewGroup.post(() -> {
+            backpackView = new BackpackView(MapViewActivity.this, viewGroup);
+            updateBackpack();
+        });
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         loginManager = new LoginManager(this);
@@ -196,11 +197,15 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             displayLocationServicesRequest();
         }
         mapView.onResume();
+        updateBackpack();
+    }
 
+    private void updateBackpack(){
         // Reload inventory
         blueprintAPI.makeRequest(blueprintAPI.inventoryService.fetchInventory(), new APICallback<Inventory>() {
             @Override
             public void success(Inventory response) {
+                if (backpackView == null) return;
                 backpackView.update(response);
             }
 
