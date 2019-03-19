@@ -44,10 +44,8 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
-import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnticipateInterpolator;
@@ -135,7 +133,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         viewGroup.post(() -> {
             backpackView = new BackpackView(MapViewActivity.this, viewGroup);
-            updateInventory();
+            updateBackpack();
         });
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
@@ -190,10 +188,10 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             displayLocationServicesRequest();
         }
         mapView.onResume();
-
+        updateBackpack();
     }
 
-    private void updateInventory(){
+    private void updateBackpack(){
         // Reload inventory
         blueprintAPI.makeRequest(blueprintAPI.inventoryService.fetchInventory(), new APICallback<Inventory>() {
             @Override
