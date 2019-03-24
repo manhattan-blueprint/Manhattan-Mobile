@@ -12,13 +12,14 @@ import android.Manifest;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,6 +42,7 @@ import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.ArMathUtils;
 import com.manhattan.blueprint.Utils.ViewUtils;
+import com.warkiz.widget.IndicatorSeekBar;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,12 +63,10 @@ public class ARActivity extends AppCompatActivity {
     private AnchorNode anchorNode;
     private Anchor anchor;
 
-    private final int swipesRequired = 5;
-    private int collectCounter;
+    private int swipesToCollect;
     private boolean itemWasPlaced;
     private boolean planeWasDetected;
 
-    private FloatingActionButton holoButton;
     private Toast arToastMessage;
     private Snackbar arSnackbarMessage;
     private TextView snackbarTextView;
@@ -81,6 +81,7 @@ public class ARActivity extends AppCompatActivity {
     private boolean swipeFailed = true;
     private boolean minigameReady = true;
     private GradientDrawable drawable;
+    private IndicatorSeekBar progressBar;
     private View boxView;
 
     // box corners
@@ -96,15 +97,9 @@ public class ARActivity extends AppCompatActivity {
         boxView = (View) findViewById(R.id.Minigame);
         drawable = (GradientDrawable) getResources().getDrawable(R.drawable.ar_gesture);
         drawable.setStroke(10, getResources().getColor(R.color.minigame_outline_neutral));
+        drawable.setColor(getResources().getColor(R.color.minigame_fill_neutral));
         boxView.setForeground(drawable);
         rotation = boxView.getRotation();
-
-        holoButton = findViewById(R.id.HoloButton);
-        holoButton.setAlpha(0.35f);
-        holoButton.setOnClickListener(v -> {
-            // TODO Go to Hololens
-            // startActivity(new Intent(ARActivity.this, HOLOLENS.class));
-        });
 
         String jsonResource = (String) getIntent().getExtras().get("resource");
         Gson gson = new GsonBuilder().create();
@@ -113,20 +108,22 @@ public class ARActivity extends AppCompatActivity {
         PermissionManager cameraPermissionManager = new PermissionManager(0, Manifest.permission.CAMERA);
         if (!cameraPermissionManager.hasPermission(this)) {
             ViewUtils.createDialog(ARActivity.this, getString(R.string.permission_camera_title),
-                                          getString(R.string.permission_camera_description),
-                                          (dialog, which) -> finish());
+                    getString(R.string.permission_camera_description),
+                    (dialog, which) -> finish());
         }
         itemWasPlaced = false;
         planeWasDetected = false;
-        collectCounter = swipesRequired - 1;
 
         modelsMap.put(1, "wood.sfb");
         modelsMap.put(2, "rocks.sfb");
         modelsMap.put(4, "ingot.sfb");
-    }
 
-    public void onUpdate(FrameTime frameTime) {
-        arFragment.onUpdate(frameTime);
+        // TODO: Differentiate depending on the resource in the next PR
+        swipesToCollect = 8;
+        progressBar = findViewById(R.id.ProgressBar);
+        progressBar.bringToFront();
+        progressBar.setMax(swipesToCollect);
+        progressBar.setTickCount(swipesToCollect + 1);
     }
 
     @Override
@@ -254,13 +251,10 @@ public class ARActivity extends AppCompatActivity {
     }
 
     private void onSuccessfulSwipe() {
-        if (collectCounter > 0) {
-            int progress = ((swipesRequired - collectCounter) * 100) / swipesRequired;
-            String progress_msg = String.format(getString(R.string.collection_progress), progress);
-            setSnackbar(progress_msg);
+        int progress = progressBar.getProgress() + 1;
+        progressBar.setProgress(progress);
 
-            collectCounter--;
-        } else if (collectCounter == 0) {
+        if (progress == swipesToCollect) {
             // arToastMessage.cancel();
             InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), resourceToCollect.getQuantity());
             BlueprintAPI api = new BlueprintAPI(this);
@@ -271,7 +265,7 @@ public class ARActivity extends AppCompatActivity {
                     // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
                     String itemName = ItemManager.getInstance(ARActivity.this).getName(resourceToCollect.getId()).withDefault("items");
                     String successMsg = String.format(getString(R.string.collection_success), resourceToCollect.getQuantity(), itemName);
-                    setSnackbar(successMsg);
+                    Toast.makeText(ARActivity.this, successMsg, Toast.LENGTH_LONG).show();
                     finish();
                 }
 
@@ -279,6 +273,7 @@ public class ARActivity extends AppCompatActivity {
                 public void failure(int code, String error) {
                     ViewUtils.createDialog(ARActivity.this, getString(R.string.collection_failure_title), error,
                                                  (dialog, which) -> dialog.dismiss());
+                    finish();
                 }
             });
         }
