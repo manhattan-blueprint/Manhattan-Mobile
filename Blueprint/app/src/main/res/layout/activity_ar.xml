@@ -23,8 +23,10 @@
 
     <com.warkiz.widget.IndicatorSeekBar
         android:id="@+id/ProgressBar"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="7dp"
         android:layout_width="match_parent"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
         android:layout_height="100dp"
         app:isb_min="0"
         app:isb_user_seekable="false"
