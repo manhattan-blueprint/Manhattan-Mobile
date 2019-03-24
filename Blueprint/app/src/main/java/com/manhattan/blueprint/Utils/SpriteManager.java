@@ -11,6 +11,7 @@ import com.manhattan.blueprint.R;
 import java.util.HashMap;
 
 public class SpriteManager {
+    private static int MAX_ID = 32;
     private static SpriteManager instance;
     private Bitmap defaultSprite;
     private Bitmap defaultScaledSprite;
@@ -28,16 +29,14 @@ public class SpriteManager {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = 4;
 
-        for (int itemID = 0; itemID < 32; itemID++){
+        for (int itemID = 0; itemID < MAX_ID; itemID++){
             Maybe<Integer> resourceID = getResourceID(context, "sprite_" + itemID);
             if (resourceID.isPresent()) {
-                Log.d("SPRITE", "SPrite " + itemID + " present");
                 spriteMap.put(itemID, BitmapFactory.decodeResource(context.getResources(), resourceID.get(), options));
             }
 
             Maybe<Integer> mapResourceID = getResourceID(context, "map_sprite_" + itemID);
             if (mapResourceID.isPresent()) {
-                Log.d("SPRITE", "map SPrite " + itemID + " present");
                 mapSpriteMap.put(itemID, BitmapFactory.decodeResource(context.getResources(), mapResourceID.get(), options));
             }
         }
@@ -72,7 +71,6 @@ public class SpriteManager {
             int identifier = context.getResources().getIdentifier(resName, "drawable", context.getPackageName());
             return identifier == 0 ? Maybe.empty() : Maybe.of(identifier);
         } catch (Exception e) {
-            e.printStackTrace();
             return Maybe.empty();
         }
     }
