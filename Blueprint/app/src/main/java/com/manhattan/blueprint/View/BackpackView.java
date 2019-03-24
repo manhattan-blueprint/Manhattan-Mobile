@@ -126,18 +126,19 @@ public class BackpackView {
             layerOne.forEach(v -> {
                 TextView quantity = v.findViewById(R.id.inventory_item_quantity);
                 ImageView imageView = v.findViewById(R.id.inventory_item_image);
-                quantity.setText("");
+                quantity.post(() -> quantity.setText(""));
                 imageView.post(() -> imageView.setImageBitmap(null));
             });
             layerTwo.forEach(v -> {
                 TextView quantity = v.findViewById(R.id.inventory_item_quantity);
                 ImageView imageView = v.findViewById(R.id.inventory_item_image);
-                quantity.setText("");
+                quantity.post(() -> quantity.setText(""));
                 imageView.post(() -> imageView.setImageBitmap(null));
             });
 
             ArrayList<InventoryItem> items = inventory.getItems();
             for(int i = 0; i < items.size(); i++){
+                InventoryItem item = items.get(i);
                 AnimatableLayout layout;
 
                 if (i < layerOne.size()) {
@@ -145,7 +146,7 @@ public class BackpackView {
                     layout = layerOne.get(i);
                 } else if (i >= layerOne.size() && i < layerOne.size() + layerTwo.size()) {
                     // Put in layer 2
-                    layout = layerTwo.get(layerOne.size() - i);
+                    layout = layerTwo.get(i - layerOne.size());
                 } else {
                     // Something has gone very wrong!
                     return;
@@ -153,7 +154,7 @@ public class BackpackView {
 
                 TextView quantityText = layout.findViewById(R.id.inventory_item_quantity);
                 ImageView imageView = layout.findViewById(R.id.inventory_item_image);
-                quantityText.setText(String.valueOf(items.get(i).getQuantity()));
+                quantityText.post(() -> quantityText.setText(String.valueOf(item.getQuantity())));
                 // TODO: Get bitmap from asset manager
                 imageView.post(() -> imageView.setImageBitmap(bitmap));
             }

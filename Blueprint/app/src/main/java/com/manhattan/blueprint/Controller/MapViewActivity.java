@@ -19,6 +19,9 @@ import com.google.gson.Gson;
 import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
+import com.manhattan.blueprint.Model.DAO.Consumer;
+import com.manhattan.blueprint.Model.HololensClient;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.Location;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
@@ -44,10 +47,8 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
-import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnticipateInterpolator;
@@ -92,6 +93,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private BackpackView backpackView;
 
     private BlueprintAPI blueprintAPI;
+    private HololensClient hololensClient;
+    private int hololensCounter;
     private ItemManager itemManager;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LoginManager loginManager;
@@ -133,7 +136,10 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         blurView.setOnClickListener(blurViewClickListener);
         blurView.setVisibility(View.INVISIBLE);
 
-        viewGroup.post(() -> backpackView = new BackpackView(MapViewActivity.this, viewGroup));
+        viewGroup.post(() -> {
+            backpackView = new BackpackView(MapViewActivity.this, viewGroup);
+            updateBackpack();
+        });
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         loginManager = new LoginManager(this);
@@ -178,6 +184,10 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 ViewUtils.showError(MapViewActivity.this, "Whoops! Could not fetch resource schema", error);
             }
         });
+
+        hololensClient = new HololensClient(getApplicationContext());
+        hololensCounter = 0;
+        hololensClient.run();
     }
 
     @Override
@@ -187,13 +197,16 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             displayLocationServicesRequest();
         }
         mapView.onResume();
+        updateBackpack();
+    }
 
+    private void updateBackpack(){
         // Reload inventory
         blueprintAPI.makeRequest(blueprintAPI.inventoryService.fetchInventory(), new APICallback<Inventory>() {
             @Override
             public void success(Inventory response) {
-                if (backpackView != null)
-                    backpackView.update(response);
+                if (backpackView == null) return;
+                backpackView.update(response);
             }
 
             @Override
@@ -359,13 +372,26 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     .setNegativeButton(getString(R.string.negative_response), null)
                     .show();
 
-            // Only collect if close enough
         } else if (LocationUtils.distanceBetween(marker.getPosition(), currentLocation) <= MAX_COLLECT_DISTANCE) {
-            Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
-            Bundle resourceToCollect = new Bundle();
-            resourceToCollect.putString("resource", new Gson().toJson(resource));
-            intentAR.putExtras(resourceToCollect);
-            startActivity(intentAR);
+            BlueprintDAO.getInstance(this).getSession().ifPresent(session -> {
+                if (session.isHololensConnected()) {
+                    // Connect to Hololens
+                    if (hololensClient.setIP(session.hololensIP)) {
+                        hololensClient.addItem(resource.getId(), resource.getQuantity(), hololensCounter++);
+                    }
+                } else {
+                    // Go to AR View
+                    Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
+                    Bundle resourceToCollect = new Bundle();
+                    resourceToCollect.putString("resource", (new Gson()).toJson(resource));
+                    intentAR.putExtras(resourceToCollect);
+                    startActivity(intentAR);
+                }
+            }).ifNotPresent(v -> {
+                ViewUtils.showError(MapViewActivity.this,
+                                            getResources().getString(R.string.session_error_title),
+                                            getResources().getString(R.string.session_error_msg));
+            });
         }
         return true;
     }
@@ -562,7 +588,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     private View.OnClickListener settingsButtonClickListener = v -> {
         if (menuState != MenuState.NORMAL) return;
-        // TODO
+        Intent toSettings = new Intent(MapViewActivity.this, SettingsActivity.class);
+        startActivity(toSettings);
     };
 
     private View.OnClickListener backpackButtonClickListener = v -> {

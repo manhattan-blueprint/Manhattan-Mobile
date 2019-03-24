@@ -40,6 +40,3 @@
         app:isb_tick_marks_color="@drawable/ic_tick_marks_selector"
         />
 </FrameLayout>
-
-
-

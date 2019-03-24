@@ -30,8 +30,18 @@ public final class Maybe<T> {
         return value;
     }
 
-    public void ifPresent(Consumer<? super T> consumer){
-        if (value != null) consumer.consume(value);
+    public Maybe<T> ifPresent(Consumer<? super T> consumer) {
+        if (value != null) {
+            consumer.consume(value);
+        }
+        return Maybe.of(value);
+    }
+
+    public Maybe<T> ifNotPresent(Consumer<Void> consumer) {
+        if (value == null) {
+            consumer.consume(null);
+        }
+        return Maybe.of(value);
     }
 
     public T withDefault(T def){

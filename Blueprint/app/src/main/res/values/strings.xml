@@ -41,6 +41,9 @@
 
     <string name="developer_delete_resource">Are you sure you want to delete %d %s?</string>
 
+    <string name="session_error_title">Session error</string>
+    <string name="session_error_msg">"No session was found!</string>
+
     <string name="invalid_username">Invalid username, it must have less than 16 characters</string>
     <string name="invalid_password">Invalid password, it must be between 5 and 16 characters and contain at least 1 number, lowercase and uppercase character</string>
     <!-- A password between 5 and 16 characters in length,
