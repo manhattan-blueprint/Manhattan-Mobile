@@ -1,0 +1,106 @@
+{
+  animations: [
+    {
+      clips: [
+        {
+          name: 'Take 001',
+          runtime_name: 'model_9',
+        },
+      ],
+      path: 'sampledata/models/model_9.fbx',
+    },
+  ],
+  materials: [
+    {
+      name: 'iron_ore1:RockTexture',
+      parameters: [
+        {
+          baseColor: [
+            0.38030000000000003,
+            0.38030000000000003,
+            0.38030000000000003,
+            1,
+          ],
+        },
+        {
+          baseColorMap: null,
+        },
+        {
+          normalMap: null,
+        },
+        {
+          interpolatedColor: null,
+        },
+        {
+          metallic: 0,
+        },
+        {
+          metallicMap: null,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          roughnessMap: null,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/fbx_material.sfm',
+    },
+    {
+      name: 'Silica',
+      parameters: [
+        {
+          baseColor: [
+            0.90963899999999998,
+            0.90963899999999998,
+            0.90963899999999998,
+            1,
+          ],
+        },
+        {
+          baseColorMap: null,
+        },
+        {
+          normalMap: null,
+        },
+        {
+          interpolatedColor: null,
+        },
+        {
+          metallic: 0,
+        },
+        {
+          metallicMap: null,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          roughnessMap: null,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/fbx_material.sfm',
+    },
+  ],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+      'BoneIndices',
+      'BoneWeights',
+    ],
+    collision: {},
+    file: 'sampledata/models/model_9.fbx',
+    name: 'model_9',
+    recenter: 'root',
+    scale: 2.4809939999999999,
+  },
+  version: '0.54:2',
+}

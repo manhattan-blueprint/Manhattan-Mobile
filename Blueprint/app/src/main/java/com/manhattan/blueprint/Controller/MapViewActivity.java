@@ -3,6 +3,8 @@ package com.manhattan.blueprint.Controller;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
@@ -32,6 +34,7 @@ import com.manhattan.blueprint.Model.ResourceSet;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.LocationUtils;
 import com.manhattan.blueprint.Utils.NetworkUtils.CheckNetworkConnectionThread;
+import com.manhattan.blueprint.Utils.SpriteManager;
 import com.manhattan.blueprint.Utils.ViewUtils;
 import com.manhattan.blueprint.View.BackpackView;
 import com.manhattan.blueprint.View.MapGestureListener;
@@ -135,6 +138,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         blurView.setOnClickListener(blurViewClickListener);
         blurView.setVisibility(View.INVISIBLE);
+
+        SpriteManager.getInstance(this);
 
         viewGroup.post(() -> {
             backpackView = new BackpackView(MapViewActivity.this, viewGroup);
@@ -334,7 +339,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                         for (Resource item : response.getItems()) {
                             LatLng itemLocation = new LatLng(item.getLocation().getLatitude(),
                                     item.getLocation().getLongitude());
-                            Icon icon = IconFactory.getInstance(MapViewActivity.this).fromResource(R.drawable.sprite_default);
+                            Bitmap image = SpriteManager.getInstance(MapViewActivity.this).fetchMapSprite(item.getId());
+                            Icon icon = IconFactory.getInstance(MapViewActivity.this).fromBitmap(image);
                             Marker marker = mapboxMap.addMarker(new MarkerOptions()
                                     .icon(icon)
                                     .title(itemManager.getName(item.getId()).withDefault("Item " + item.getId()))

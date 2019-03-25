@@ -118,9 +118,17 @@ public class ARActivity extends AppCompatActivity {
         itemWasPlaced = false;
         planeWasDetected = false;
 
-        modelsMap.put(1, "wood.sfb");
-        modelsMap.put(2, "rocks.sfb");
-        modelsMap.put(4, "ingot.sfb");
+        modelsMap.put(1,  "model_1.sfb");
+        modelsMap.put(2,  "model_2.sfb");
+        modelsMap.put(3,  "model_3.sfb");
+        modelsMap.put(4,  "model_4.sfb");
+        modelsMap.put(5,  "model_5.sfb");
+        modelsMap.put(6,  "model_6.sfb");
+        modelsMap.put(7,  "model_7.sfb");
+        modelsMap.put(8,  "model_8.sfb");
+        modelsMap.put(9,  "model_9.sfb");
+        modelsMap.put(10, "model_10.sfb");
+    }
 
         // TODO: Differentiate depending on the resource in the next PR
         swipesToCollect = 8;
@@ -207,7 +215,7 @@ public class ARActivity extends AppCompatActivity {
                 TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
                 transformableNode.getScaleController().setMaxScale(100000f);
                 transformableNode.getScaleController().setMinScale(0.0001f);
-                transformableNode.setLocalScale(new Vector3(0.1f, 0.1f, 0.1f));
+                transformableNode.setLocalScale(new Vector3(2.0f, 2.0f, 2.0f));
                 transformableNode.setParent(anchorNode);
                 transformableNode.setRenderable(resourceModel);
                 transformableNode.select();

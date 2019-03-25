@@ -1,0 +1,68 @@
+{
+  animations: [
+    {
+      clips: [
+        {
+          name: 'Take 001',
+          runtime_name: 'model_8',
+        },
+      ],
+      path: 'sampledata/models/model_8.fbx',
+    },
+  ],
+  materials: [
+    {
+      name: 'sand1:lambert25',
+      parameters: [
+        {
+          baseColor: [
+            0.93100000000000005,
+            0.78473099999999996,
+            0.39846799999999999,
+            1,
+          ],
+        },
+        {
+          baseColorMap: null,
+        },
+        {
+          normalMap: null,
+        },
+        {
+          interpolatedColor: null,
+        },
+        {
+          metallic: 0,
+        },
+        {
+          metallicMap: null,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          roughnessMap: null,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/fbx_material.sfm',
+    },
+  ],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+      'BoneIndices',
+      'BoneWeights',
+    ],
+    collision: {},
+    file: 'sampledata/models/model_8.fbx',
+    name: 'model_8',
+    recenter: 'root',
+    scale: 1.846875,
+  },
+  version: '0.54:2',
+}
