@@ -1,0 +1,105 @@
+{
+  animations: [
+    {
+      clips: [
+        {
+          name: 'Take 001',
+          runtime_name: 'model_1',
+        },
+      ],
+      path: 'sampledata/models/model_1.fbx',
+    },
+  ],
+  materials: [
+    {
+      name: 'pine:pine:PineTexture2',
+      parameters: [
+        {
+          baseColor: [
+            0.031,
+            0.020799999999999999,
+            0.014104999999999999,
+            1,
+          ],
+        },
+        {
+          baseColorMap: null,
+        },
+        {
+          normalMap: null,
+        },
+        {
+          interpolatedColor: null,
+        },
+        {
+          metallic: 0,
+        },
+        {
+          metallicMap: null,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          roughnessMap: null,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/fbx_material.sfm',
+    },
+    {
+      name: 'pine:pine:PineLeafTexture',
+      parameters: [
+        {
+          baseColor: [
+            0.0499,
+            0.128,
+            0.080299999999999996,
+            1,
+          ],
+        },
+        {
+          baseColorMap: null,
+        },
+        {
+          normalMap: null,
+        },
+        {
+          interpolatedColor: null,
+        },
+        {
+          metallic: 0,
+        },
+        {
+          metallicMap: null,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          roughnessMap: null,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/fbx_material.sfm',
+    },
+  ],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+      'BoneIndices',
+      'BoneWeights',
+    ],
+    collision: {},
+    file: 'sampledata/models/model_1.fbx',
+    name: 'model_1',
+    recenter: 'root',
+  },
+  version: '0.54:2',
+}

@@ -19,8 +19,8 @@
         android:foregroundGravity="top"
         android:paddingBottom="25dp"
         android:src="@drawable/sprite_default"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
         android:scaleType="fitCenter"/>
 
     <TextView
