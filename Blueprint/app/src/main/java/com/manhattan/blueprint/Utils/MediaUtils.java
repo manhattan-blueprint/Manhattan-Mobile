@@ -1,0 +1,66 @@
+package com.manhattan.blueprint.Utils;
+
+import android.media.MediaPlayer;
+
+import com.manhattan.blueprint.Model.DAO.Consumer;
+
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class MediaUtils {
+    private int fadeInDuration = 3000;
+    private int fadeOutDuration = 1500;
+    private int interval = 250;
+    private float currentVolume = 0;
+    private MediaPlayer player;
+    private Timer timer;
+
+    public MediaUtils(MediaPlayer player){
+        this.player = player;
+        this.timer = new Timer(true);
+    }
+
+    public void fadeOut(Consumer<Void> onCompletion) {
+        // Cancel any previous timers
+        timer.cancel();
+        float numberOfSteps = fadeOutDuration / interval;
+        float deltaVolume = 1 / numberOfSteps;
+
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                player.setVolume(currentVolume, currentVolume);
+                currentVolume -= deltaVolume;
+                if(currentVolume<=0f){
+                    timer.cancel();
+                    timer.purge();
+                    onCompletion.consume(null);
+                }
+            }
+        };
+
+        timer.schedule(timerTask, interval, interval);
+    }
+
+    public void fadeIn() {
+        // Cancel any previous timers
+        timer.cancel();
+        float numberOfSteps = fadeInDuration / interval;
+        float deltaVolume = 1 / numberOfSteps;
+
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                player.setVolume(currentVolume, currentVolume);
+                currentVolume += deltaVolume;
+                if(currentVolume>=1f){
+                    timer.cancel();
+                    timer.purge();
+                }
+            }
+        };
+
+        timer.schedule(timerTask, interval, interval);
+
+    }
+}

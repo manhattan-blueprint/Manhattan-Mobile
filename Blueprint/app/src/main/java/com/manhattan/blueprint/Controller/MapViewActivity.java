@@ -34,6 +34,7 @@ import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.Model.ResourceSet;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.LocationUtils;
+import com.manhattan.blueprint.Utils.MediaUtils;
 import com.manhattan.blueprint.Utils.NetworkUtils.CheckNetworkConnectionThread;
 import com.manhattan.blueprint.Utils.SpriteManager;
 import com.manhattan.blueprint.Utils.ViewUtils;
@@ -96,6 +97,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private ViewGroup viewGroup;
     private BackpackView backpackView;
 
+    private MediaUtils mediaUtils;
     private MediaPlayer mediaPlayer;
     private BlueprintAPI blueprintAPI;
     private HololensClient hololensClient;
@@ -180,6 +182,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         // Configure audio
         mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.map);
         mediaPlayer.setLooping(true);
+        mediaUtils = new MediaUtils(mediaPlayer);
 
         // Load data required
         blueprintAPI = new BlueprintAPI(this);
@@ -210,13 +213,14 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         mapView.onResume();
         updateBackpack();
         mediaPlayer.start();
+        mediaUtils.fadeIn();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mapView.onPause();
-        mediaPlayer.pause();
+        mediaUtils.fadeOut(value -> mediaPlayer.pause());
     }
 
     private void updateBackpack(){
