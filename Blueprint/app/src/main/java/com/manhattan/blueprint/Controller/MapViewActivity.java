@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
@@ -95,6 +96,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private ViewGroup viewGroup;
     private BackpackView backpackView;
 
+    private MediaPlayer mediaPlayer;
     private BlueprintAPI blueprintAPI;
     private HololensClient hololensClient;
     private int hololensCounter;
@@ -175,6 +177,10 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         blurView.animate().alpha(0);
         closeButton.animate().scaleX(0).scaleY(0);
 
+        // Configure audio
+        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.map);
+        mediaPlayer.setLooping(true);
+
         // Load data required
         blueprintAPI = new BlueprintAPI(this);
         itemManager = ItemManager.getInstance(this);
@@ -203,6 +209,14 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
         mapView.onResume();
         updateBackpack();
+        mediaPlayer.start();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+        mediaPlayer.pause();
     }
 
     private void updateBackpack(){
@@ -706,12 +720,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     public void onStart() {
         super.onStart();
         mapView.onStart();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mapView.onPause();
     }
 
     @Override
