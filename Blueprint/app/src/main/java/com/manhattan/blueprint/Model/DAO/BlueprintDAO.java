@@ -36,6 +36,11 @@ public class BlueprintDAO implements DAO {
         return Maybe.of(Realm.getDefaultInstance().where(TokenPair.class).findFirst());
     }
 
+    public void clearTokens() {
+        Realm.getDefaultInstance().executeTransaction(realm ->
+            realm.where(TokenPair.class).findAll().deleteAllFromRealm());
+    }
+
     // MARK: - Session
     @Override
     public void setSession(Session session) {
