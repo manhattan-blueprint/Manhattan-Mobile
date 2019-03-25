@@ -12,6 +12,20 @@
     <color name="colorPrimaryDark">#3949ab</color>
     <color name="colorAccent">#00227b</color>
 
+    <color name="minigame_outline_fail">#BAFF0000</color>
+    <color name="minigame_outline_success">#BA00FF00</color>
+    <color name="minigame_outline_neutral">#BFFFFFFF</color>
+    <color name="minigame_fill_fail">#60FF0000</color>
+    <color name="minigame_fill_success">#6000FF00</color>
+    <color name="minigame_fill_neutral">#48F5F5F5</color>
+
+    <color name="progress_bar_left">#eb5b5c</color>
+    <color name="progress_ticks_left">#da5b4c</color>
+    <color name="progress_bar_right">#48F5F5F5</color>
+    <color name="progress_ticks_right">#A9A9A9</color>
+    <color name="progress_bar_icon">#eb5b5c</color>
+    <color name="progress_bar_step">#00227b</color>
+
     <color name="white">#FFFFFF</color>
     <color name="ivory">#FFFFF0</color>
     <color name="light_yellow">#FFFFE0</color>
