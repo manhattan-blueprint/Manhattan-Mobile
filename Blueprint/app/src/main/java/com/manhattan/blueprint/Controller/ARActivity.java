@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.CountDownTimer;
 import android.os.Handler;
 
 import android.support.design.widget.Snackbar;
@@ -74,6 +75,7 @@ public class ARActivity extends AppCompatActivity {
     private Toast arToastMessage;
     private Snackbar arSnackbarMessage;
     private TextView snackbarTextView;
+    private TextView countdownIndicator;
     private FrameLayout snackbarView;
 
     private float prevX, prevY = 0; // previous coords
@@ -82,8 +84,11 @@ public class ARActivity extends AppCompatActivity {
     private float rotation;
     private int maxAngleError = 42;
     private float minDistance = 0.70f;
+    private long countdown; // seconds
     private boolean swipeFailed = true;
     private boolean minigameReady = true;
+    private  boolean timerOn = false;
+    private boolean gameOver = false;
     private GradientDrawable drawable;
     private IndicatorSeekBar progressBar;
     private View boxView;
@@ -104,6 +109,8 @@ public class ARActivity extends AppCompatActivity {
         drawable.setColor(getResources().getColor(R.color.minigame_fill_neutral));
         boxView.setForeground(drawable);
         rotation = boxView.getRotation();
+        countdownIndicator = (TextView) findViewById(R.id.CounterIndicator);
+        countdownIndicator.bringToFront();
 
         String jsonResource = (String) getIntent().getExtras().get("resource");
         Gson gson = new GsonBuilder().create();
@@ -122,8 +129,11 @@ public class ARActivity extends AppCompatActivity {
         modelsMap.put(2, "rocks.sfb");
         modelsMap.put(4, "ingot.sfb");
 
-        // TODO: Differentiate depending on the resource in the next PR
-        swipesToCollect = 8;
+        // R * 2 swipes
+        // R * 1.5 + 4 seconds
+        swipesToCollect = resourceToCollect.getQuantity() * 2;
+        countdown = (int) (4 + resourceToCollect.getQuantity() * 1.5);
+        countdownIndicator.setText(String.format("%.1f s", (float) countdown));
         progressBar = findViewById(R.id.ProgressBar);
         progressBar.bringToFront();
         progressBar.setMax(swipesToCollect);
@@ -219,7 +229,7 @@ public class ARActivity extends AppCompatActivity {
                 itemWasPlaced = true;
             }
 
-            arSnackbarMessage.setText(getString(R.string.place_resource_instruction));
+            arSnackbarMessage.setText(getString(R.string.resource_collection_instruction));
             boxView.bringToFront();
             planeWasDetected = true;
             break;
@@ -239,7 +249,7 @@ public class ARActivity extends AppCompatActivity {
         }
         final Handler handler = new Handler();
         handler.postDelayed(() -> {
-            // Do something after 800ms
+            // Do something after a delay
             if (newRotation) {
                 Random rand = new Random();
                 do {
@@ -251,10 +261,11 @@ public class ARActivity extends AppCompatActivity {
             drawable.setColor(getResources().getColor(R.color.minigame_fill_neutral));
             boxView.setForeground(drawable);
             minigameReady = true;
-        }, 800);
+        }, 200);
     }
 
     private void onSuccessfulSwipe() {
+        setSnackbar("Well done, keep going!");
         int progress = progressBar.getProgress() + 1;
         progressBar.setProgress(progress);
 
@@ -313,7 +324,7 @@ public class ARActivity extends AppCompatActivity {
     }
 
     private boolean onSceneTouch(HitTestResult hitTestResult, MotionEvent sceneMotionEvent) {
-        if (!itemWasPlaced) {
+        if (!itemWasPlaced || gameOver) {
             return false;
         }
         double diff;
@@ -347,7 +358,30 @@ public class ARActivity extends AppCompatActivity {
                 if (!minigameReady) {
                     break;
                 }
-                setSnackbar("GO!");
+                if (!timerOn) {
+                    new CountDownTimer(countdown * 1000, 100) {
+                        public void onTick(long millisUntilFinished) {
+                            String text = String.format("%.1f s", (float) millisUntilFinished / 1000);
+                            countdownIndicator.setText(text);
+                        }
+
+                        public void onFinish() {
+                            gameOver = true;
+                            countdownIndicator.setText("0.0 s");
+                            countdownIndicator.setTextColor(getResources().getColor(R.color.red));
+                            setSnackbar(getString(R.string.minigame_failed));
+                            final Handler handler = new Handler();
+                            handler.postDelayed(() -> {
+                                Toast.makeText(ARActivity.this,
+                                        getString(R.string.collection_failure_title),
+                                        Toast.LENGTH_LONG).show();
+                                finish();
+                                }, 1500);
+                        }
+                    }.start();
+                    timerOn = true;
+                }
+
                 swipeFailed = false;
                 getCorners();
                 initX = sceneMotionEvent.getX();
@@ -368,7 +402,6 @@ public class ARActivity extends AppCompatActivity {
                 if (swipeFailed || !minigameReady) {
                     break;
                 }
-                setSnackbar("...");
                 currX = sceneMotionEvent.getX();
                 currY = sceneMotionEvent.getY();
                 diff = ArMathUtils.getAngleError(currX, currY, prevX, prevY, rotation);

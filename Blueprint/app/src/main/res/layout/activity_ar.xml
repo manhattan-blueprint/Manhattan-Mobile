@@ -15,6 +15,19 @@
         android:layout_height="350dp"
         android:foreground="@drawable/ar_gesture" />
 
+    <TextView
+        android:id="@+id/CounterIndicator"
+        android:layout_width="100dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="45dp"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:textColor="@android:color/white"
+        android:textSize="19sp"
+        android:textStyle="normal"
+        android:background="@drawable/timer_background"
+        style="@style/B2_Bold"/>
+
     <fragment
         android:id="@+id/ux_fragment"
         android:name="com.google.ar.sceneform.ux.ArFragment"
@@ -25,16 +38,16 @@
         android:id="@+id/ProgressBar"
         android:layout_marginTop="7dp"
         android:layout_width="match_parent"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
+        android:paddingStart="22dp"
+        android:paddingEnd="22dp"
         android:layout_height="100dp"
         app:isb_min="0"
         app:isb_user_seekable="false"
         app:isb_seek_smoothly="true"
         app:isb_thumb_drawable="@drawable/ic_progress_icon"
-        app:isb_thumb_size="33dp"
+        app:isb_thumb_size="28dp"
         app:isb_show_tick_marks_type="oval"
-        app:isb_tick_marks_size="10dp"
+        app:isb_tick_marks_size="7dp"
         app:isb_track_progress_color="@color/progress_bar_left"
         app:isb_track_progress_size="4dp"
         app:isb_track_background_color="@color/progress_bar_right"
