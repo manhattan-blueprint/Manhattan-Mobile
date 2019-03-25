@@ -26,6 +26,7 @@
     <color name="progress_bar_icon">#eb5b5c</color>
     <color name="progress_bar_step">#00227b</color>
     <color name="timer_background">#70000000</color>
+    <color name="adjust_color">#BBf5f5f5</color>
 
     <color name="white">#FFFFFF</color>
     <color name="ivory">#FFFFF0</color>

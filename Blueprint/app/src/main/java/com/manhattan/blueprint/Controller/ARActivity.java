@@ -92,6 +92,7 @@ public class ARActivity extends AppCompatActivity {
     private GradientDrawable drawable;
     private IndicatorSeekBar progressBar;
     private View boxView;
+    private View adjustIndicator;
 
     // box corners
     private int topLeft[]     = new int[2];
@@ -111,6 +112,9 @@ public class ARActivity extends AppCompatActivity {
         rotation = boxView.getRotation();
         countdownIndicator = (TextView) findViewById(R.id.CounterIndicator);
         countdownIndicator.bringToFront();
+        adjustIndicator = (View) findViewById(R.id.AdjustIndicator);
+        adjustIndicator.bringToFront();
+        adjustIndicator.setVisibility(View.INVISIBLE);
 
         String jsonResource = (String) getIntent().getExtras().get("resource");
         Gson gson = new GsonBuilder().create();
@@ -206,7 +210,11 @@ public class ARActivity extends AppCompatActivity {
                                         boxView.getWidth(), boxView.getHeight())) {
                 swipeFailed = true;
                 setSnackbar(getString(R.string.resource_out_of_view_failed));
-                newMinigame(false, false);
+                boxView.setVisibility(View.INVISIBLE);
+                adjustIndicator.setVisibility(View.VISIBLE);
+            } else if (boxView.getVisibility() == View.INVISIBLE){
+                boxView.setVisibility(View.VISIBLE);
+                adjustIndicator.setVisibility(View.INVISIBLE);
             }
         }
 
@@ -224,7 +232,7 @@ public class ARActivity extends AppCompatActivity {
                 TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
                 transformableNode.getScaleController().setMaxScale(100000f);
                 transformableNode.getScaleController().setMinScale(0.0001f);
-                transformableNode.setLocalScale(new Vector3(2.0f, 2.0f, 2.0f));
+                transformableNode.setLocalScale(new Vector3(3.2f, 3.2f, 3.2f));
                 transformableNode.setParent(anchorNode);
                 transformableNode.setRenderable(resourceModel);
                 transformableNode.select();
@@ -278,6 +286,7 @@ public class ARActivity extends AppCompatActivity {
 
         if (progress == swipesToCollect) {
             // arToastMessage.cancel();
+            gameOver = true;
             InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), resourceToCollect.getQuantity());
             BlueprintAPI api = new BlueprintAPI(this);
             Inventory inventoryToAdd = new Inventory(new ArrayList<>(Collections.singletonList(itemCollected)));
@@ -373,6 +382,8 @@ public class ARActivity extends AppCompatActivity {
                         }
 
                         public void onFinish() {
+                            if (gameOver)
+                                return;
                             gameOver = true;
                             countdownIndicator.setText("0.0 s");
                             countdownIndicator.setTextColor(getResources().getColor(R.color.red));
