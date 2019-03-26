@@ -23,6 +23,7 @@ public class MediaUtils {
     public void fadeOut(Consumer<Void> onCompletion) {
         // Cancel any previous timers
         timer.cancel();
+        timer = new Timer();
         float numberOfSteps = fadeOutDuration / interval;
         float deltaVolume = 1 / numberOfSteps;
 
@@ -45,6 +46,7 @@ public class MediaUtils {
     public void fadeIn() {
         // Cancel any previous timers
         timer.cancel();
+        timer = new Timer();
         float numberOfSteps = fadeInDuration / interval;
         float deltaVolume = 1 / numberOfSteps;
 
@@ -61,6 +63,5 @@ public class MediaUtils {
         };
 
         timer.schedule(timerTask, interval, interval);
-
     }
 }
