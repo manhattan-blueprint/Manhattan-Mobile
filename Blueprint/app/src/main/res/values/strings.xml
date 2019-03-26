@@ -31,6 +31,7 @@
     <string name="plane_discovery_instruction">Slowly look around on the ground for the resource</string>
     <string name="place_resource_instruction">Keep the resource centered and swipe within the box to collect it</string>
     <string name="resource_collection_instruction">Start collecting when you\'re ready</string>
+    <string name="resource_visible_again">Swipe to collect the resource!</string>
 
     <string name="positive_response">OK</string>
     <string name="negative_response">No thanks</string>
@@ -38,7 +39,10 @@
     <string name="swipe_too_short_failed">You didn\'t swipe far enough, keep trying!</string>
     <string name="swipe_not_straight_failed">You didn\'t swipe in a straight line, keep trying!</string>
     <string name="resource_out_of_view_failed">Resource is out of view!</string>
-    <string name="minigame_failed">Time\'s out, better luck next time!</string>
+    <string name="minigame_timeout">Time\'s out!</string>
+    <string name="successful_swipe">Well done, keep going!</string>
+    <string name="minigame_collected_all">Well done, you collected all the resources!</string>
+    <string name="minigame_collected_none">Sorry, you didn\'t get any resources …</string>
 
     <string name="developer_delete_resource">Are you sure you want to delete %d %s?</string>
 

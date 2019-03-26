@@ -68,15 +68,16 @@ public class ARActivity extends AppCompatActivity {
     private AnchorNode anchorNode;
     private Anchor anchor;
 
-    private int swipesToCollect;
-    private boolean itemWasPlaced;
-    private boolean planeWasDetected;
-
     private Toast arToastMessage;
     private Snackbar arSnackbarMessage;
     private TextView snackbarTextView;
     private TextView countdownIndicator;
     private FrameLayout snackbarView;
+    private GradientDrawable drawable;
+    private IndicatorSeekBar progressBar;
+    private View boxView;
+    private View adjustIndicator;
+    private CountDownTimer countDownTimer;
 
     private float prevX, prevY = 0; // previous coords
     private float initX, initY = 0; // initial  coords
@@ -89,10 +90,9 @@ public class ARActivity extends AppCompatActivity {
     private boolean minigameReady = true;
     private  boolean timerOn = false;
     private boolean gameOver = false;
-    private GradientDrawable drawable;
-    private IndicatorSeekBar progressBar;
-    private View boxView;
-    private View adjustIndicator;
+    private int swipesToCollect;
+    private boolean itemWasPlaced;
+    private boolean planeWasDetected;
 
     // box corners
     private int topLeft[]     = new int[2];
@@ -215,6 +215,7 @@ public class ARActivity extends AppCompatActivity {
             } else if (boxView.getVisibility() == View.INVISIBLE){
                 boxView.setVisibility(View.VISIBLE);
                 adjustIndicator.setVisibility(View.INVISIBLE);
+                setSnackbar(getString(R.string.resource_visible_again));
             }
         }
 
@@ -232,7 +233,7 @@ public class ARActivity extends AppCompatActivity {
                 TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
                 transformableNode.getScaleController().setMaxScale(100000f);
                 transformableNode.getScaleController().setMinScale(0.0001f);
-                transformableNode.setLocalScale(new Vector3(3.2f, 3.2f, 3.2f));
+                transformableNode.setLocalScale(new Vector3(8f, 8f, 8f));
                 transformableNode.setParent(anchorNode);
                 transformableNode.setRenderable(resourceModel);
                 transformableNode.select();
@@ -276,39 +277,71 @@ public class ARActivity extends AppCompatActivity {
             drawable.setColor(getResources().getColor(R.color.minigame_fill_neutral));
             boxView.setForeground(drawable);
             minigameReady = true;
-        }, 200);
+        }, 250);
     }
 
     private void onSuccessfulSwipe() {
-        setSnackbar("Well done, keep going!");
+        setSnackbar(getResources().getString(R.string.successful_swipe));
         int progress = progressBar.getProgress() + 1;
         progressBar.setProgress(progress);
 
         if (progress == swipesToCollect) {
-            // arToastMessage.cancel();
-            gameOver = true;
-            InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), resourceToCollect.getQuantity());
-            BlueprintAPI api = new BlueprintAPI(this);
-            Inventory inventoryToAdd = new Inventory(new ArrayList<>(Collections.singletonList(itemCollected)));
-            api.makeRequest(api.inventoryService.addToInventory(inventoryToAdd), new APICallback<Void>() {
-                @Override
-                public void success(Void response) {
-                    // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
-                    String itemName = ItemManager.getInstance(ARActivity.this).getName(resourceToCollect.getId()).withDefault("items");
-                    String successMsg = String.format(getString(R.string.collection_success), resourceToCollect.getQuantity(), itemName);
-                    Toast.makeText(ARActivity.this, successMsg, Toast.LENGTH_LONG).show();
-                    finish();
-                }
-
-                @Override
-                public void failure(int code, String error) {
-                    ViewUtils.createDialog(ARActivity.this, getString(R.string.collection_failure_title), error,
-                                                 (dialog, which) -> dialog.dismiss());
-                    finish();
-                }
-            });
+            finishMinigame(true);
         }
         boxView.bringToFront();
+    }
+
+    private void finishMinigame(boolean collectedAll) {
+        gameOver = true;
+        countDownTimer.cancel();
+        int quantity = progressBar.getProgress() / 2;
+        InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), quantity);
+        BlueprintAPI api = new BlueprintAPI(this);
+        Inventory inventoryToAdd = new Inventory(new ArrayList<>(Collections.singletonList(itemCollected)));
+
+        api.makeRequest(api.inventoryService.addToInventory(inventoryToAdd), new APICallback<Void>() {
+            @Override
+            public void success(Void response) {
+                if (collectedAll) {
+                    countdownIndicator.setTextColor(getResources().getColor(R.color.green));
+                    setSnackbar(getString(R.string.minigame_collected_all));
+                } else {
+                    countdownIndicator.setText("0.0 s");
+                    countdownIndicator.setTextColor(getResources().getColor(R.color.red));
+                    setSnackbar(getString(R.string.minigame_timeout));
+                }
+                final Handler handler = new Handler();
+                handler.postDelayed(() -> {
+                    // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
+                    String itemName = ItemManager.getInstance(ARActivity.this).getName(resourceToCollect.getId()).withDefault("items");
+                    String successMsg = String.format(getString(R.string.collection_success), quantity, itemName);
+                    Toast.makeText(ARActivity.this, successMsg, Toast.LENGTH_LONG).show();
+                    finish();
+                }, 1500);
+            }
+
+            @Override
+            public void failure(int code, String error) {
+                if (quantity == 0) {
+                    countdownIndicator.setText("0.0 s");
+                    countdownIndicator.setTextColor(getResources().getColor(R.color.red));
+                    final Handler handler = new Handler();
+                    handler.postDelayed(() -> {
+                        setSnackbar(getString(R.string.minigame_collected_none));
+                        Toast.makeText(ARActivity.this,
+                                getResources().getString(R.string.collection_failure_title),
+                                Toast.LENGTH_LONG).show();
+                        finish();
+                    }, 1500);
+                } else {
+                    ViewUtils.createDialog(ARActivity.this, getString(R.string.collection_failure_title), error,
+                            (dialog, which) -> {
+                                dialog.dismiss();
+                                finish();
+                            });
+                }
+            }
+        });
     }
 
     private void createSnackbar() {
@@ -375,26 +408,16 @@ public class ARActivity extends AppCompatActivity {
                     break;
                 }
                 if (!timerOn) {
-                    new CountDownTimer(countdown * 1000, 100) {
+                    countDownTimer = new CountDownTimer(countdown * 1000, 100) {
                         public void onTick(long millisUntilFinished) {
                             String text = String.format("%.1f s", (float) millisUntilFinished / 1000);
                             countdownIndicator.setText(text);
                         }
 
                         public void onFinish() {
-                            if (gameOver)
-                                return;
-                            gameOver = true;
-                            countdownIndicator.setText("0.0 s");
-                            countdownIndicator.setTextColor(getResources().getColor(R.color.red));
-                            setSnackbar(getString(R.string.minigame_failed));
-                            final Handler handler = new Handler();
-                            handler.postDelayed(() -> {
-                                Toast.makeText(ARActivity.this,
-                                        getString(R.string.collection_failure_title),
-                                        Toast.LENGTH_LONG).show();
-                                finish();
-                                }, 1500);
+                            if (!gameOver) {
+                                finishMinigame(false);
+                            }
                         }
                     }.start();
                     timerOn = true;
