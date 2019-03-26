@@ -11,8 +11,8 @@
         android:id="@+id/Minigame"
         android:rotation="90"
         android:layout_gravity="center"
-        android:layout_width="100dp"
-        android:layout_height="350dp"
+        android:layout_width="10dp"
+        android:layout_height="20dp"
         android:foreground="@drawable/ar_gesture" />
 
     <TextView

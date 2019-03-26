@@ -10,6 +10,8 @@ import com.google.gson.GsonBuilder;
 
 import android.Manifest;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -20,6 +22,8 @@ import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -100,6 +104,12 @@ public class ARActivity extends AppCompatActivity {
     private int bottomLeft[]  = new int[2];
     private int bottomRight[] = new int[2];
 
+    public static int getScreenWidth(Context context) {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        ((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        return displayMetrics.widthPixels;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,6 +118,12 @@ public class ARActivity extends AppCompatActivity {
         drawable = (GradientDrawable) getResources().getDrawable(R.drawable.ar_gesture);
         drawable.setStroke(10, getResources().getColor(R.color.minigame_outline_neutral));
         drawable.setColor(getResources().getColor(R.color.minigame_fill_neutral));
+        int screenWidth = getScreenWidth(ARActivity.this);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                (int) (screenWidth / 3.5f),
+                screenWidth - 20);
+        params.gravity = Gravity.CENTER;
+        boxView.setLayoutParams(params);
         boxView.setForeground(drawable);
         rotation = boxView.getRotation();
         countdownIndicator = (TextView) findViewById(R.id.CounterIndicator);
