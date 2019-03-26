@@ -74,6 +74,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
 public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMarkerClickListener, MapGestureListener.GestureDelegate {
 
@@ -214,6 +215,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         if (!LocationUtils.isLocationEnabled(this)) {
             displayLocationServicesRequest();
         }
+
+        markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
         mapView.onResume();
         updateBackpack();
         mediaPlayer.setVolume(0,0);
@@ -384,6 +387,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
         if (marker.equals(currentLocationMarker)) return false;
+        markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
 
         Resource resource = markerResourceMap.get(marker);
         marker.showInfoWindow(mapboxMap, mapView);
@@ -480,6 +484,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     // region  Menu Button Handlers
     private View.OnClickListener menuButtonClickListener = v -> {
+        markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         OvershootInterpolator overshootInterpolator = new OvershootInterpolator();
@@ -693,12 +698,14 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     @Override
     public void panBy(float dx) {
         if (menuState != MenuState.CLOSED) return;
+        markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
         mapboxMap.moveCamera(CameraUpdateFactory.bearingTo(mapboxMap.getCameraPosition().bearing - dx));
     }
 
     @Override
     public void scaleBy(float amount) {
         if (menuState != MenuState.CLOSED) return;
+        markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
         float minZoom = 17;
         float maxZoom = 20;
         float minTilt = 40;
