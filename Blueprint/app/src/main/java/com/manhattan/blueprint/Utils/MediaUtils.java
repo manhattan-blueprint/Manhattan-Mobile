@@ -32,7 +32,7 @@ public class MediaUtils {
             public void run() {
                 player.setVolume(currentVolume, currentVolume);
                 currentVolume -= deltaVolume;
-                if(currentVolume<=0f){
+                if(currentVolume <= 0f){
                     timer.cancel();
                     timer.purge();
                     onCompletion.consume(null);
@@ -55,7 +55,7 @@ public class MediaUtils {
             public void run() {
                 player.setVolume(currentVolume, currentVolume);
                 currentVolume += deltaVolume;
-                if(currentVolume>=1f){
+                if(currentVolume >= 1f){
                     timer.cancel();
                     timer.purge();
                 }
