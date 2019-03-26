@@ -21,10 +21,12 @@
 
     <color name="progress_bar_left">#eb5b5c</color>
     <color name="progress_ticks_left">#da5b4c</color>
-    <color name="progress_bar_right">#48F5F5F5</color>
+    <color name="progress_bar_right">#A8F5F5F5</color>
     <color name="progress_ticks_right">#A9A9A9</color>
     <color name="progress_bar_icon">#eb5b5c</color>
     <color name="progress_bar_step">#00227b</color>
+    <color name="timer_background">#70000000</color>
+    <color name="adjust_color">#BBf5f5f5</color>
 
     <color name="white">#FFFFFF</color>
     <color name="ivory">#FFFFF0</color>
@@ -111,7 +113,7 @@
     <color name="pale_green">#98FB98</color>
     <color name="dark_violet">#9400D3</color>
     <color name="mediumPurple">#9370DB</color>
-    <color name="_light_green">#90EE90</color>
+    <color name="light_green">#90EE90</color>
     <color name="dark_sea_green">#8FBC8F</color>
     <color name="saddle_brown">#8B4513</color>
     <color name="dark_magenta">#8B008B</color>
@@ -159,7 +161,7 @@
     <color name="deep_sky_blue">#00BFFF</color>
     <color name="dark_cyan">#008B8B</color>
     <color name="teal">#008080</color>
-    <color name="green">#008000</color>
+    <color name="green">#00EE00</color>
     <color name="dark_green">#006400</color>
     <color name="blue">#0000FF</color>
     <color name="medium_blue">#204cff</color>

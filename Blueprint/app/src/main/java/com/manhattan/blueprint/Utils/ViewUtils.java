@@ -1,5 +1,6 @@
 package com.manhattan.blueprint.Utils;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -35,6 +36,12 @@ public class ViewUtils {
 
     public static float dpToPx(Context context, float dp){
         return dp * (context.getResources().getDisplayMetrics().densityDpi) / DisplayMetrics.DENSITY_DEFAULT;
+    }
+
+    public static int getScreenWidth(Context context) {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        ((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        return displayMetrics.widthPixels;
     }
 }
 

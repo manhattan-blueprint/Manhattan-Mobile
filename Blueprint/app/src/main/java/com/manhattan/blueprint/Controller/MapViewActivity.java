@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
@@ -23,7 +22,6 @@ import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
-import com.manhattan.blueprint.Model.DAO.Consumer;
 import com.manhattan.blueprint.Model.HololensClient;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.Location;
@@ -118,6 +116,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private LatLng currentLocation = new LatLng(51.449946, -2.599858);
     private Marker currentLocationMarker;
     private boolean inDeveloperMode = false;
+    private boolean isPlayingMinigame = false;
     private MenuState menuState = MenuState.CLOSED;
 
     @Override
@@ -218,6 +217,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
         mapView.onResume();
+        isPlayingMinigame = false;
         updateBackpack();
         mediaPlayer.setVolume(0,0);
         mediaPlayer.start();
@@ -386,6 +386,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     // region OnMarkerClickListener
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
+        if (isPlayingMinigame) {
+            return false;
+        }
         if (marker.equals(currentLocationMarker)) return false;
         markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
 
@@ -407,6 +410,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         } else if (LocationUtils.distanceBetween(marker.getPosition(), currentLocation) <= MAX_COLLECT_DISTANCE) {
             BlueprintDAO.getInstance(this).getSession().ifPresent(session -> {
+                isPlayingMinigame = true;
                 if (session.isHololensConnected()) {
                     // Connect to Hololens
                     if (hololensClient.setIP(session.hololensIP)) {
