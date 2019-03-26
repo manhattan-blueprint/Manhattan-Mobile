@@ -480,6 +480,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     // region  Menu Button Handlers
     private View.OnClickListener menuButtonClickListener = v -> {
+        markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         OvershootInterpolator overshootInterpolator = new OvershootInterpolator();
