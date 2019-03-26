@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
@@ -33,6 +34,7 @@ import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.Model.ResourceSet;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.LocationUtils;
+import com.manhattan.blueprint.Utils.MediaUtils;
 import com.manhattan.blueprint.Utils.NetworkUtils.CheckNetworkConnectionThread;
 import com.manhattan.blueprint.Utils.SpriteManager;
 import com.manhattan.blueprint.Utils.ViewUtils;
@@ -95,6 +97,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private ViewGroup viewGroup;
     private BackpackView backpackView;
 
+    private MediaUtils mediaUtils;
+    private MediaPlayer mediaPlayer;
     private BlueprintAPI blueprintAPI;
     private HololensClient hololensClient;
     private int hololensCounter;
@@ -175,6 +179,11 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         blurView.animate().alpha(0);
         closeButton.animate().scaleX(0).scaleY(0);
 
+        // Configure audio
+        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.map);
+        mediaPlayer.setLooping(true);
+        mediaUtils = new MediaUtils(mediaPlayer);
+
         // Load data required
         blueprintAPI = new BlueprintAPI(this);
         itemManager = ItemManager.getInstance(this);
@@ -203,6 +212,16 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
         mapView.onResume();
         updateBackpack();
+        mediaPlayer.setVolume(0,0);
+        mediaPlayer.start();
+        mediaUtils.fadeIn();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+        mediaUtils.fadeOut(value -> mediaPlayer.pause());
     }
 
     private void updateBackpack(){
@@ -706,12 +725,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     public void onStart() {
         super.onStart();
         mapView.onStart();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mapView.onPause();
     }
 
     @Override

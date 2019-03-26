@@ -128,7 +128,6 @@ public class ARActivity extends AppCompatActivity {
         modelsMap.put(8,  "model_8.sfb");
         modelsMap.put(9,  "model_9.sfb");
         modelsMap.put(10, "model_10.sfb");
-    }
 
         // TODO: Differentiate depending on the resource in the next PR
         swipesToCollect = 8;

@@ -6,12 +6,16 @@ import com.manhattan.blueprint.Model.Session;
 import com.manhattan.blueprint.Model.TokenPair;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 public class BlueprintDAO implements DAO {
     private static BlueprintDAO instance;
 
     private BlueprintDAO(Context context) {
         Realm.init(context);
+        // TODO: Remove when in production
+        RealmConfiguration config = new RealmConfiguration.Builder().deleteRealmIfMigrationNeeded().build();
+        Realm.setDefaultConfiguration(config);
     }
 
     public static BlueprintDAO getInstance(Context context) {
