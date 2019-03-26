@@ -9,6 +9,7 @@ import com.manhattan.blueprint.Model.DAO.Maybe;
 import com.manhattan.blueprint.R;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class SpriteManager {
     private static int MAX_ID = 32;
@@ -73,5 +74,18 @@ public class SpriteManager {
         } catch (Exception e) {
             return Maybe.empty();
         }
+    }
+
+    public static void addModels(HashMap<Integer, String> modelsMap) {
+        modelsMap.put(1,  "model_1.sfb");
+        modelsMap.put(2,  "model_2.sfb");
+        modelsMap.put(3,  "model_3.sfb");
+        modelsMap.put(4,  "model_4.sfb");
+        modelsMap.put(5,  "model_5.sfb");
+        modelsMap.put(6,  "model_6.sfb");
+        modelsMap.put(7,  "model_7.sfb");
+        modelsMap.put(8,  "model_8.sfb");
+        modelsMap.put(9,  "model_9.sfb");
+        modelsMap.put(10, "model_10.sfb");
     }
 }

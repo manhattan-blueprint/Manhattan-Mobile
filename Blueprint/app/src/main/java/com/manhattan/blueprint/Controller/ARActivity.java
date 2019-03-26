@@ -50,6 +50,7 @@ import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.ArMathUtils;
+import com.manhattan.blueprint.Utils.SpriteManager;
 import com.manhattan.blueprint.Utils.ViewUtils;
 import com.warkiz.widget.IndicatorSeekBar;
 
@@ -72,7 +73,6 @@ public class ARActivity extends AppCompatActivity {
     private AnchorNode anchorNode;
     private Anchor anchor;
 
-    private Toast arToastMessage;
     private Snackbar arSnackbarMessage;
     private TextView snackbarTextView;
     private TextView countdownIndicator;
@@ -85,14 +85,14 @@ public class ARActivity extends AppCompatActivity {
 
     private float prevX, prevY = 0; // previous coords
     private float initX, initY = 0; // initial  coords
-    private  float currX, currY = 0; // current  coords
+    private float currX, currY = 0; // current  coords
     private float rotation;
     private int maxAngleError = 42;
     private float minDistance = 0.70f;
     private long countdown; // seconds
     private boolean swipeFailed = true;
     private boolean minigameReady = true;
-    private  boolean timerOn = false;
+    private boolean timerOn = false;
     private boolean gameOver = false;
     private int swipesToCollect;
     private boolean itemWasPlaced;
@@ -104,12 +104,6 @@ public class ARActivity extends AppCompatActivity {
     private int bottomLeft[]  = new int[2];
     private int bottomRight[] = new int[2];
 
-    public static int getScreenWidth(Context context) {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        ((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        return displayMetrics.widthPixels;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,7 +112,7 @@ public class ARActivity extends AppCompatActivity {
         drawable = (GradientDrawable) getResources().getDrawable(R.drawable.ar_gesture);
         drawable.setStroke(10, getResources().getColor(R.color.minigame_outline_neutral));
         drawable.setColor(getResources().getColor(R.color.minigame_fill_neutral));
-        int screenWidth = getScreenWidth(ARActivity.this);
+        int screenWidth = ViewUtils.getScreenWidth(ARActivity.this);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 (int) (screenWidth / 3.5f),
                 screenWidth - 20);
@@ -145,16 +139,7 @@ public class ARActivity extends AppCompatActivity {
         itemWasPlaced = false;
         planeWasDetected = false;
 
-        modelsMap.put(1,  "model_1.sfb");
-        modelsMap.put(2,  "model_2.sfb");
-        modelsMap.put(3,  "model_3.sfb");
-        modelsMap.put(4,  "model_4.sfb");
-        modelsMap.put(5,  "model_5.sfb");
-        modelsMap.put(6,  "model_6.sfb");
-        modelsMap.put(7,  "model_7.sfb");
-        modelsMap.put(8,  "model_8.sfb");
-        modelsMap.put(9,  "model_9.sfb");
-        modelsMap.put(10, "model_10.sfb");
+        SpriteManager.addModels(modelsMap);
 
         // R * 2 swipes
         // R * 1.5 + 4 seconds
@@ -206,11 +191,6 @@ public class ARActivity extends AppCompatActivity {
         Scene arScene = arFragment.getArSceneView().getScene();
         arScene.addOnUpdateListener(this::onSceneUpdate);
         arScene.setOnTouchListener(this::onSceneTouch);
-
-        // TODO: Uncomment to remove icon of a hand with device
-        // arFragment.getPlaneDiscoveryController().hide();
-        // arFragment.getPlaneDiscoveryController().setInstructionView(null);
-
         createSnackbar();
     }
 
