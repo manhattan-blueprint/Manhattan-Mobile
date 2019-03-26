@@ -212,6 +212,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
         mapView.onResume();
         updateBackpack();
+        mediaPlayer.setVolume(0,0);
         mediaPlayer.start();
         mediaUtils.fadeIn();
     }
