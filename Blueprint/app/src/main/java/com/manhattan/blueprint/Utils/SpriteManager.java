@@ -76,7 +76,8 @@ public class SpriteManager {
         }
     }
 
-    public static void addModels(HashMap<Integer, String> modelsMap) {
+    public static HashMap<Integer, String> addModels() {
+        HashMap<Integer, String> modelsMap = new HashMap<>();
         modelsMap.put(1,  "model_1.sfb");
         modelsMap.put(2,  "model_2.sfb");
         modelsMap.put(3,  "model_3.sfb");
@@ -87,5 +88,6 @@ public class SpriteManager {
         modelsMap.put(8,  "model_8.sfb");
         modelsMap.put(9,  "model_9.sfb");
         modelsMap.put(10, "model_10.sfb");
+        return modelsMap;
     }
 }

@@ -1,5 +1,20 @@
 package com.manhattan.blueprint.Controller;
 
+import android.Manifest;
+import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
+import android.os.CountDownTimer;
+import android.os.Handler;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import com.google.ar.core.Frame;
 import com.google.ar.core.TrackingState;
 import com.google.ar.sceneform.HitTestResult;
@@ -7,31 +22,6 @@ import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
-import android.Manifest;
-
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
-import android.net.Uri;
-import android.os.CountDownTimer;
-import android.os.Handler;
-
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.view.Gravity;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.ProgressBar;
-import android.widget.SeekBar;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Plane;
@@ -41,6 +31,7 @@ import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
+
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.Inventory;
@@ -68,7 +59,7 @@ public class ARActivity extends AppCompatActivity {
 
     private boolean userRequestedARInstall = false;
     private ModelRenderable resourceModel;
-    private HashMap<Integer, String> modelsMap = new HashMap<>();
+    private HashMap<Integer, String> modelsMap;
     private Resource resourceToCollect;
     private AnchorNode anchorNode;
     private Anchor anchor;
@@ -88,7 +79,7 @@ public class ARActivity extends AppCompatActivity {
     private float currX, currY = 0; // current  coords
     private float rotation;
     private int maxAngleError = 42;
-    private float minDistance = 0.70f;
+    private float minDistance = 0.65f;
     private long countdown; // seconds
     private boolean swipeFailed = true;
     private boolean minigameReady = true;
@@ -139,17 +130,17 @@ public class ARActivity extends AppCompatActivity {
         itemWasPlaced = false;
         planeWasDetected = false;
 
-        SpriteManager.addModels(modelsMap);
+        modelsMap = SpriteManager.addModels();
 
         // R * 2 swipes
-        // R * 1.5 + 4 seconds
+        // R * 1.7 + 4 seconds
         swipesToCollect = resourceToCollect.getQuantity() * 2;
-        countdown = (int) (4 + resourceToCollect.getQuantity() * 1.5);
+        countdown = (int) (4 + resourceToCollect.getQuantity() * 1.7);
         countdownIndicator.setText(String.format("%.1f s", (float) countdown));
         progressBar = findViewById(R.id.ProgressBar);
         progressBar.bringToFront();
         progressBar.setMax(swipesToCollect);
-        progressBar.setTickCount(swipesToCollect + 1);
+        progressBar.setTickCount((swipesToCollect / 2) + 1);
     }
 
     @Override
@@ -197,8 +188,9 @@ public class ARActivity extends AppCompatActivity {
     public void onSceneUpdate(FrameTime frameTime) {
         arFragment.onUpdate(frameTime);
         Frame frame = arFragment.getArSceneView().getArFrame();
+        getCorners();
 
-        if (anchorNode != null && minigameReady) {
+        if (anchorNode != null && minigameReady && !gameOver) {
             Vector3 worldPosition = anchorNode.getWorldPosition();
             Vector3 screenPosition = arFragment.getArSceneView().getScene().getCamera().worldToScreenPoint(worldPosition);
             if (ArMathUtils.outOfBounds(new int[]{(int) screenPosition.x, (int) screenPosition.y},
@@ -208,7 +200,7 @@ public class ARActivity extends AppCompatActivity {
                 setSnackbar(getString(R.string.resource_out_of_view_failed));
                 boxView.setVisibility(View.INVISIBLE);
                 adjustIndicator.setVisibility(View.VISIBLE);
-            } else if (boxView.getVisibility() == View.INVISIBLE){
+            } else if (boxView.getVisibility() == View.INVISIBLE) {
                 boxView.setVisibility(View.VISIBLE);
                 adjustIndicator.setVisibility(View.INVISIBLE);
                 setSnackbar(getString(R.string.resource_visible_again));
@@ -290,7 +282,21 @@ public class ARActivity extends AppCompatActivity {
     private void finishMinigame(boolean collectedAll) {
         gameOver = true;
         countDownTimer.cancel();
+        boxView.setVisibility(View.INVISIBLE);
         int quantity = progressBar.getProgress() / 2;
+        if (quantity == 0) {
+            countdownIndicator.setText("0.0 s");
+            countdownIndicator.setTextColor(getResources().getColor(R.color.red));
+            final Handler handler = new Handler();
+            handler.postDelayed(() -> {
+                setSnackbar(getString(R.string.minigame_collected_none));
+                Toast.makeText(ARActivity.this,
+                        getResources().getString(R.string.collection_failure_title),
+                        Toast.LENGTH_LONG).show();
+                finish();
+            }, 2000);
+            return;
+        }
         InventoryItem itemCollected = new InventoryItem(resourceToCollect.getId(), quantity);
         BlueprintAPI api = new BlueprintAPI(this);
         Inventory inventoryToAdd = new Inventory(new ArrayList<>(Collections.singletonList(itemCollected)));
@@ -318,24 +324,11 @@ public class ARActivity extends AppCompatActivity {
 
             @Override
             public void failure(int code, String error) {
-                if (quantity == 0) {
-                    countdownIndicator.setText("0.0 s");
-                    countdownIndicator.setTextColor(getResources().getColor(R.color.red));
-                    final Handler handler = new Handler();
-                    handler.postDelayed(() -> {
-                        setSnackbar(getString(R.string.minigame_collected_none));
-                        Toast.makeText(ARActivity.this,
-                                getResources().getString(R.string.collection_failure_title),
-                                Toast.LENGTH_LONG).show();
+                ViewUtils.createDialog(ARActivity.this, getString(R.string.collection_failure_title), error,
+                        (dialog, which) -> {
+                        dialog.dismiss();
                         finish();
-                    }, 1500);
-                } else {
-                    ViewUtils.createDialog(ARActivity.this, getString(R.string.collection_failure_title), error,
-                            (dialog, which) -> {
-                                dialog.dismiss();
-                                finish();
-                            });
-                }
+                });
             }
         });
     }
