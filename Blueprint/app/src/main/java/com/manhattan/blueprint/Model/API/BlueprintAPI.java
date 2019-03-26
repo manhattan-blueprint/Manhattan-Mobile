@@ -87,6 +87,8 @@ public final class BlueprintAPI {
                 builder.header("Authorization", "Bearer " + token.getAccessToken())
             );
 
+            builder.addHeader("Connection", "close");
+
             return chain.proceed(builder.build());
         });
 
