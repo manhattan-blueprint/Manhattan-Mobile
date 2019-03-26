@@ -51,6 +51,9 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.microsoft.appcenter.AppCenter;
+import com.microsoft.appcenter.analytics.Analytics;
+import com.microsoft.appcenter.crashes.Crashes;
 
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
@@ -120,6 +123,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Mapbox.getInstance(this, BuildConfig.MapboxAPIKey);
+        AppCenter.start(getApplication(), BuildConfig.AppCenterKey, Analytics.class, Crashes.class);
         setContentView(R.layout.activity_map_view);
 
         menuButton = findViewById(R.id.menuButton);
