@@ -169,7 +169,7 @@ public class OnboardingActivity extends FragmentActivity {
                 return;
             }
 
-            loginFragment.showSpinner();
+            loginFragment.setEnabled(this, false);
             api.login(new UserCredentials(usernameText, passwordText), new APICallback<AccountType>() {
                 @Override
                 public void success(AccountType response) {
@@ -190,7 +190,7 @@ public class OnboardingActivity extends FragmentActivity {
                     failedLoginDlg.setCancelable(true);
                     failedLoginDlg.setPositiveButton(R.string.positive_response, (dialog, which) -> dialog.dismiss());
                     failedLoginDlg.create().show();
-                    loginFragment.hideSpinner();
+                    loginFragment.setEnabled(OnboardingActivity.this, true);
                 }
             });
         };
