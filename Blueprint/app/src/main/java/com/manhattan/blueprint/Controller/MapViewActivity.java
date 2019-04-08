@@ -328,8 +328,14 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 if (currentLocationMarker != null) {
                     currentLocationMarker.remove();
                 }
-                int manMarker = inDeveloperMode ? R.drawable.will : R.drawable.man;
-                Icon icon = IconFactory.getInstance(MapViewActivity.this).fromResource(manMarker);
+
+                Icon icon;
+                if (inDeveloperMode) {
+                    icon = IconFactory.getInstance(MapViewActivity.this).fromResource(R.drawable.will);
+                } else {
+                    icon = IconFactory.getInstance(MapViewActivity.this).fromBitmap(
+                            SpriteManager.getInstance(MapViewActivity.this).fetchPlayerSprite());
+                }
                 MarkerOptions options = new MarkerOptions().setIcon(icon).position(currentLocation);
 
                 currentLocationMarker = mapboxMap.addMarker(options);

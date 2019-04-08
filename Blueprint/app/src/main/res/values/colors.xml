@@ -12,6 +12,9 @@
     <color name="colorPrimaryDark">#3949ab</color>
     <color name="colorAccent">#00227b</color>
 
+    <color name="onboardingVideoTint">#7A3477A8</color>
+    <color name="mapBlur">#99050517</color>
+
     <color name="minigame_outline_fail">#BAFF0000</color>
     <color name="minigame_outline_success">#BA00FF00</color>
     <color name="minigame_outline_neutral">#BFFFFFFF</color>
