@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="match_parent"
     android:layout_width="match_parent">
 
-    <SurfaceView
-        android:id="@+id/surface"
+    <com.manhattan.blueprint.View.FullscreenVideoView
+        android:id="@+id/video_view"
         android:layout_width="match_parent"
         android:layout_gravity="center_vertical"
         android:layout_height="match_parent" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/onboarding_video_tint"
+        />
 
     <com.manhattan.blueprint.View.ControlledViewPager
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -17,6 +23,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-</FrameLayout>
+</RelativeLayout>
 
 

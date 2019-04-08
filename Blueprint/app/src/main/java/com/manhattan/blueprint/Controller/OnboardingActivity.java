@@ -20,6 +20,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
@@ -29,11 +30,12 @@ import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.UserCredentials;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.View.ControlledViewPager;
+import com.manhattan.blueprint.View.FullscreenVideoView;
 import com.manhattan.blueprint.View.LoginFragment;
 import com.manhattan.blueprint.View.PermissionFragment;
 import com.manhattan.blueprint.View.WelcomeFragment;
 
-public class OnboardingActivity extends FragmentActivity implements SurfaceHolder.Callback {
+public class OnboardingActivity extends FragmentActivity {
     private static final int PAGE_COUNT = 4;
     // PageIDs
     private static final int WELCOME = 0;
@@ -43,8 +45,7 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
 
     private final int maxUsernameLength = 16;
     private final int maxPasswordLength = 16;
-    private MediaPlayer player;
-    private SurfaceView surface;
+    private FullscreenVideoView videoView;
     private ControlledViewPager pager;
     private PermissionManager locationPermissionManager;
     private PermissionManager cameraPermissionManager;
@@ -61,47 +62,21 @@ public class OnboardingActivity extends FragmentActivity implements SurfaceHolde
         pager.setAdapter(new ScreenSlidePagerAdapter(getSupportFragmentManager()));
         api = new BlueprintAPI(this);
 
-        surface = findViewById(R.id.surface);
-        surface.getHolder().addCallback(this);
+        videoView = findViewById(R.id.video_view);
+        String videoPath = "android.resource://" + getPackageName() + "/" + R.raw.hex;
+        videoView.setVideoPath(videoPath);
+        videoView.setVideoSize(1630, 916);
+        videoView.start();
+        videoView.setOnPreparedListener(mp -> {
+            mp.setLooping(true);
+            mp.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+        });
 
         locationPermissionManager = new PermissionManager(LOCATION_PERMISSION, Manifest.permission.ACCESS_FINE_LOCATION);
         cameraPermissionManager = new PermissionManager(CAMERA_PERMISSION, Manifest.permission.CAMERA);
     }
 
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        String videoPath = "android.resource://" + getPackageName() + "/" + R.raw.hex;
-        try {
-            // Player must be class variable to prevent GC removing
-            player = new MediaPlayer();
-            player.setDisplay(holder);
-            player.setDataSource(this, Uri.parse(videoPath));
-            player.prepare();
-            player.setLooping(true);
-            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            player.setOnPreparedListener(mp -> player.start());
-            player.setOnVideoSizeChangedListener((mp, width, height) -> {
-                DisplayMetrics metrics = this.getResources().getDisplayMetrics();
-                int surfaceWidth = metrics.widthPixels;
-                int surfaceHeight = metrics.heightPixels;
-                float heightRatio = surfaceHeight / (float) height;
-                surface.getLayoutParams().width = (int) (surfaceWidth * heightRatio);
-                surface.requestLayout();
-            });
-        } catch(Exception e){
-            e.printStackTrace();
-        }
-    }
 
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-
-    }
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
         public ScreenSlidePagerAdapter(FragmentManager fm) {
