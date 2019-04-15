@@ -1,9 +1,13 @@
 package com.manhattan.blueprint.View;
 
+import android.content.Context;
+import android.content.res.Resources;
+import android.content.res.Resources.Theme;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +17,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.manhattan.blueprint.R;
+import com.manhattan.blueprint.Utils.ViewUtils;
 
 public class LoginFragment extends Fragment {
 
@@ -31,8 +36,6 @@ public class LoginFragment extends Fragment {
         passwordInput = fragment.findViewById(R.id.passwordInput);
         progressBar = fragment.findViewById(R.id.progressBar);
         loginButton.setOnClickListener(onLoginClickListener);
-
-        hideSpinner();
 
         return fragment;
     }
@@ -57,13 +60,20 @@ public class LoginFragment extends Fragment {
         passwordInput.setError(description);
     }
 
-    public void showSpinner() {
-        progressBar.setAlpha(1);
-        loginButton.setAlpha(0);
-    }
-
-    public void hideSpinner() {
-        progressBar.setAlpha(0);
-        loginButton.setAlpha(1);
+    public void setEnabled(Context context, boolean enabled) {
+        if (enabled) {
+            usernameInput.setBackground(getResources().getDrawable(R.drawable.onboarding_edittext));
+            passwordInput.setBackground(getResources().getDrawable(R.drawable.onboarding_edittext));
+            progressBar.setAlpha(0);
+            loginButton.setAlpha(1);
+        } else {
+            usernameInput.setBackground(getResources().getDrawable(R.drawable.onboarding_edittext_disabled));
+            passwordInput.setBackground(getResources().getDrawable(R.drawable.onboarding_edittext_disabled));
+            progressBar.setAlpha(1);
+            loginButton.setAlpha(0);
+        }
+        usernameInput.setPadding((int) ViewUtils.dpToPx(context, 20), 0, 0, 0);
+        passwordInput.setPadding((int) ViewUtils.dpToPx(context, 20), 0, 0, 0);
+        progressBar.setEnabled(!enabled);
     }
 }
