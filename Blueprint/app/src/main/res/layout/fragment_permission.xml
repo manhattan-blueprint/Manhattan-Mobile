@@ -72,7 +72,7 @@
         android:layout_height="40dp"
         android:layout_marginStart="32dp"
         android:layout_marginTop="40dp"
-        android:background="@drawable/onboarding_button"
+        android:background="@drawable/onboarding_button_standard"
         android:elevation="0dp"
         android:text="Give Permission"
         android:textColor="@android:color/white"

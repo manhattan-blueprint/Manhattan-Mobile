@@ -31,6 +31,8 @@
     <color name="timer_background">#70000000</color>
     <color name="adjust_color">#BBf5f5f5</color>
 
+    <color name="onboarding_video_tint">#7A3477A8</color>
+
     <color name="white">#FFFFFF</color>
     <color name="ivory">#FFFFF0</color>
     <color name="light_yellow">#FFFFE0</color>
