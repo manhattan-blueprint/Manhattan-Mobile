@@ -17,8 +17,9 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="0dp"
         android:foregroundGravity="top"
-        android:paddingBottom="25dp"
-        android:src="@drawable/sprite_default"
+        android:paddingTop="5dp"
+        android:paddingBottom="0dp"
+        android:src="@drawable/sprite_1"
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
         android:scaleType="fitCenter"/>
