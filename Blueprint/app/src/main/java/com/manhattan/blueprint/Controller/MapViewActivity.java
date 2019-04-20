@@ -154,15 +154,12 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             updateBackpack();
         });
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         loginManager = new LoginManager(this);
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         // If haven't logged in yet, or have revoked location, redirect
         PermissionManager locationManager = new PermissionManager(0, Manifest.permission.ACCESS_FINE_LOCATION);
-        if (!loginManager.isLoggedIn()) {
-            toOnboarding();
-            return;
-        } else if (!locationManager.hasPermission(this)) {
+        if (!locationManager.hasPermission(this)) {
             ViewUtils.showError(this,
                     getString(R.string.permission_location_title),
                     getString(R.string.permission_location_description),
@@ -215,10 +212,18 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             displayLocationServicesRequest();
         }
 
-        markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
-        mapView.onResume();
+        if (markerResourceMap != null) {
+            markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
+        }
+
+        if (mapView != null) {
+            mapView.onResume();
+        }
         isPlayingMinigame = false;
+
         updateBackpack();
+
+        if (mediaPlayer == null) return;
         mediaPlayer.setVolume(0,0);
         mediaPlayer.start();
         mediaUtils.fadeIn();
@@ -233,6 +238,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     private void updateBackpack(){
         // Reload inventory
+        if (blueprintAPI == null) return;
         blueprintAPI.makeRequest(blueprintAPI.inventoryService.fetchInventory(), new APICallback<Inventory>() {
             @Override
             public void success(Inventory response) {
@@ -328,8 +334,14 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 if (currentLocationMarker != null) {
                     currentLocationMarker.remove();
                 }
-                int manMarker = inDeveloperMode ? R.drawable.will : R.drawable.man;
-                Icon icon = IconFactory.getInstance(MapViewActivity.this).fromResource(manMarker);
+
+                Icon icon;
+                if (inDeveloperMode) {
+                    icon = IconFactory.getInstance(MapViewActivity.this).fromResource(R.drawable.will);
+                } else {
+                    icon = IconFactory.getInstance(MapViewActivity.this).fromBitmap(
+                            SpriteManager.getInstance(MapViewActivity.this).fetchPlayerSprite());
+                }
                 MarkerOptions options = new MarkerOptions().setIcon(icon).position(currentLocation);
 
                 currentLocationMarker = mapboxMap.addMarker(options);
