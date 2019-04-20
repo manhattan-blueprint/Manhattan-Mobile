@@ -212,10 +212,18 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             displayLocationServicesRequest();
         }
 
-        markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
-        mapView.onResume();
+        if (markerResourceMap != null) {
+            markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
+        }
+
+        if (mapView != null) {
+            mapView.onResume();
+        }
         isPlayingMinigame = false;
+
         updateBackpack();
+
+        if (mediaPlayer == null) return;
         mediaPlayer.setVolume(0,0);
         mediaPlayer.start();
         mediaUtils.fadeIn();
