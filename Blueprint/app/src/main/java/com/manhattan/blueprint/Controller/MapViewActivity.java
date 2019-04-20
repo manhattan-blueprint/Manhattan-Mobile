@@ -154,15 +154,12 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             updateBackpack();
         });
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         loginManager = new LoginManager(this);
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         // If haven't logged in yet, or have revoked location, redirect
         PermissionManager locationManager = new PermissionManager(0, Manifest.permission.ACCESS_FINE_LOCATION);
-        if (!loginManager.isLoggedIn()) {
-            toOnboarding();
-            return;
-        } else if (!locationManager.hasPermission(this)) {
+        if (!locationManager.hasPermission(this)) {
             ViewUtils.showError(this,
                     getString(R.string.permission_location_title),
                     getString(R.string.permission_location_description),
@@ -233,6 +230,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     private void updateBackpack(){
         // Reload inventory
+        if (blueprintAPI == null) return;
         blueprintAPI.makeRequest(blueprintAPI.inventoryService.fetchInventory(), new APICallback<Inventory>() {
             @Override
             public void success(Inventory response) {
