@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Blueprint</string>
 
-    <string name="player_map_style">mapbox://styles/jaylees/cjsxc8y8c06n51flb57kt7zd7</string>
+    <string name="player_map_style">mapbox://styles/jaylees/cju87jbk105ne1fqny4tx3vxm</string>
     <string name="developer_map_style">mapbox://styles/jaylees/cjsxcoe9w2ach1fqttxml1wm1</string>
 
     <string name="permission_location_title">Location</string>

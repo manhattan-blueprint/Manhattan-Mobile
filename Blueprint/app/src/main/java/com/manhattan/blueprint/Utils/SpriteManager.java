@@ -3,6 +3,8 @@ package com.manhattan.blueprint.Utils;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.manhattan.blueprint.Model.DAO.Maybe;
@@ -16,6 +18,7 @@ public class SpriteManager {
     private static SpriteManager instance;
     private Bitmap defaultSprite;
     private Bitmap defaultScaledSprite;
+    private Bitmap playerSprite;
     private int scaledSpriteSize = 150;
     private HashMap<Integer, Bitmap> spriteMap;
     private HashMap<Integer, Bitmap> mapSpriteMap;
@@ -24,6 +27,7 @@ public class SpriteManager {
         spriteMap = new HashMap<>();
         mapSpriteMap = new HashMap<>();
         defaultSprite = BitmapFactory.decodeResource(context.getResources(), R.drawable.sprite_default);
+        playerSprite = BitmapFactory.decodeResource(context.getResources(), R.drawable.man);
         defaultScaledSprite = Bitmap.createScaledBitmap(defaultSprite, scaledSpriteSize, scaledSpriteSize, false);
 
         // Scale to 1/4 of the size
@@ -59,12 +63,17 @@ public class SpriteManager {
 
     // Map Sprites could be different, and need to be scaled
     public Bitmap fetchMapSprite(int itemID) {
+        // Double height since sprite is only in upper half of image
         if (mapSpriteMap.containsKey(itemID)) {
-            return Bitmap.createScaledBitmap(mapSpriteMap.get(itemID), scaledSpriteSize, scaledSpriteSize, false);
+            return Bitmap.createScaledBitmap(mapSpriteMap.get(itemID), scaledSpriteSize, scaledSpriteSize*2, false);
         } else if (spriteMap.containsKey(itemID)) {
-            return Bitmap.createScaledBitmap(spriteMap.get(itemID), scaledSpriteSize, scaledSpriteSize, false);
+            return Bitmap.createScaledBitmap(spriteMap.get(itemID), scaledSpriteSize, scaledSpriteSize*2, false);
         }
         return defaultScaledSprite;
+    }
+
+    public Bitmap fetchPlayerSprite() {
+        return Bitmap.createScaledBitmap(playerSprite, 100, 386, false);
     }
 
     private static Maybe<Integer> getResourceID(Context context, String resName) {

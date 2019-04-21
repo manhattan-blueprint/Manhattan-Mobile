@@ -5,9 +5,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.CAMERA" />
-
-    <!-- Ensures app is only visible in the Google Play Store on devices that support ARCore -->
+    <uses-permission android:name="android.permission.CAMERA" /> <!-- Ensures app is only visible in the Google Play Store on devices that support ARCore -->
     <uses-feature android:name="android.hardware.camera.ar" />
 
     <application
@@ -18,17 +16,24 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".Controller.MapViewActivity" android:screenOrientation="portrait">
+        <activity android:name=".Controller.EntryActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
-        <activity android:name=".Controller.OnboardingActivity" android:screenOrientation="portrait" />
-        <activity android:name=".Controller.ARActivity" android:screenOrientation="portrait" />
-        <activity android:name=".Controller.SettingsActivity" android:screenOrientation="portrait" />
+        <activity
+            android:name=".Controller.MapViewActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Controller.OnboardingActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Controller.ARActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Controller.SettingsActivity"
+            android:screenOrientation="portrait" />
 
         <meta-data
             android:name="com.google.ar.core"
@@ -36,8 +41,7 @@
 
         <uses-library
             android:name="org.apache.http.legacy"
-            android:required="false"/>
-
+            android:required="false" />
     </application>
 
 </manifest>

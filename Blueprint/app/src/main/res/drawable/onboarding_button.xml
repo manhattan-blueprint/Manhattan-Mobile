@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:state_focused="true"
+        android:state_pressed="true"
+        android:drawable="@drawable/onboarding_button_tapped" />
 
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <corners android:radius="8dp" />
-    <padding android:left="1dp" android:right="1dp" android:top="1dp" android:bottom="1dp"/>
-    <solid android:color="@color/brandPrimaryDark"/>
-</shape>
+    <item
+        android:state_focused="false"
+        android:state_pressed="true"
+        android:drawable="@drawable/onboarding_button_tapped" />
+
+    <item android:drawable="@drawable/onboarding_button_standard" />
+</selector>
