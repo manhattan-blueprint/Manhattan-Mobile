@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
@@ -40,8 +41,10 @@ import com.manhattan.blueprint.View.BackpackView;
 import com.manhattan.blueprint.View.MapGestureListener;
 import com.mapbox.android.gestures.AndroidGesturesManager;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.BubbleLayout;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.mapbox.mapboxsdk.annotations.InfoWindow;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -53,8 +56,13 @@ import com.microsoft.appcenter.AppCenter;
 import com.microsoft.appcenter.analytics.Analytics;
 import com.microsoft.appcenter.crashes.Crashes;
 
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.graphics.drawable.DrawerArrowDrawable;
+import android.support.v7.widget.AppCompatTextView;
 import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnticipateInterpolator;
@@ -65,6 +73,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -335,13 +346,10 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     currentLocationMarker.remove();
                 }
 
-                Icon icon;
-                if (inDeveloperMode) {
-                    icon = IconFactory.getInstance(MapViewActivity.this).fromResource(R.drawable.will);
-                } else {
-                    icon = IconFactory.getInstance(MapViewActivity.this).fromBitmap(
-                            SpriteManager.getInstance(MapViewActivity.this).fetchPlayerSprite());
-                }
+                Icon icon = inDeveloperMode
+                          ? IconFactory.getInstance(MapViewActivity.this).fromResource(R.drawable.will)
+                          : IconFactory.getInstance(MapViewActivity.this).fromBitmap(
+                                SpriteManager.getInstance(MapViewActivity.this).fetchPlayerSprite());
                 MarkerOptions options = new MarkerOptions().setIcon(icon).position(currentLocation);
 
                 currentLocationMarker = mapboxMap.addMarker(options);
@@ -395,17 +403,55 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 });
     }
 
+    private ArrayList<View> getAllChildren(View v) {
+
+        if (!(v instanceof ViewGroup)) {
+            ArrayList<View> viewArrayList = new ArrayList<>();
+            viewArrayList.add(v);
+            return viewArrayList;
+        }
+
+        ArrayList<View> result = new ArrayList<>();
+
+        ViewGroup vg = (ViewGroup) v;
+        for (int i = 0; i < vg.getChildCount(); i++) {
+
+            View child = vg.getChildAt(i);
+
+            ArrayList<View> viewArrayList = new ArrayList<>();
+            viewArrayList.add(v);
+            viewArrayList.addAll(getAllChildren(child));
+
+            result.addAll(viewArrayList);
+        }
+        return result;
+    }
+
+
     // region OnMarkerClickListener
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
-        if (isPlayingMinigame) {
+        if (isPlayingMinigame || marker.equals(currentLocationMarker)) {
             return false;
         }
-        if (marker.equals(currentLocationMarker)) return false;
         markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
 
         Resource resource = markerResourceMap.get(marker);
-        marker.showInfoWindow(mapboxMap, mapView);
+        InfoWindow infoWindow = marker.showInfoWindow(mapboxMap, mapView);
+        getAllChildren(infoWindow.getView()).forEach(x -> {
+            if (x instanceof BubbleLayout) {
+                BubbleLayout layout = (BubbleLayout) x;
+                layout.setCornersRadius(100);
+                layout.setStrokeColor(getColor(R.color.white));
+                layout.setBubbleColor(getColor(R.color.brandPrimaryDark));
+                layout.setStrokeWidth(10);
+            } else if (x instanceof AppCompatTextView) {
+                AppCompatTextView text = (AppCompatTextView) x;
+                text.setTypeface(ResourcesCompat.getFont(this, R.font.helveticaneue_medium));
+                text.setTextColor(getColor(R.color.white));
+            }
+        });
+        infoWindow.update();
 
         // Developers delete instead of AR
         if (inDeveloperMode) {
