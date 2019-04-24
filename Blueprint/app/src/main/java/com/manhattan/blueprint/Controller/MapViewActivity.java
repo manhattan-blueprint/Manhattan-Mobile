@@ -694,7 +694,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         menuState = MenuState.BACKPACK;
 
         // Move backpack to center
-        viewGroup.bringChildToFront(backpackButton);
         backpackButton.animate()
                 .x(viewGroup.getWidth() / 2 - backpackButton.getWidth() / 2)
                 .y(viewGroup.getHeight() / 2 - backpackButton.getHeight() / 2)
@@ -709,7 +708,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Spawn cells
         backpackView.animate(550);
-
     };
 
     private View.OnClickListener blueprintButtonClickListener = v -> {

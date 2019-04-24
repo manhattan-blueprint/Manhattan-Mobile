@@ -3,8 +3,11 @@ package com.manhattan.blueprint.View;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Handler;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnticipateInterpolator;
@@ -15,9 +18,14 @@ import android.widget.TextView;
 
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.InventoryItem;
+import com.manhattan.blueprint.Model.ItemSchema;
+import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.SpriteManager;
 import com.manhattan.blueprint.Utils.ViewUtils;
+import com.mapbox.mapboxsdk.annotations.BubbleLayout;
+import com.mapbox.mapboxsdk.log.Logger;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +44,7 @@ public class BackpackView {
 
     private ArrayList<AnimatableLayout> layerOne;
     private ArrayList<AnimatableLayout> layerTwo;
+    private ArrayList<View> popups;
 
     public BackpackView(Context context, ViewGroup viewGroup){
         // 1.13 for the perfect hexagon ratio 👌
@@ -45,22 +54,23 @@ public class BackpackView {
         this.centerY = viewGroup.getHeight() / 2 - cellHeight / 2;
         this.context = context;
         this.bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.sprite_default);
+        this.popups = new ArrayList<>();
 
         // First layer
-        AnimatableLayout layerOneLeft = createHex(centerX - (cellWidth * (1 + padding)), centerY);
-        AnimatableLayout layerOneRight = createHex(centerX + (cellWidth * (1 + padding)), centerY);
-        AnimatableLayout layerOneTopLeft = createHex(centerX - (cellWidth * (1 + padding) / 2), centerY - cellWidth);
-        AnimatableLayout layerOneTopRight = createHex(centerX + (cellWidth * (1 + padding) / 2), centerY - cellWidth);
-        AnimatableLayout layerOneBottomLeft = createHex(centerX - (cellWidth * (1 + padding) / 2), centerY + cellWidth);
-        AnimatableLayout layerOneBottomRight = createHex(centerX + (cellWidth * (1 + padding) / 2), centerY + cellWidth);
+        AnimatableLayout layerOneLeft = createHex(viewGroup, centerX - (cellWidth * (1 + padding)), centerY);
+        AnimatableLayout layerOneRight = createHex(viewGroup, centerX + (cellWidth * (1 + padding)), centerY);
+        AnimatableLayout layerOneTopLeft = createHex(viewGroup, centerX - (cellWidth * (1 + padding) / 2), centerY - cellWidth);
+        AnimatableLayout layerOneTopRight = createHex(viewGroup, centerX + (cellWidth * (1 + padding) / 2), centerY - cellWidth);
+        AnimatableLayout layerOneBottomLeft = createHex(viewGroup, centerX - (cellWidth * (1 + padding) / 2), centerY + cellWidth);
+        AnimatableLayout layerOneBottomRight = createHex(viewGroup, centerX + (cellWidth * (1 + padding) / 2), centerY + cellWidth);
 
         // Second Layer
-        AnimatableLayout layerTwoTop = createHex(centerX, centerY - (2 * cellWidth));
-        AnimatableLayout layerTwoBottom = createHex(centerX, centerY + (2 * cellWidth));
-        AnimatableLayout layerTwoTopLeft = createHex(centerX - 1.5f * (cellWidth * (1 + padding)), centerY - cellWidth);
-        AnimatableLayout layerTwoTopRight = createHex(centerX + 1.5f * (cellWidth * (1 + padding)), centerY - cellWidth);
-        AnimatableLayout layerTwoBottomLeft = createHex(centerX - 1.5f * (cellWidth * (1 + padding)), centerY + cellWidth);
-        AnimatableLayout layerTwoBottomRight = createHex(centerX + 1.5f * (cellWidth * (1 + padding)), centerY + cellWidth);
+        AnimatableLayout layerTwoTop = createHex(viewGroup, centerX, centerY - (2 * cellWidth));
+        AnimatableLayout layerTwoBottom = createHex(viewGroup, centerX, centerY + (2 * cellWidth));
+        AnimatableLayout layerTwoTopLeft = createHex(viewGroup, centerX - 1.5f * (cellWidth * (1 + padding)), centerY - cellWidth);
+        AnimatableLayout layerTwoTopRight = createHex(viewGroup, centerX + 1.5f * (cellWidth * (1 + padding)), centerY - cellWidth);
+        AnimatableLayout layerTwoBottomLeft = createHex(viewGroup, centerX - 1.5f * (cellWidth * (1 + padding)), centerY + cellWidth);
+        AnimatableLayout layerTwoBottomRight = createHex(viewGroup, centerX + 1.5f * (cellWidth * (1 + padding)), centerY + cellWidth);
 
         // Layer in order we want to animate
         layerOne = new ArrayList<>(Arrays.asList(
@@ -73,17 +83,19 @@ public class BackpackView {
 
         layerOne.forEach(viewGroup::addView);
         layerTwo.forEach(viewGroup::addView);
+        viewGroup.setClipChildren(false);
     }
 
 
-    private AnimatableLayout createHex(float x, float y){
+    private AnimatableLayout createHex(ViewGroup viewGroup, float x, float y){
         LayoutInflater inflater = LayoutInflater.from(context);
-        AnimatableLayout view = (AnimatableLayout) inflater.inflate(R.layout.inventory_item, null);
+        AnimatableLayout view = (AnimatableLayout) inflater.inflate(R.layout.inventory_item, viewGroup, false);
         view.setDestination(x, y);
         view.setLayoutParams(new LinearLayout.LayoutParams((int) cellWidth, (int) cellHeight));
         view.setX(centerX);
         view.setY(centerY);
         view.setAlpha(0);
+        view.setClickable(true);
         view.requestLayout();
         return view;
     }
@@ -118,6 +130,19 @@ public class BackpackView {
                 .setInterpolator(new LinearInterpolator())
                 .setStartDelay((long) (delay + (i + layerOne.size()) * (duration * overlap)));
         }
+
+        new Handler().postDelayed(() -> {
+            Log.d("INVENTORY", "Bringing to front");
+            layerOne.forEach(x -> {
+                x.getParent().bringChildToFront(x);
+                x.getParent().requestLayout();
+            });
+
+            layerTwo.forEach(x -> {
+                x.getParent().bringChildToFront(x);
+                x.getParent().requestLayout();
+            });
+        }, (long) (delay + (layerOne.size() + layerTwo.size()) * (duration * overlap)));
     }
 
     public void update(Inventory inventory) {
@@ -156,7 +181,23 @@ public class BackpackView {
                 TextView quantityText = layout.findViewById(R.id.inventory_item_quantity);
                 ImageView imageView = layout.findViewById(R.id.inventory_item_image);
                 quantityText.post(() -> quantityText.setText(String.valueOf(item.getQuantity())));
-                imageView.post(() -> imageView.setImageBitmap(SpriteManager.getInstance(context).fetch(item.getId())));
+                imageView.post(() -> {
+                    imageView.setImageBitmap(SpriteManager.getInstance(context).fetch(item.getId()));
+                    imageView.setOnClickListener(v -> {
+
+                        String name = ItemManager.getInstance(context).getName(item.getId()).withDefault("Item");
+                        View popup = LayoutInflater.from(context).inflate(R.layout.inventory_item_popup, layout, false);
+                        ((TextView)popup.findViewById(R.id.inventory_item_popup_title)).setText(name);
+                        popup.setY(-50);
+
+                        popups.forEach(p -> ((ViewGroup)p.getParent()).removeView(p));
+                        popups.clear();
+                        popups.add(popup);
+
+                        layout.addView(popup);
+                        layout.bringToFront();
+                    });
+                });
             }
 
         }).start();
@@ -168,6 +209,9 @@ public class BackpackView {
     }
 
     public void hide(long duration) {
+        popups.forEach(p -> ((ViewGroup)p.getParent()).removeView(p));
+        popups.clear();
+
         layerOne.forEach( v -> {
             v.animate()
                     .x(centerX)
