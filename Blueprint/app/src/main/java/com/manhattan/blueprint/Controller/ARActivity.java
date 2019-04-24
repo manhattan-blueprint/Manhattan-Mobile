@@ -197,13 +197,11 @@ public class ARActivity extends AppCompatActivity {
                                         topLeft, topRight, bottomLeft, bottomRight,
                                         boxView.getWidth(), boxView.getHeight())) {
                 swipeFailed = true;
-                setSnackbar(getString(R.string.resource_out_of_view_failed));
                 boxView.setVisibility(View.INVISIBLE);
                 adjustIndicator.setVisibility(View.VISIBLE);
             } else if (boxView.getVisibility() == View.INVISIBLE) {
                 boxView.setVisibility(View.VISIBLE);
                 adjustIndicator.setVisibility(View.INVISIBLE);
-                setSnackbar(getString(R.string.resource_visible_again));
             }
         }
 
@@ -230,13 +228,9 @@ public class ARActivity extends AppCompatActivity {
                 // Remove plane renderer
                 arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
                 arSnackbarMessage.setText(getString(R.string.resource_collection_instruction));
+                boxView.bringToFront();
                 itemWasPlaced = true;
             }
-
-            arSnackbarMessage.setText(getString(R.string.resource_collection_instruction));
-            boxView.bringToFront();
-            planeWasDetected = true;
-            break;
         }
     }
 
@@ -269,7 +263,6 @@ public class ARActivity extends AppCompatActivity {
     }
 
     private void onSuccessfulSwipe() {
-        setSnackbar(getResources().getString(R.string.successful_swipe));
         int progress = progressBar.getProgress() + 1;
         progressBar.setProgress(progress);
 
@@ -289,9 +282,8 @@ public class ARActivity extends AppCompatActivity {
             countdownIndicator.setTextColor(getResources().getColor(R.color.red));
             final Handler handler = new Handler();
             handler.postDelayed(() -> {
-                setSnackbar(getString(R.string.minigame_collected_none));
                 Toast.makeText(ARActivity.this,
-                        getResources().getString(R.string.collection_failure_title),
+                        getString(R.string.minigame_collected_none),
                         Toast.LENGTH_LONG).show();
                 finish();
             }, 2000);
@@ -306,11 +298,9 @@ public class ARActivity extends AppCompatActivity {
             public void success(Void response) {
                 if (collectedAll) {
                     countdownIndicator.setTextColor(getResources().getColor(R.color.green));
-                    setSnackbar(getString(R.string.minigame_collected_all));
                 } else {
                     countdownIndicator.setText("0.0 s");
                     countdownIndicator.setTextColor(getResources().getColor(R.color.red));
-                    setSnackbar(getString(R.string.minigame_timeout));
                 }
                 final Handler handler = new Handler();
                 handler.postDelayed(() -> {
@@ -343,10 +333,6 @@ public class ARActivity extends AppCompatActivity {
         arSnackbarMessage.show();
     }
 
-    private void setSnackbar(String msg) {
-        arSnackbarMessage.setText(msg);
-    }
-
     // Store the (x,y) coordinates of each corner of the "gesture box"
     private void getCorners() {
         boxView.getLocationOnScreen(topLeft);
@@ -377,14 +363,12 @@ public class ARActivity extends AppCompatActivity {
                                             topLeft, topRight, bottomLeft, bottomRight,
                                             boxView.getWidth(), boxView.getHeight())) {
                     swipeFailed = true;
-                    setSnackbar(getString(R.string.out_of_bounds_failed));
                     newMinigame(false, true);
                     return true;
                 }
                 double dist = Math.sqrt((currX - initX) * (currX - initX) + (currY - initY) * (currY - initY));
                 if (dist < minDistance * boxView.getHeight()) {
                     swipeFailed = true;
-                    setSnackbar(getString(R.string.swipe_too_short_failed));
                     newMinigame(false, true);
                     return true;
                 }
@@ -397,6 +381,7 @@ public class ARActivity extends AppCompatActivity {
                     break;
                 }
                 if (!timerOn) {
+                    arSnackbarMessage.dismiss();
                     countDownTimer = new CountDownTimer(countdown * 1000, 100) {
                         public void onTick(long millisUntilFinished) {
                             String text = String.format("%.1f s", (float) millisUntilFinished / 1000);
@@ -422,7 +407,6 @@ public class ARActivity extends AppCompatActivity {
                                             topLeft, topRight, bottomLeft, bottomRight,
                                             boxView.getWidth(), boxView.getHeight())) {
                     swipeFailed = true;
-                    setSnackbar(getString(R.string.out_of_bounds_failed));
                     newMinigame(false, true);
                     return true;
                 }
@@ -439,13 +423,11 @@ public class ARActivity extends AppCompatActivity {
                                             topLeft, topRight, bottomLeft, bottomRight,
                                             boxView.getWidth(), boxView.getHeight())) {
                     swipeFailed = true;
-                    setSnackbar(getString(R.string.out_of_bounds_failed));
                     newMinigame(false, true);
                     return true;
                 }
                 if (diff > maxAngleError) {
                     swipeFailed = true;
-                    setSnackbar(getString(R.string.out_of_bounds_failed));
                     newMinigame(false, true);
                     return true;
                 }

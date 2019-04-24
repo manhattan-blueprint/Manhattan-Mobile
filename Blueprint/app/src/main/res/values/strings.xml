@@ -29,7 +29,7 @@
 
     <string name="plane_discovery_instruction">Slowly look around on the ground for the resource</string>
     <string name="place_resource_instruction">Keep the resource centered and swipe within the box to collect it</string>
-    <string name="resource_collection_instruction">Start collecting when you\'re ready</string>
+    <string name="resource_collection_instruction">Collect the resource by swiping inside the white frame</string>
     <string name="resource_visible_again">Swipe to collect the resource!</string>
 
     <string name="positive_response">OK</string>
