@@ -31,7 +31,7 @@
     <TextView
         android:id="@+id/InfoMessages"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="140dp"
         android:paddingStart="28dp"
         android:paddingEnd="28dp"
         android:paddingBottom="28dp"
@@ -41,7 +41,7 @@
         android:textSize="18sp"
         android:textAlignment="center"
         style="@style/H1"
-        android:background="#07000000" />
+        android:background="#00000000" />
 
     <View
         android:id="@+id/AdjustIndicator"
@@ -67,9 +67,9 @@
         app:isb_user_seekable="false"
         app:isb_seek_smoothly="true"
         app:isb_thumb_drawable="@drawable/ic_progress_icon"
-        app:isb_thumb_size="28dp"
+        app:isb_thumb_size="50dp"
         app:isb_show_tick_marks_type="oval"
-        app:isb_tick_marks_size="7dp"
+        app:isb_tick_marks_size="25dp"
         app:isb_track_progress_color="@color/progress_bar_left"
         app:isb_track_progress_size="4dp"
         app:isb_track_background_color="@color/progress_bar_right"

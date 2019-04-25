@@ -141,6 +141,7 @@ public class ARActivity extends AppCompatActivity {
         progressBar.bringToFront();
         progressBar.setMax(swipesToCollect);
         progressBar.setTickCount((swipesToCollect / 2) + 1);
+        progressBar.setTickMarksDrawable(getDrawable(SpriteManager.getSpriteByID(resourceToCollect.getId())));
     }
 
     @Override
