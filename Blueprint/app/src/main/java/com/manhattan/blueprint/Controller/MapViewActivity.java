@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
@@ -58,11 +57,8 @@ import com.microsoft.appcenter.crashes.Crashes;
 
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.graphics.drawable.DrawerArrowDrawable;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnticipateInterpolator;
@@ -73,9 +69,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TextView;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -83,7 +76,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 
 public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMarkerClickListener, MapGestureListener.GestureDelegate {
 
@@ -403,31 +395,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 });
     }
 
-    private ArrayList<View> getAllChildren(View v) {
-
-        if (!(v instanceof ViewGroup)) {
-            ArrayList<View> viewArrayList = new ArrayList<>();
-            viewArrayList.add(v);
-            return viewArrayList;
-        }
-
-        ArrayList<View> result = new ArrayList<>();
-
-        ViewGroup vg = (ViewGroup) v;
-        for (int i = 0; i < vg.getChildCount(); i++) {
-
-            View child = vg.getChildAt(i);
-
-            ArrayList<View> viewArrayList = new ArrayList<>();
-            viewArrayList.add(v);
-            viewArrayList.addAll(getAllChildren(child));
-
-            result.addAll(viewArrayList);
-        }
-        return result;
-    }
-
-
     // region OnMarkerClickListener
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
@@ -438,7 +405,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         Resource resource = markerResourceMap.get(marker);
         InfoWindow infoWindow = marker.showInfoWindow(mapboxMap, mapView);
-        getAllChildren(infoWindow.getView()).forEach(x -> {
+        ViewUtils.getChildren(infoWindow.getView()).forEach(x -> {
             if (x instanceof BubbleLayout) {
                 BubbleLayout layout = (BubbleLayout) x;
                 layout.setCornersRadius(100);
