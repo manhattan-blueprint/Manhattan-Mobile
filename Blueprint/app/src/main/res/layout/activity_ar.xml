@@ -28,6 +28,21 @@
         android:background="@drawable/timer_background"
         style="@style/B2_Bold"/>
 
+    <TextView
+        android:id="@+id/InfoMessages"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp"
+        android:paddingBottom="28dp"
+        android:layout_gravity="bottom"
+        android:gravity="bottom"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textAlignment="center"
+        style="@style/H1"
+        android:background="#07000000" />
+
     <View
         android:id="@+id/AdjustIndicator"
         android:layout_width="38dp"

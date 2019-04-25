@@ -5,7 +5,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.CountDownTimer;
 import android.os.Handler;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -64,10 +63,8 @@ public class ARActivity extends AppCompatActivity {
     private AnchorNode anchorNode;
     private Anchor anchor;
 
-    private Snackbar arSnackbarMessage;
-    private TextView snackbarTextView;
+    private TextView infoMessage;
     private TextView countdownIndicator;
-    private FrameLayout snackbarView;
     private GradientDrawable drawable;
     private IndicatorSeekBar progressBar;
     private View boxView;
@@ -113,6 +110,9 @@ public class ARActivity extends AppCompatActivity {
         rotation = boxView.getRotation();
         countdownIndicator = (TextView) findViewById(R.id.CounterIndicator);
         countdownIndicator.bringToFront();
+        infoMessage = (TextView) findViewById(R.id.InfoMessages);
+        infoMessage.setText(getString(R.string.plane_discovery_instruction));
+        infoMessage.bringToFront();
         adjustIndicator = (View) findViewById(R.id.AdjustIndicator);
         adjustIndicator.bringToFront();
         adjustIndicator.setVisibility(View.INVISIBLE);
@@ -182,7 +182,6 @@ public class ARActivity extends AppCompatActivity {
         Scene arScene = arFragment.getArSceneView().getScene();
         arScene.addOnUpdateListener(this::onSceneUpdate);
         arScene.setOnTouchListener(this::onSceneTouch);
-        createSnackbar();
     }
 
     public void onSceneUpdate(FrameTime frameTime) {
@@ -227,7 +226,7 @@ public class ARActivity extends AppCompatActivity {
 
                 // Remove plane renderer
                 arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
-                arSnackbarMessage.setText(getString(R.string.resource_collection_instruction));
+                infoMessage.setText(getString(R.string.resource_collection_instruction));
                 boxView.bringToFront();
                 itemWasPlaced = true;
             }
@@ -323,16 +322,6 @@ public class ARActivity extends AppCompatActivity {
         });
     }
 
-    private void createSnackbar() {
-        arSnackbarMessage = Snackbar.make(findViewById(R.id.ARview), getString(R.string.plane_discovery_instruction), Snackbar.LENGTH_INDEFINITE);
-        snackbarTextView = (TextView) (arSnackbarMessage.getView()).findViewById(android.support.design.R.id.snackbar_text);
-        snackbarView = (FrameLayout) arSnackbarMessage.getView();
-        snackbarTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-        snackbarTextView.setTextSize(17);
-        snackbarView.setAlpha(0.50f);
-        arSnackbarMessage.show();
-    }
-
     // Store the (x,y) coordinates of each corner of the "gesture box"
     private void getCorners() {
         boxView.getLocationOnScreen(topLeft);
@@ -381,7 +370,7 @@ public class ARActivity extends AppCompatActivity {
                     break;
                 }
                 if (!timerOn) {
-                    arSnackbarMessage.dismiss();
+                    infoMessage.setVisibility(View.INVISIBLE);
                     countDownTimer = new CountDownTimer(countdown * 1000, 100) {
                         public void onTick(long millisUntilFinished) {
                             String text = String.format("%.1f s", (float) millisUntilFinished / 1000);
