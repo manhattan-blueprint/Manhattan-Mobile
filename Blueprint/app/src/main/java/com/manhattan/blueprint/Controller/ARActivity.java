@@ -224,6 +224,7 @@ public class ARActivity extends AppCompatActivity {
                 transformableNode.setRenderable(resourceModel);
                 transformableNode.select();
                 transformableNode.getTranslationController().setEnabled(false);
+                transformableNode.setOnTouchListener(this::onNodeTouch);
 
                 // Remove plane renderer
                 arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
@@ -335,6 +336,10 @@ public class ARActivity extends AppCompatActivity {
 
         bottomRight[0] = (int) (bottomLeft[0] + boxView.getWidth() * Math.cos(rotation * Math.PI / 180));
         bottomRight[1] = (int) (bottomLeft[1] + boxView.getWidth() * Math.sin(rotation * Math.PI / 180));
+    }
+
+    private boolean onNodeTouch(HitTestResult hitTestResult, MotionEvent nodeMotionEvent) {
+        return onSceneTouch(hitTestResult, nodeMotionEvent);
     }
 
     private boolean onSceneTouch(HitTestResult hitTestResult, MotionEvent sceneMotionEvent) {
