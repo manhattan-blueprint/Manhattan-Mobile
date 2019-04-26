@@ -234,7 +234,7 @@ public class ARActivity extends AppCompatActivity {
                 TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
                 transformableNode.getScaleController().setMaxScale(100000f);
                 transformableNode.getScaleController().setMinScale(0.0001f);
-                transformableNode.setLocalScale(new Vector3(8f, 8f, 8f));
+                transformableNode.setLocalScale(new Vector3(16f, 16f, 16f));
                 transformableNode.setParent(anchorNode);
                 transformableNode.setRenderable(resourceModel);
                 transformableNode.select();
