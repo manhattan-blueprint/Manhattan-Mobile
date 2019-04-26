@@ -21,7 +21,7 @@ public class ArMathUtils {
         int PDA = area(P, D, A);
         int totalArea = PAB + PBC + PCD + PDA;
         int rectArea = width * height;
-        return totalArea > rectArea + 5000;
+        return totalArea > rectArea + 100000;
     }
 
     public static double getAngleError(float currX, float currY, float prevX, float prevY, float rotation) {

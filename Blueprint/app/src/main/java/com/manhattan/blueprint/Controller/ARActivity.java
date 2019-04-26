@@ -80,7 +80,7 @@ public class ARActivity extends AppCompatActivity {
     private float currX, currY = 0; // current  coords
     private float rotation;
     private int maxAngleError = 42;
-    private float minDistance = 0.65f;
+    private float minDistance = 0.60f;
     private long countdown; // seconds
     private boolean swipeFailed = true;
     private boolean minigameReady = true;
@@ -211,10 +211,10 @@ public class ARActivity extends AppCompatActivity {
                 }
             } else if (boxView.getVisibility() == View.INVISIBLE) {
                 boxView.setVisibility(View.VISIBLE);
-                swipeIndicator.setVisibility(View.VISIBLE);
-                swipeIndicator.startAnimation(swipeAnimation);
                 adjustIndicator.setVisibility(View.INVISIBLE);
                 if (!timerOn) {
+                    swipeIndicator.setVisibility(View.VISIBLE);
+                    swipeIndicator.startAnimation(swipeAnimation);
                     infoMessage.setText(getString(R.string.resource_collection_instruction));
                 }
             }
