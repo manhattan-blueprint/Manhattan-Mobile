@@ -15,6 +15,15 @@
         android:layout_height="20dp"
         android:foreground="@drawable/ar_gesture" />
 
+    <View
+        android:id="@+id/swipeIndicator"
+        android:rotation="90"
+        android:layout_gravity="center"
+        android:layout_width="80dp"
+        android:layout_height="35dp"
+        android:foreground="@drawable/ic_swipe_arrow"
+        />
+
     <TextView
         android:id="@+id/CounterIndicator"
         android:layout_width="100dp"

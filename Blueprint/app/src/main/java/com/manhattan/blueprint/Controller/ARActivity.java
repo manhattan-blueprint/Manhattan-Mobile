@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -69,6 +71,8 @@ public class ARActivity extends AppCompatActivity {
     private IndicatorSeekBar progressBar;
     private View boxView;
     private View adjustIndicator;
+    private View swipeIndicator;
+    private Animation swipeAnimation;
     private CountDownTimer countDownTimer;
 
     private float prevX, prevY = 0; // previous coords
@@ -116,6 +120,7 @@ public class ARActivity extends AppCompatActivity {
         adjustIndicator = (View) findViewById(R.id.AdjustIndicator);
         adjustIndicator.bringToFront();
         adjustIndicator.setVisibility(View.INVISIBLE);
+        swipeIndicator = (View) findViewById(R.id.swipeIndicator);
 
         String jsonResource = (String) getIntent().getExtras().get("resource");
         Gson gson = new GsonBuilder().create();
@@ -198,10 +203,20 @@ public class ARActivity extends AppCompatActivity {
                                         boxView.getWidth(), boxView.getHeight())) {
                 swipeFailed = true;
                 boxView.setVisibility(View.INVISIBLE);
+                swipeIndicator.setVisibility(View.INVISIBLE);
+                swipeIndicator.clearAnimation();
                 adjustIndicator.setVisibility(View.VISIBLE);
+                if (!timerOn) {
+                    infoMessage.setText(getString(R.string.resource_out_of_view));
+                }
             } else if (boxView.getVisibility() == View.INVISIBLE) {
                 boxView.setVisibility(View.VISIBLE);
+                swipeIndicator.setVisibility(View.VISIBLE);
+                swipeIndicator.startAnimation(swipeAnimation);
                 adjustIndicator.setVisibility(View.INVISIBLE);
+                if (!timerOn) {
+                    infoMessage.setText(getString(R.string.resource_collection_instruction));
+                }
             }
         }
 
@@ -230,6 +245,9 @@ public class ARActivity extends AppCompatActivity {
                 arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
                 infoMessage.setText(getString(R.string.resource_collection_instruction));
                 boxView.bringToFront();
+                swipeIndicator.bringToFront();
+                swipeAnimation = AnimationUtils.loadAnimation(this, R.anim.swipe_animation);
+                swipeIndicator.startAnimation(swipeAnimation);
                 itemWasPlaced = true;
             }
         }
@@ -390,6 +408,8 @@ public class ARActivity extends AppCompatActivity {
                         }
                     }.start();
                     timerOn = true;
+                    swipeIndicator.setVisibility(View.INVISIBLE);
+                    swipeIndicator.clearAnimation();
                 }
 
                 swipeFailed = false;

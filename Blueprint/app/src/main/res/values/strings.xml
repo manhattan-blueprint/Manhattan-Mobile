@@ -37,7 +37,7 @@
     <string name="out_of_bounds_failed">You went outside the box, keep trying!</string>
     <string name="swipe_too_short_failed">You didn\'t swipe far enough, keep trying!</string>
     <string name="swipe_not_straight_failed">You didn\'t swipe in a straight line, keep trying!</string>
-    <string name="resource_out_of_view_failed">Resource is out of view!</string>
+    <string name="resource_out_of_view">The resource is out of view!</string>
     <string name="minigame_timeout">Time\'s out!</string>
     <string name="successful_swipe">Well done, keep going!</string>
     <string name="minigame_collected_all">Well done, you collected all the resources!</string>
