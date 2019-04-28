@@ -385,94 +385,104 @@ public class ARActivity extends AppCompatActivity {
         if (!itemWasPlaced || gameOver) {
             return false;
         }
-        double diff;
         switch (sceneMotionEvent.getAction()) {
             case ACTION_UP:
-                if (swipeFailed || !minigameReady) {
-                    break;
-                }
-                currX = sceneMotionEvent.getX();
-                currY = sceneMotionEvent.getY();
-                if (ArMathUtils.outOfBounds(new int[]{(int) currX, (int) currY},
-                                            topLeft, topRight, bottomLeft, bottomRight,
-                                            boxView.getWidth(), boxView.getHeight())) {
-                    swipeFailed = true;
-                    newMinigame(false, true);
-                    return true;
-                }
-                double dist = Math.sqrt((currX - initX) * (currX - initX) + (currY - initY) * (currY - initY));
-                if (dist < minDistance * boxView.getHeight()) {
-                    swipeFailed = true;
-                    newMinigame(false, true);
-                    return true;
-                }
-                onSuccessfulSwipe();
-                newMinigame(true, true);
-                break;
+                return motionEnded(sceneMotionEvent);
 
             case ACTION_DOWN:
-                if (!minigameReady) {
-                    break;
-                }
-                if (!timerOn) {
-                    infoMessage.setVisibility(View.INVISIBLE);
-                    countDownTimer = new CountDownTimer(countdown * 1000, 100) {
-                        public void onTick(long millisUntilFinished) {
-                            String text = String.format("%.1f s", (float) millisUntilFinished / 1000);
-                            countdownIndicator.setText(text);
-                        }
-
-                        public void onFinish() {
-                            if (!gameOver) {
-                                finishMinigame(false);
-                            }
-                        }
-                    }.start();
-                    timerOn = true;
-                    swipeIndicator.setVisibility(View.INVISIBLE);
-                    swipeIndicator.clearAnimation();
-                }
-
-                MediaUtils.playSoundEffect(R.raw.hummus, soundEffectsPlayer, getApplicationContext());
-                swipeFailed = false;
-                getCorners();
-                initX = sceneMotionEvent.getX();
-                initY = sceneMotionEvent.getY();
-                prevX = initX;
-                prevY = initY;
-                if (ArMathUtils.outOfBounds(new int[]{(int) initX, (int) initY},
-                                            topLeft, topRight, bottomLeft, bottomRight,
-                                            boxView.getWidth(), boxView.getHeight())) {
-                    swipeFailed = true;
-                    newMinigame(false, true);
-                    return true;
-                }
-                break;
+                return motionStarted(sceneMotionEvent);
 
             case ACTION_MOVE:
-                if (swipeFailed || !minigameReady) {
-                    break;
-                }
-                currX = sceneMotionEvent.getX();
-                currY = sceneMotionEvent.getY();
-                diff = ArMathUtils.getAngleError(currX, currY, prevX, prevY, rotation);
-                if (ArMathUtils.outOfBounds(new int[]{(int) currX, (int) currY},
-                                            topLeft, topRight, bottomLeft, bottomRight,
-                                            boxView.getWidth(), boxView.getHeight())) {
-                    swipeFailed = true;
-                    newMinigame(false, true);
-                    return true;
-                }
-                if (diff > maxAngleError) {
-                    swipeFailed = true;
-                    newMinigame(false, true);
-                    return true;
-                }
-                prevX = currX;
-                prevY = currY;
-                boxView.bringToFront();
-                break;
+                return swipeMotion(sceneMotionEvent);
         }
+        return true;
+    }
+
+    private boolean motionStarted(MotionEvent sceneMotionEvent) {
+        if (!minigameReady) {
+            return false;
+        }
+        if (!timerOn) {
+            infoMessage.setVisibility(View.INVISIBLE);
+            countDownTimer = new CountDownTimer(countdown * 1000, 100) {
+                public void onTick(long millisUntilFinished) {
+                    String text = String.format("%.1f s", (float) millisUntilFinished / 1000);
+                    countdownIndicator.setText(text);
+                }
+
+                public void onFinish() {
+                    if (!gameOver) {
+                        finishMinigame(false);
+                    }
+                }
+            }.start();
+            timerOn = true;
+            swipeIndicator.setVisibility(View.INVISIBLE);
+            swipeIndicator.clearAnimation();
+        }
+
+        MediaUtils.playSoundEffect(R.raw.hummus, soundEffectsPlayer, getApplicationContext());
+        swipeFailed = false;
+        getCorners();
+        initX = sceneMotionEvent.getX();
+        initY = sceneMotionEvent.getY();
+        prevX = initX;
+        prevY = initY;
+        if (ArMathUtils.outOfBounds(new int[]{(int) initX, (int) initY},
+                topLeft, topRight, bottomLeft, bottomRight,
+                boxView.getWidth(), boxView.getHeight())) {
+            swipeFailed = true;
+            newMinigame(false, true);
+        }
+        return true;
+    }
+
+    private boolean swipeMotion(MotionEvent sceneMotionEvent) {
+        if (swipeFailed || !minigameReady) {
+            return false;
+        }
+        currX = sceneMotionEvent.getX();
+        currY = sceneMotionEvent.getY();
+        double diff = ArMathUtils.getAngleError(currX, currY, prevX, prevY, rotation);
+        if (ArMathUtils.outOfBounds(new int[]{(int) currX, (int) currY},
+                topLeft, topRight, bottomLeft, bottomRight,
+                boxView.getWidth(), boxView.getHeight())) {
+            swipeFailed = true;
+            newMinigame(false, true);
+            return true;
+        }
+        if (diff > maxAngleError) {
+            swipeFailed = true;
+            newMinigame(false, true);
+            return true;
+        }
+        prevX = currX;
+        prevY = currY;
+        boxView.bringToFront();
+        return true;
+    }
+
+    private boolean motionEnded(MotionEvent sceneMotionEvent) {
+        if (swipeFailed || !minigameReady) {
+            return false;
+        }
+        currX = sceneMotionEvent.getX();
+        currY = sceneMotionEvent.getY();
+        if (ArMathUtils.outOfBounds(new int[]{(int) currX, (int) currY},
+                topLeft, topRight, bottomLeft, bottomRight,
+                boxView.getWidth(), boxView.getHeight())) {
+            swipeFailed = true;
+            newMinigame(false, true);
+            return true;
+        }
+        double dist = Math.sqrt((currX - initX) * (currX - initX) + (currY - initY) * (currY - initY));
+        if (dist < minDistance * boxView.getHeight()) {
+            swipeFailed = true;
+            newMinigame(false, true);
+            return true;
+        }
+        onSuccessfulSwipe();
+        newMinigame(true, true);
         return true;
     }
 }
