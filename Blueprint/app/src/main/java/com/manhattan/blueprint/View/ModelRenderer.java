@@ -1,7 +1,6 @@
 package com.manhattan.blueprint.View;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.MotionEvent;
 
 import com.manhattan.blueprint.Model.DAO.Maybe;
@@ -47,8 +46,9 @@ public class ModelRenderer extends RajawaliRenderer {
             e.printStackTrace();
         }
 
-        getCurrentCamera().setZ(getCurrentCamera().getZ() + 1.0f);
-        getCurrentScene().setBackgroundColor(context.getColor(R.color.brandPrimaryDark));
+        getCurrentCamera().setY(getCurrentCamera().getY() + 0.5f);
+        getCurrentCamera().setZ(getCurrentCamera().getZ() + 0f);
+        getCurrentScene().setBackgroundColor(context.getColor(R.color.brandPrimary));
     }
 
 

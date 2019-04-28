@@ -34,6 +34,10 @@ import java.util.TimerTask;
 
 public class BackpackView {
 
+    public interface BackpackDelegate {
+        void didTapBackpackItem(int itemID, int quantity);
+    }
+
     private Context context;
     private float padding = 0.15f;
     private float cellHeight;
@@ -45,8 +49,9 @@ public class BackpackView {
     private ArrayList<AnimatableLayout> layerOne;
     private ArrayList<AnimatableLayout> layerTwo;
     private ArrayList<View> popups;
+    private BackpackDelegate delegate;
 
-    public BackpackView(Context context, ViewGroup viewGroup){
+    public BackpackView(Context context, ViewGroup viewGroup, BackpackDelegate delegate){
         // 1.13 for the perfect hexagon ratio 👌
         this.cellWidth = ViewUtils.dpToPx(context, 68);
         this.cellHeight = 1.13f * cellWidth;
@@ -55,6 +60,7 @@ public class BackpackView {
         this.context = context;
         this.bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.sprite_default);
         this.popups = new ArrayList<>();
+        this.delegate = delegate;
 
         // First layer
         AnimatableLayout layerOneLeft = createHex(viewGroup, centerX - (cellWidth * (1 + padding)), centerY);
@@ -130,24 +136,10 @@ public class BackpackView {
                 .setInterpolator(new LinearInterpolator())
                 .setStartDelay((long) (delay + (i + layerOne.size()) * (duration * overlap)));
         }
-
-        new Handler().postDelayed(() -> {
-            Log.d("INVENTORY", "Bringing to front");
-            layerOne.forEach(x -> {
-                x.getParent().bringChildToFront(x);
-                x.getParent().requestLayout();
-            });
-
-            layerTwo.forEach(x -> {
-                x.getParent().bringChildToFront(x);
-                x.getParent().requestLayout();
-            });
-        }, (long) (delay + (layerOne.size() + layerTwo.size()) * (duration * overlap)));
     }
 
     public void update(Inventory inventory) {
         // Clear existing
-
         new Thread(() -> {
             layerOne.forEach(v -> {
                 TextView quantity = v.findViewById(R.id.inventory_item_quantity);
@@ -183,20 +175,7 @@ public class BackpackView {
                 quantityText.post(() -> quantityText.setText(String.valueOf(item.getQuantity())));
                 imageView.post(() -> {
                     imageView.setImageBitmap(SpriteManager.getInstance(context).fetch(item.getId()));
-                    imageView.setOnClickListener(v -> {
-
-                        String name = ItemManager.getInstance(context).getName(item.getId()).withDefault("Item");
-                        View popup = LayoutInflater.from(context).inflate(R.layout.inventory_item_popup, layout, false);
-                        ((TextView)popup.findViewById(R.id.inventory_item_popup_title)).setText(name);
-                        popup.setY(-50);
-
-                        popups.forEach(p -> ((ViewGroup)p.getParent()).removeView(p));
-                        popups.clear();
-                        popups.add(popup);
-
-                        layout.addView(popup);
-                        layout.bringToFront();
-                    });
+                    imageView.setOnClickListener(v -> delegate.didTapBackpackItem(item.getId(), item.getQuantity()));
                 });
             }
 
