@@ -553,17 +553,17 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         AnticipateInterpolator anticipateInterpolator = new AnticipateInterpolator();
         float backpackY = menuButton.getY() - backpackButton.getLayoutParams().height - 100;
         float developerY = menuButton.getY() - (developerButton.getLayoutParams().height * 2) - 175;
-        float settingsBlueprintY = menuButton.getY() - (settingsButton.getLayoutParams().height / 2) - 100;
-        float blueprintX = (displayMetrics.widthPixels / 2) - (blueprintButton.getLayoutParams().width * 2);
-        float settingsX = (displayMetrics.widthPixels / 2) + (settingsButton.getLayoutParams().width);
+        float settingsBlueprintY = menuButton.getY() - (settingsButton.getLayoutParams().height / 2.f) - 100;
+        float blueprintX = (displayMetrics.widthPixels / 2.f) - (blueprintButton.getLayoutParams().width * 2);
+        float settingsX = (displayMetrics.widthPixels / 2.f) + (settingsButton.getLayoutParams().width);
 
         switch (menuState) {
             case NORMAL:
                 // Normal -> Closed
                 for (Button button : new Button[]{ backpackButton, settingsButton, blueprintButton, developerButton}) {
                     button.animate()
-                            .y(menuButton.getY() + menuButton.getHeight() / 8)
-                            .x(menuButton.getX() + menuButton.getWidth() / 8)
+                            .y(menuButton.getY() + menuButton.getHeight() / 8.f)
+                            .x(menuButton.getX() + menuButton.getWidth() / 8.f)
                             .setDuration(MENU_ANIMATION_DURATION)
                             .setStartDelay(0)
                             .setInterpolator(anticipateInterpolator);
@@ -704,8 +704,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         // Move backpack to center
         backpackButton.animate()
-                .x(viewGroup.getWidth() / 2 - backpackButton.getWidth() / 2)
-                .y(viewGroup.getHeight() / 2 - backpackButton.getHeight() / 2)
+                .x(viewGroup.getWidth() / 2.f - backpackButton.getWidth() / 2.f)
+                .y(viewGroup.getHeight() / 2.f - backpackButton.getHeight() / 2.f)
                 .setInterpolator(new AnticipateOvershootInterpolator())
                 .setStartDelay(0)
                 .setDuration(500);
