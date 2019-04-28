@@ -2,6 +2,7 @@ package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
 import android.graphics.drawable.GradientDrawable;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -42,6 +43,7 @@ import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.ArMathUtils;
+import com.manhattan.blueprint.Utils.MediaUtils;
 import com.manhattan.blueprint.Utils.SpriteManager;
 import com.manhattan.blueprint.Utils.ViewUtils;
 import com.warkiz.widget.IndicatorSeekBar;
@@ -74,6 +76,9 @@ public class ARActivity extends AppCompatActivity {
     private View swipeIndicator;
     private Animation swipeAnimation;
     private CountDownTimer countDownTimer;
+    private MediaUtils mediaUtils;
+    private MediaPlayer backgroundMusic;
+    private MediaPlayer soundEffectsPlayer;
 
     private float prevX, prevY = 0; // previous coords
     private float initX, initY = 0; // initial  coords
@@ -122,6 +127,11 @@ public class ARActivity extends AppCompatActivity {
         adjustIndicator.setVisibility(View.INVISIBLE);
         swipeIndicator = (View) findViewById(R.id.swipeIndicator);
 
+        // Configure audio
+        backgroundMusic = MediaPlayer.create(getApplicationContext(), R.raw.minigame);
+        backgroundMusic.setLooping(true);
+        mediaUtils = new MediaUtils(backgroundMusic);
+
         String jsonResource = (String) getIntent().getExtras().get("resource");
         Gson gson = new GsonBuilder().create();
         resourceToCollect = gson.fromJson(jsonResource, Resource.class);
@@ -152,7 +162,12 @@ public class ARActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (arFragment != null) return;
+        backgroundMusic.setVolume(0,0);
+        backgroundMusic.start();
+        mediaUtils.fadeIn();
+        if (arFragment != null) {
+            return;
+        }
         // Ensure latest version of ARCore is installed
         try {
             switch (ArCoreApk.getInstance().requestInstall(this, !userRequestedARInstall)) {
@@ -172,6 +187,12 @@ public class ARActivity extends AppCompatActivity {
                     getString(R.string.whoops_description) + e.toString(),
                     (dialog, which) -> finish());
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mediaUtils.fadeOut(value -> backgroundMusic.pause());
     }
 
     private void startAr() {
@@ -412,6 +433,7 @@ public class ARActivity extends AppCompatActivity {
                     swipeIndicator.clearAnimation();
                 }
 
+                MediaUtils.playSoundEffect(R.raw.hummus, soundEffectsPlayer, getApplicationContext());
                 swipeFailed = false;
                 getCorners();
                 initX = sceneMotionEvent.getX();
@@ -448,6 +470,7 @@ public class ARActivity extends AppCompatActivity {
                 }
                 prevX = currX;
                 prevY = currY;
+                boxView.bringToFront();
                 break;
         }
         return true;
