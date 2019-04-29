@@ -15,6 +15,12 @@
         <item name="android:textColor">@color/brandPrimaryDark</item>
     </style>
 
+    <style name="H2">
+        <item name="android:fontFamily">@font/helveticaneue_medium</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/brandPrimaryDark</item>
+    </style>
+
     <style name="B1">
         <item name="android:fontFamily">@font/helveticaneue_light</item>
         <item name="android:textSize">20sp</item>
@@ -24,6 +30,12 @@
     <style name="B2">
         <item name="android:fontFamily">@font/helveticaneue_light</item>
         <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/brandPrimaryDark</item>
+    </style>
+
+    <style name="B3">
+        <item name="android:fontFamily">@font/helveticaneue_light</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:textColor">@color/brandPrimaryDark</item>
     </style>
 
