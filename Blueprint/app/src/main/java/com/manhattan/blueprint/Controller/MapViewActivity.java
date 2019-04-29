@@ -813,6 +813,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         menuState = MenuState.BACKPACK_POPUP;
         popupBackgroundBlurView.animate().alpha(1).setDuration(500).setStartDelay(100);
     }
+    //endregion
 
     // region Mapbox overrides
     @Override

@@ -1,6 +1,7 @@
 package com.manhattan.blueprint.View;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import com.manhattan.blueprint.Model.DAO.Maybe;
@@ -11,9 +12,9 @@ import org.rajawali3d.lights.DirectionalLight;
 import org.rajawali3d.loader.LoaderOBJ;
 import org.rajawali3d.loader.ParsingException;
 import org.rajawali3d.math.vector.Vector3;
-import org.rajawali3d.renderer.RajawaliRenderer;
+import org.rajawali3d.renderer.Renderer;
 
-public class ModelRenderer extends RajawaliRenderer {
+public class ModelRenderer extends Renderer {
     private Context context;
     private int modelID;
     private Object3D model;
@@ -31,6 +32,8 @@ public class ModelRenderer extends RajawaliRenderer {
         directionalLight.setPower(2);
         getCurrentScene().addLight(directionalLight);
 
+        Log.d("RENDERER", "Loading model " + modelID);
+
         Maybe<Integer> modelImageID = getResourceID(context, "model" + modelID + "_obj");
         if (!modelImageID.isPresent()) {
             modelImageID = getResourceID(context, "modeldefault_obj");
@@ -47,7 +50,6 @@ public class ModelRenderer extends RajawaliRenderer {
         }
 
         getCurrentCamera().setY(getCurrentCamera().getY() + 0.5f);
-        getCurrentCamera().setZ(getCurrentCamera().getZ() + 0f);
         getCurrentScene().setBackgroundColor(context.getColor(R.color.brandPrimary));
     }
 
