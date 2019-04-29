@@ -32,8 +32,6 @@ public class ModelRenderer extends Renderer {
         directionalLight.setPower(2);
         getCurrentScene().addLight(directionalLight);
 
-        Log.d("RENDERER", "Loading model " + modelID);
-
         Maybe<Integer> modelImageID = getResourceID(context, "model" + modelID + "_obj");
         if (!modelImageID.isPresent()) {
             modelImageID = getResourceID(context, "modeldefault_obj");
