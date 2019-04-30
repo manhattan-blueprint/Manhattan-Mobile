@@ -40,8 +40,10 @@ import com.manhattan.blueprint.View.BackpackView;
 import com.manhattan.blueprint.View.MapGestureListener;
 import com.mapbox.android.gestures.AndroidGesturesManager;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.BubbleLayout;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.mapbox.mapboxsdk.annotations.InfoWindow;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -53,7 +55,9 @@ import com.microsoft.appcenter.AppCenter;
 import com.microsoft.appcenter.analytics.Analytics;
 import com.microsoft.appcenter.crashes.Crashes;
 
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatTextView;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,7 +76,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 
 public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMarkerClickListener, MapGestureListener.GestureDelegate {
 
@@ -335,13 +338,10 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     currentLocationMarker.remove();
                 }
 
-                Icon icon;
-                if (inDeveloperMode) {
-                    icon = IconFactory.getInstance(MapViewActivity.this).fromResource(R.drawable.will);
-                } else {
-                    icon = IconFactory.getInstance(MapViewActivity.this).fromBitmap(
-                            SpriteManager.getInstance(MapViewActivity.this).fetchPlayerSprite());
-                }
+                Icon icon = inDeveloperMode
+                          ? IconFactory.getInstance(MapViewActivity.this).fromResource(R.drawable.will)
+                          : IconFactory.getInstance(MapViewActivity.this).fromBitmap(
+                                SpriteManager.getInstance(MapViewActivity.this).fetchPlayerSprite());
                 MarkerOptions options = new MarkerOptions().setIcon(icon).position(currentLocation);
 
                 currentLocationMarker = mapboxMap.addMarker(options);
@@ -398,14 +398,27 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     // region OnMarkerClickListener
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
-        if (isPlayingMinigame) {
+        if (isPlayingMinigame || marker.equals(currentLocationMarker)) {
             return false;
         }
-        if (marker.equals(currentLocationMarker)) return false;
         markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
 
         Resource resource = markerResourceMap.get(marker);
-        marker.showInfoWindow(mapboxMap, mapView);
+        InfoWindow infoWindow = marker.showInfoWindow(mapboxMap, mapView);
+        ViewUtils.getChildren(infoWindow.getView()).forEach(x -> {
+            if (x instanceof BubbleLayout) {
+                BubbleLayout layout = (BubbleLayout) x;
+                layout.setCornersRadius(100);
+                layout.setStrokeColor(getColor(R.color.white));
+                layout.setBubbleColor(getColor(R.color.brandPrimaryDark));
+                layout.setStrokeWidth(10);
+            } else if (x instanceof AppCompatTextView) {
+                AppCompatTextView text = (AppCompatTextView) x;
+                text.setTypeface(ResourcesCompat.getFont(this, R.font.helveticaneue_medium));
+                text.setTextColor(getColor(R.color.white));
+            }
+        });
+        infoWindow.update();
 
         // Developers delete instead of AR
         if (inDeveloperMode) {
