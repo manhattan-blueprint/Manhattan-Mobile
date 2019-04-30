@@ -54,7 +54,6 @@ public class SettingsActivity extends AppCompatActivity {
             this.versionText.setText("Version " + version);
         } catch (PackageManager.NameNotFoundException e) {
             this.versionText.setText("Unknown Version");
-            e.printStackTrace();
         }
     }
 
