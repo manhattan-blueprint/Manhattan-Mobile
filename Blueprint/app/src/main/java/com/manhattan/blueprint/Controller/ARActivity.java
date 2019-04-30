@@ -232,6 +232,7 @@ public class ARActivity extends AppCompatActivity {
                 }
             } else if (boxView.getVisibility() == View.INVISIBLE) {
                 boxView.setVisibility(View.VISIBLE);
+                boxView.bringToFront();
                 adjustIndicator.setVisibility(View.INVISIBLE);
                 if (!timerOn) {
                     swipeIndicator.setVisibility(View.VISIBLE);
@@ -458,7 +459,6 @@ public class ARActivity extends AppCompatActivity {
         }
         prevX = currX;
         prevY = currY;
-        boxView.bringToFront();
         return true;
     }
 
