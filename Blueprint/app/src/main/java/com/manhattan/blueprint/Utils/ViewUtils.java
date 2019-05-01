@@ -5,9 +5,13 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.util.DisplayMetrics;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.manhattan.blueprint.Controller.ARActivity;
 import com.manhattan.blueprint.R;
+
+import java.util.ArrayList;
 
 public class ViewUtils {
     public static void createDialog(Context context, String title, String message, DialogInterface.OnClickListener onClick) {
@@ -42,6 +46,25 @@ public class ViewUtils {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         ((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         return displayMetrics.widthPixels;
+    }
+
+    public static ArrayList<View> getChildren(View v) {
+        if (!(v instanceof ViewGroup)) {
+            ArrayList<View> viewArrayList = new ArrayList<>();
+            viewArrayList.add(v);
+            return viewArrayList;
+        }
+
+        ArrayList<View> result = new ArrayList<>();
+        ViewGroup vg = (ViewGroup) v;
+        for (int i = 0; i < vg.getChildCount(); i++) {
+            View child = vg.getChildAt(i);
+            ArrayList<View> viewArrayList = new ArrayList<>();
+            viewArrayList.add(v);
+            viewArrayList.addAll(getChildren(child));
+            result.addAll(viewArrayList);
+        }
+        return result;
     }
 }
 
