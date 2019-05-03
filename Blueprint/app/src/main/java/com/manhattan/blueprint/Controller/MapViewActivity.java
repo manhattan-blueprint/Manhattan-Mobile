@@ -628,7 +628,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
     private View.OnClickListener blueprintButtonClickListener = v -> {
         if (menuState != MenuState.NORMAL) return;
-        // TODO
+        Intent toBlueprint = new Intent(MapViewActivity.this, BlueprintActivity.class);
+        startActivity(toBlueprint);
     };
 
     private View.OnClickListener blurViewClickListener = v -> {

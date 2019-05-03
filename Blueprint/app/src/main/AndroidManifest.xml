@@ -17,9 +17,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Brand"
         tools:ignore="GoogleAppIndexingWarning">
+        <activity android:name=".Controller.BlueprintActivity"></activity>
         <activity android:name=".Controller.EntryActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
