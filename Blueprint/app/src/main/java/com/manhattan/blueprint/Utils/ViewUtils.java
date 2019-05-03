@@ -7,11 +7,12 @@ import android.content.DialogInterface;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 
-import com.manhattan.blueprint.Controller.ARActivity;
 import com.manhattan.blueprint.R;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ViewUtils {
     public static void createDialog(Context context, String title, String message, DialogInterface.OnClickListener onClick) {
@@ -65,6 +66,10 @@ public class ViewUtils {
             result.addAll(viewArrayList);
         }
         return result;
+    }
+
+    public static <T> ArrayAdapter<T> makeSpinner(Activity activity, List<T> l) {
+        return new ArrayAdapter<>(activity, android.R.layout.simple_spinner_item, l);
     }
 }
 

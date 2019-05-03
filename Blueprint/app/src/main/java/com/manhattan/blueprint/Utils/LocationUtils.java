@@ -1,10 +1,14 @@
 package com.manhattan.blueprint.Utils;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.location.LocationManager;
 import android.os.Build;
 import android.provider.Settings;
 
+import com.manhattan.blueprint.R;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
 
@@ -34,5 +38,16 @@ public class LocationUtils {
                     Settings.Secure.LOCATION_MODE_OFF);
             return (mode != Settings.Secure.LOCATION_MODE_OFF);
         }
+    }
+
+    public static void displayLocationServicesRequest(Activity activity) {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(activity);
+        alertDialog.setTitle(activity.getString(R.string.enable_location_title));
+        alertDialog.setMessage(activity.getString(R.string.enable_location_description));
+        alertDialog.setPositiveButton(activity.getString(R.string.enable_location_positive_response), (dialog, which) -> {
+            activity.startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+        });
+        alertDialog.setNegativeButton(activity.getString(R.string.negative_response), (dialog, which) -> dialog.cancel());
+        alertDialog.show();
     }
 }
