@@ -1,12 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  ~ slide_down.xml
-  ~ Ficto
-  ~
-  ~ Created by Jay Lees
-  ~ Copyright © 2019 The Workshop Creative Agency. All rights reserved.
-  -->
-
 <objectAnimator xmlns:android="http://schemas.android.com/apk/res/android"
     android:interpolator="@android:anim/anticipate_interpolator"
     android:valueFrom="0.0"
