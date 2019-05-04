@@ -404,30 +404,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 });
     }
 
-    private ArrayList<View> getAllChildren(View v) {
-        if (!(v instanceof ViewGroup)) {
-            ArrayList<View> viewArrayList = new ArrayList<>();
-            viewArrayList.add(v);
-            return viewArrayList;
-        }
-
-        ArrayList<View> result = new ArrayList<>();
-
-        ViewGroup vg = (ViewGroup) v;
-        for (int i = 0; i < vg.getChildCount(); i++) {
-
-            View child = vg.getChildAt(i);
-
-            ArrayList<View> viewArrayList = new ArrayList<>();
-            viewArrayList.add(v);
-            viewArrayList.addAll(getAllChildren(child));
-
-            result.addAll(viewArrayList);
-        }
-        return result;
-    }
-
-
     // region OnMarkerClickListener
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
@@ -438,7 +414,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         Resource resource = markerResourceMap.get(marker);
         InfoWindow infoWindow = marker.showInfoWindow(mapboxMap, mapView);
-        getAllChildren(infoWindow.getView()).forEach(x -> {
+        ViewUtils.getChildren(infoWindow.getView()).forEach(x -> {
             if (x instanceof BubbleLayout) {
                 BubbleLayout layout = (BubbleLayout) x;
                 layout.setCornersRadius(100);

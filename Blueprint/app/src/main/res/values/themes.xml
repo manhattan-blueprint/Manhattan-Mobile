@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Brand" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/brandPrimary</item>
+        <item name="colorPrimaryDark">@color/brandPrimaryDark</item>
+        <item name="colorAccent">@color/brandAccent</item>
+        <item name="colorControlActivated">@color/brandPrimary</item>
+    </style>
+</resources>
