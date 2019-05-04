@@ -26,13 +26,13 @@
 
     <TextView
         android:id="@+id/CounterIndicator"
-        android:layout_width="100dp"
-        android:layout_height="30dp"
-        android:layout_marginTop="45dp"
+        android:layout_width="140dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="50dp"
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
         android:textColor="@android:color/white"
-        android:textSize="19sp"
+        android:textSize="24sp"
         android:textStyle="normal"
         android:background="@drawable/timer_background"
         style="@style/B2_Bold"/>

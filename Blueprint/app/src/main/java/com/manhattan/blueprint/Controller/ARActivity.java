@@ -209,7 +209,7 @@ public class ARActivity extends AppCompatActivity {
     private void progressBarTutorial() {
         SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, 0f)
-                .setShape(new RoundedRectangle(-100f, 0f, 1300f ,135f))
+                .setShape(new RoundedRectangle(-100f, 0f, 2000f ,135f))
                 .setDescription("Explain progress bar")
                 .setAnimation(new LinearInterpolator())
                 .setOnSpotlightStartedListener(new OnTargetStateChangedListener<SimpleTarget>() {
@@ -245,7 +245,7 @@ public class ARActivity extends AppCompatActivity {
     private void timerTutorial() {
         SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, 100f)
-                .setShape(new RoundedRectangle(395f, 140f, 290f ,80f))
+                .setShape(new RoundedRectangle(345f, 150f, 390f ,115f))
                 .setDescription("Explain timer")
                 .setAnimation(new LinearInterpolator())
                 .setOnSpotlightStartedListener(new OnTargetStateChangedListener<SimpleTarget>() {
@@ -281,7 +281,7 @@ public class ARActivity extends AppCompatActivity {
     public void swipingTutorial() {
         SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, 800f)
-                .setShape(new RoundedRectangle(-100f, 760f, 1300f ,400f))
+                .setShape(new RoundedRectangle(-100f, 760f, 2000f ,400f))
                 .setDescription("Explain swiping")
                 .setAnimation(new LinearInterpolator())
                 .setOnSpotlightStartedListener(new OnTargetStateChangedListener<SimpleTarget>() {
