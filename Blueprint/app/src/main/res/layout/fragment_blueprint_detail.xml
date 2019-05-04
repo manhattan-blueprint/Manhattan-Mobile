@@ -12,25 +12,14 @@
         android:layout_height="350dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        android:background="@color/brandPrimaryDark"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <View
+        <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="0dp"
-            android:layout_marginEnd="0dp"
-            android:background="@drawable/blueprint_outline"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="20dp"
-            android:background="@drawable/blueprint_outline" />
-
+            android:scaleType="fitXY"
+            android:src="@drawable/blueprint_outline_filled"/>
 
         <ImageView
             android:id="@+id/blueprintDetailImage"
@@ -68,7 +57,7 @@
             android:layout_marginStart="36dp"
             android:layout_marginTop="0dp"
             android:layout_marginEnd="36dp"
-            android:text="Requires: Furnace"
+            android:text="Made using Furnace"
             android:textAlignment="center"
             android:textColor="@color/white"
             android:textStyle="italic"

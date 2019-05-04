@@ -2,7 +2,7 @@
 <android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@drawable/blueprint_outline"
+    android:background="@drawable/blueprint_outline_filled"
     android:layout_width="match_parent"
     android:layout_margin="5dp"
     android:layout_height="100dp">

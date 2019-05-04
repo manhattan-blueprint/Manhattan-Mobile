@@ -64,17 +64,17 @@ public class BlueprintDetailFragment extends Fragment {
                 componentRecycler.setLayoutManager(new GridLayoutManager(this.getContext(), columns));
                 componentRecycler.setAdapter(new ComponentItemAdapter(this.getContext(), item.getItemID()));
                 primaryResource.setVisibility(View.INVISIBLE);
-
             }
 
             if (item.getItemType() != ItemSchema.ItemType.MachineCraftedComponent) {
                 machine.setVisibility(View.INVISIBLE);
             } else {
+                recipe.setText("Recipe:");
                 String machineName = ItemManager.getInstance(getContext())
                         .getItem(item.getMachineID())
                         .map(ItemSchema.Item::getName)
                         .withDefault("a machine");
-                machine.setText(String.format("Requires: %s", machineName));
+                machine.setText(String.format("Made in %s", machineName));
             }
         });
 

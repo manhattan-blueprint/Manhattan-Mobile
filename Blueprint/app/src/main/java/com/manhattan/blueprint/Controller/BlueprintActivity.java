@@ -1,6 +1,5 @@
 package com.manhattan.blueprint.Controller;
 
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -59,6 +58,7 @@ public class BlueprintActivity extends AppCompatActivity implements ItemClickLis
            detailFragment = null;
         } else {
             super.onBackPressed();
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         }
     }
 

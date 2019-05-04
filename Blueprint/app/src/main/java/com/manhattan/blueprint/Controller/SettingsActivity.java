@@ -79,6 +79,7 @@ public class SettingsActivity extends AppCompatActivity {
                     session.isHololensConnected()));
             this.runOnUiThread(this::finish);
         });
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
     }
 
     private void onLogoutClickListener(View view) {

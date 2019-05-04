@@ -7,6 +7,14 @@
     android:layout_height="match_parent"
     tools:context=".Controller.BlueprintActivity">
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/blueprint_background"/>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,17 +24,18 @@
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
-            android:background="@drawable/blueprint_background"
             android:layout_height="wrap_content">
+
 
             <TextView
                 android:id="@+id/title"
-                style="@style/H0"
+                android:fontFamily="@font/meckablecka"
+                android:textSize="40sp"
                 android:textColor="@color/white"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Items"
+                android:text="Item Wiki"
                 android:textAlignment="center"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />

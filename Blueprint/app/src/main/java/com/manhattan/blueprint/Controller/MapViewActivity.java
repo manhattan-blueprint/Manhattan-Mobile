@@ -619,6 +619,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         if (menuState != MenuState.NORMAL) return;
         Intent toSettings = new Intent(MapViewActivity.this, SettingsActivity.class);
         startActivity(toSettings);
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
     };
 
     private View.OnClickListener backpackButtonClickListener = v -> {
@@ -630,6 +631,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         if (menuState != MenuState.NORMAL) return;
         Intent toBlueprint = new Intent(MapViewActivity.this, BlueprintActivity.class);
         startActivity(toBlueprint);
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
     };
 
     private View.OnClickListener blurViewClickListener = v -> {
