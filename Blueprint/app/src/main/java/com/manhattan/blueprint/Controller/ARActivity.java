@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +47,11 @@ import com.manhattan.blueprint.Utils.ArMathUtils;
 import com.manhattan.blueprint.Utils.MediaUtils;
 import com.manhattan.blueprint.Utils.SpriteManager;
 import com.manhattan.blueprint.Utils.ViewUtils;
+import com.manhattan.blueprint.View.RoundedRectangle;
+import com.takusemba.spotlight.OnSpotlightStateChangedListener;
+import com.takusemba.spotlight.OnTargetStateChangedListener;
+import com.takusemba.spotlight.Spotlight;
+import com.takusemba.spotlight.target.SimpleTarget;
 import com.warkiz.widget.IndicatorSeekBar;
 
 import java.util.ArrayList;
@@ -195,6 +201,118 @@ public class ARActivity extends AppCompatActivity {
         mediaUtils.fadeOut(value -> backgroundMusic.pause());
     }
 
+    private void playTutorial() {
+        infoMessage.setVisibility(View.INVISIBLE);
+        progressBarTutorial();
+    }
+
+    private void progressBarTutorial() {
+        SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
+                .setPoint(0f, 0f)
+                .setShape(new RoundedRectangle(-100f, 0f, 1300f ,135f))
+                .setDescription("Explain progress bar")
+                .setAnimation(new LinearInterpolator())
+                .setOnSpotlightStartedListener(new OnTargetStateChangedListener<SimpleTarget>() {
+                    @Override
+                    public void onStarted(SimpleTarget target) {
+                    }
+
+                    @Override
+                    public void onEnded(SimpleTarget target) {
+                    }
+                })
+                .build();
+
+        Spotlight.with(this)
+                .setOverlayColor(R.color.background)
+                .setDuration(1000L)
+                .setAnimation(new LinearInterpolator())
+                .setTargets(simpleTarget)
+                .setClosedOnTouchedOutside(true)
+                .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
+                    @Override
+                    public void onStarted() {
+                    }
+
+                    @Override
+                    public void onEnded() {
+                        timerTutorial();
+                    }
+                })
+                .start();
+    }
+
+    private void timerTutorial() {
+        SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
+                .setPoint(0f, 100f)
+                .setShape(new RoundedRectangle(395f, 140f, 290f ,80f))
+                .setDescription("Explain timer")
+                .setAnimation(new LinearInterpolator())
+                .setOnSpotlightStartedListener(new OnTargetStateChangedListener<SimpleTarget>() {
+                    @Override
+                    public void onStarted(SimpleTarget target) {
+                    }
+
+                    @Override
+                    public void onEnded(SimpleTarget target) {
+                    }
+                })
+                .build();
+
+        Spotlight.with(this)
+                .setOverlayColor(R.color.background)
+                .setDuration(1000L)
+                .setAnimation(new LinearInterpolator())
+                .setTargets(simpleTarget)
+                .setClosedOnTouchedOutside(true)
+                .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
+                    @Override
+                    public void onStarted() {
+                    }
+
+                    @Override
+                    public void onEnded() {
+                        swipingTutorial();
+                    }
+                })
+                .start();
+    }
+
+    public void swipingTutorial() {
+        SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
+                .setPoint(0f, 800f)
+                .setShape(new RoundedRectangle(-100f, 760f, 1300f ,400f))
+                .setDescription("Explain swiping")
+                .setAnimation(new LinearInterpolator())
+                .setOnSpotlightStartedListener(new OnTargetStateChangedListener<SimpleTarget>() {
+                    @Override
+                    public void onStarted(SimpleTarget target) {
+                    }
+
+                    @Override
+                    public void onEnded(SimpleTarget target) {
+                    }
+                })
+                .build();
+
+        Spotlight.with(this)
+                .setOverlayColor(R.color.background)
+                .setDuration(1000L)
+                .setAnimation(new LinearInterpolator())
+                .setTargets(simpleTarget)
+                .setClosedOnTouchedOutside(true)
+                .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
+                    @Override
+                    public void onStarted() {
+                    }
+
+                    @Override
+                    public void onEnded() {
+                    }
+                })
+                .start();
+    }
+
     private void startAr() {
         // Build renderable object
         ModelRenderable.builder()
@@ -207,8 +325,8 @@ public class ARActivity extends AppCompatActivity {
         // Start AR:
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
         Scene arScene = arFragment.getArSceneView().getScene();
-        arScene.addOnUpdateListener(this::onSceneUpdate);
-        arScene.setOnTouchListener(this::onSceneTouch);
+        arScene.addOnUpdateListener(ARActivity.this::onSceneUpdate);
+        arScene.setOnTouchListener(ARActivity.this::onSceneTouch);
     }
 
     public void onSceneUpdate(FrameTime frameTime) {
@@ -227,9 +345,6 @@ public class ARActivity extends AppCompatActivity {
                 swipeIndicator.setVisibility(View.INVISIBLE);
                 swipeIndicator.clearAnimation();
                 adjustIndicator.setVisibility(View.VISIBLE);
-                if (!timerOn) {
-                    infoMessage.setText(getString(R.string.resource_out_of_view));
-                }
             } else if (boxView.getVisibility() == View.INVISIBLE) {
                 boxView.setVisibility(View.VISIBLE);
                 boxView.bringToFront();
@@ -237,7 +352,6 @@ public class ARActivity extends AppCompatActivity {
                 if (!timerOn) {
                     swipeIndicator.setVisibility(View.VISIBLE);
                     swipeIndicator.startAnimation(swipeAnimation);
-                    infoMessage.setText(getString(R.string.resource_collection_instruction));
                 }
             }
         }
@@ -265,12 +379,12 @@ public class ARActivity extends AppCompatActivity {
 
                 // Remove plane renderer
                 arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
-                infoMessage.setText(getString(R.string.resource_collection_instruction));
                 boxView.bringToFront();
                 swipeIndicator.bringToFront();
                 swipeAnimation = AnimationUtils.loadAnimation(this, R.anim.swipe_animation);
                 swipeIndicator.startAnimation(swipeAnimation);
                 itemWasPlaced = true;
+                playTutorial();
             }
         }
     }
@@ -404,7 +518,6 @@ public class ARActivity extends AppCompatActivity {
             return false;
         }
         if (!timerOn) {
-            infoMessage.setVisibility(View.INVISIBLE);
             countDownTimer = new CountDownTimer(countdown * 1000, 100) {
                 public void onTick(long millisUntilFinished) {
                     String text = String.format("%.1f s", (float) millisUntilFinished / 1000);
