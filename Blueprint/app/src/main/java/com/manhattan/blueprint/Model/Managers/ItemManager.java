@@ -60,6 +60,10 @@ public class ItemManager {
         return Maybe.empty();
     }
 
+    public Maybe<ItemSchema.Item> getItem(int id) {
+        return itemMap.containsKey(id) ? Maybe.of(itemMap.get(id)) : Maybe.empty();
+    }
+
     public Collection<ItemSchema.Item> getItems() {
        return itemMap.values();
     }

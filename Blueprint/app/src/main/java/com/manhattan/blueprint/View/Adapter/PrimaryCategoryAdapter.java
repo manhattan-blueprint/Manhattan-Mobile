@@ -8,8 +8,8 @@ import com.manhattan.blueprint.Model.Managers.ItemManager;
 import java.util.stream.Collectors;
 
 public class PrimaryCategoryAdapter extends BaseCategoryAdapter {
-    public PrimaryCategoryAdapter(Context context) {
-        super(context);
+    public PrimaryCategoryAdapter(Context context, ItemClickListener listener) {
+        super(context, listener);
         this.context = context;
         this.dataSource = ItemManager.getInstance(context).getItems()
                 .stream()

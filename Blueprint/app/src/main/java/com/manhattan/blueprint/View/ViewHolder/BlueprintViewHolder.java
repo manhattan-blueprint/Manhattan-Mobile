@@ -10,8 +10,8 @@ import android.widget.TextView;
 import com.manhattan.blueprint.R;
 
 public class BlueprintViewHolder extends RecyclerView.ViewHolder {
-    private TextView title;
-    private ImageView image;
+    public TextView title;
+    public ImageView image;
 
     public BlueprintViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -19,8 +19,9 @@ public class BlueprintViewHolder extends RecyclerView.ViewHolder {
         this.image = itemView.findViewById(R.id.blueprintTemplateImage);
     }
 
-    public void configure(String name, Bitmap bitmap) {
+    public void configure(String name, Bitmap bitmap, View.OnClickListener onClickListener) {
         this.title.setText(name);
         this.image.setImageBitmap(bitmap);
+        this.itemView.setOnClickListener(onClickListener);
     }
 }

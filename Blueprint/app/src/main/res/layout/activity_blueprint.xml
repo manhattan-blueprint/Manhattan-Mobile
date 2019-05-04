@@ -2,6 +2,7 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/blueprintBaseConstraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Controller.BlueprintActivity">
@@ -15,18 +16,32 @@
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
+            android:background="@drawable/blueprint_background"
             android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/title"
+                style="@style/H0"
+                android:textColor="@color/white"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Items"
+                android:textAlignment="center"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/primaryTitle"
                 style="@style/H1"
+                android:textColor="@color/white"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="50dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="48dp"
                 android:text="Primary Resources"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="@id/title" />
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/primaryResourceRecyclerView"
@@ -42,11 +57,12 @@
 
             <TextView
                 android:id="@+id/blueprintTitle"
+                android:textColor="@color/white"
                 style="@style/H1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="16dp"
                 android:text="Blueprints"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/primaryResourceRecyclerView" />
@@ -65,12 +81,13 @@
 
             <TextView
                 android:id="@+id/otherTitle"
+                android:textColor="@color/white"
                 style="@style/H1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="16dp"
                 android:text="Other"
-                android:layout_marginTop="8dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/blueprintRecyclerView" />
 
@@ -80,6 +97,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
                 android:nestedScrollingEnabled="false"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/otherTitle" />
@@ -87,5 +105,10 @@
         </android.support.constraint.ConstraintLayout>
     </ScrollView>
 
+    <View
+        android:id="@+id/blueprintBlurView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blueprintBlur"/>
 
 </android.support.constraint.ConstraintLayout>

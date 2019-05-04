@@ -19,10 +19,12 @@ import java.util.List;
 public abstract class BaseCategoryAdapter extends RecyclerView.Adapter<BlueprintViewHolder> {
     protected Context context;
     protected List<ItemSchema.Item> dataSource;
+    protected ItemClickListener listener;
 
-    public BaseCategoryAdapter(Context context) {
+    BaseCategoryAdapter(Context context, ItemClickListener listener) {
         this.context = context;
         this.dataSource = new ArrayList<>();
+        this.listener = listener;
     }
 
     @NonNull
@@ -36,7 +38,7 @@ public abstract class BaseCategoryAdapter extends RecyclerView.Adapter<Blueprint
     public void onBindViewHolder(@NonNull BlueprintViewHolder blueprintViewHolder, int i) {
         ItemSchema.Item item = dataSource.get(i);
         Bitmap sprite = SpriteManager.getInstance(context).fetch(item.getItemID());
-        blueprintViewHolder.configure(item.getName(), sprite);
+        blueprintViewHolder.configure(item.getName(), sprite, v -> listener.didTap(blueprintViewHolder, dataSource.get(i)));
     }
 
     @Override

@@ -28,14 +28,14 @@ public class LoginManager {
 
     public boolean isDeveloper() {
         return BlueprintDAO.getInstance(context).getSession()
-                .bind(Session::getAccountType)
+                .map(Session::getAccountType)
                 .withDefault(AccountType.PLAYER)
                 .equals(AccountType.DEVELOPER);
     }
 
     public boolean isLecturer() {
         return BlueprintDAO.getInstance(context).getSession()
-                .bind(Session::getAccountType)
+                .map(Session::getAccountType)
                 .withDefault(AccountType.PLAYER)
                 .equals(AccountType.LECTURER);
     }
