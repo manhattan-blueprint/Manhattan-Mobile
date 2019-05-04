@@ -17,7 +17,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Brand"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".Controller.BlueprintActivity"></activity>
         <activity android:name=".Controller.EntryActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -37,6 +36,8 @@
         <activity
             android:name=".Controller.SettingsActivity"
             android:screenOrientation="portrait" />
+        <activity android:name=".Controller.BlueprintActivity"
+            android:screenOrientation="portrait"/>
 
         <meta-data
             android:name="com.google.ar.core"
