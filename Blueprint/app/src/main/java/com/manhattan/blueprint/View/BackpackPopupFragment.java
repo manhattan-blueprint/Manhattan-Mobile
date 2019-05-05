@@ -61,7 +61,6 @@ public class BackpackPopupFragment extends Fragment {
         } else {
             ImageView imageView = new ImageView(getContext());
             imageView.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            // TODO: Replace with centered sprite
             imageView.setImageBitmap(SpriteManager.getInstance(getContext()).fetch(modelID));
             layout.addView(imageView);
         }
