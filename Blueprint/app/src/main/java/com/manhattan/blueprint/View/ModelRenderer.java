@@ -27,10 +27,15 @@ public class ModelRenderer extends Renderer {
     }
 
     public void initScene() {
-        DirectionalLight directionalLight = new DirectionalLight(1f, .2f, -1.0f);
-        directionalLight.setColor(1.0f, 1.0f, 1.0f);
-        directionalLight.setPower(2);
-        getCurrentScene().addLight(directionalLight);
+        DirectionalLight directionalLightLeft = new DirectionalLight(-1f, .2f, -1.0f);
+        directionalLightLeft.setColor(1.0f, 1.0f, 1.0f);
+        directionalLightLeft.setPower(1);
+        getCurrentScene().addLight(directionalLightLeft);
+
+        DirectionalLight directionalLightRight = new DirectionalLight(1f, .2f, -1.0f);
+        directionalLightRight.setColor(1.0f, 1.0f, 1.0f);
+        directionalLightRight.setPower(1);
+        getCurrentScene().addLight(directionalLightRight);
 
         Maybe<Integer> modelImageID = getResourceID(context, "model" + modelID + "_obj");
         if (!modelImageID.isPresent()) {
