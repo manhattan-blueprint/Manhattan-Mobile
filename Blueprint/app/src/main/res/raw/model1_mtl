@@ -1,0 +1,18 @@
+newmtl Rocks2SG2
+illum 4
+Kd 0.38 0.38 0.38
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl Wood_LogsSG2
+illum 4
+Kd 0.21 0.14 0.12
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl Wood_LogsSG3
+illum 4
+Kd 0.63 0.43 0.37
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00

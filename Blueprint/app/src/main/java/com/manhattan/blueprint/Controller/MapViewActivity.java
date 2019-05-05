@@ -37,6 +37,7 @@ import com.manhattan.blueprint.Utils.SpriteManager;
 import com.manhattan.blueprint.Utils.ViewUtils;
 import com.manhattan.blueprint.View.BackpackView;
 import com.manhattan.blueprint.View.MapGestureListener;
+import com.manhattan.blueprint.View.BackpackPopupFragment;
 import com.mapbox.android.gestures.AndroidGesturesManager;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.BubbleLayout;
@@ -54,6 +55,7 @@ import com.microsoft.appcenter.AppCenter;
 import com.microsoft.appcenter.analytics.Analytics;
 import com.microsoft.appcenter.crashes.Crashes;
 
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
@@ -64,6 +66,7 @@ import android.view.animation.AnticipateOvershootInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
@@ -71,10 +74,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMarkerClickListener, MapGestureListener.GestureDelegate {
+public class MapViewActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMarkerClickListener, MapGestureListener.GestureDelegate, BackpackView.BackpackDelegate {
 
     private enum MenuState {
-        CLOSED, NORMAL, BACKPACK
+        CLOSED, NORMAL, BACKPACK, BACKPACK_POPUP
     }
 
     private final int DEFAULT_ZOOM = 18;
@@ -93,7 +96,10 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private Button blueprintButton;
     private Button closeButton;
     private ImageView blurView;
-    private ViewGroup mapConstraintLayout;
+    private View popupBackgroundBlurView;
+    private ConstraintLayout mapConstraintLayout;
+    private ViewGroup viewGroup;
+    private FrameLayout inventoryPopupLayout;
     private BackpackView backpackView;
 
     private MediaUtils mediaUtils;
@@ -108,6 +114,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private MapboxMap mapboxMap;
     private HashMap<Marker, Resource> markerResourceMap = new HashMap<>();
     private LatLng lastResourceLocation;
+    private BackpackPopupFragment backpackPopupFragment;
 
     // Default to VR lab
     private LatLng currentLocation = new LatLng(51.449946, -2.599858);
@@ -131,6 +138,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         closeButton = findViewById(R.id.closeButton);
         blurView = findViewById(R.id.blurView);
         mapView = findViewById(R.id.mapView);
+        viewGroup = findViewById(R.id.backpackContents);
+        inventoryPopupLayout = findViewById(R.id.mapPopupLayout);
+        popupBackgroundBlurView = findViewById(R.id.popupBackgroundBlur);
         mapConstraintLayout = findViewById(R.id.mapConstraintLayout);
 
         // Menu Buttons
@@ -146,8 +156,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         SpriteManager.getInstance(this);
 
-        mapConstraintLayout.post(() -> {
-            backpackView = new BackpackView(MapViewActivity.this, mapConstraintLayout);
+        viewGroup.post(() -> {
+            backpackView = new BackpackView(MapViewActivity.this, viewGroup, this);
             updateBackpack();
         });
 
@@ -177,6 +187,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
         blurView.animate().alpha(0);
         closeButton.animate().scaleX(0).scaleY(0);
+        popupBackgroundBlurView.animate().alpha(0);
 
         // Configure audio
         mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.map);
@@ -201,6 +212,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         hololensClient = new HololensClient(getApplicationContext());
         hololensCounter = 0;
         hololensClient.run();
+
     }
 
     @Override
@@ -578,7 +590,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         menuState = MenuState.BACKPACK;
 
         // Move backpack to center
-        mapConstraintLayout.bringChildToFront(backpackButton);
         backpackButton.animate()
                 .x(mapConstraintLayout.getWidth() / 2.f - backpackButton.getWidth() / 2.f)
                 .y(mapConstraintLayout.getHeight() / 2.f - backpackButton.getHeight() / 2.f)
@@ -606,6 +617,15 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             case BACKPACK:
                 transitionBackpackOpenToClosed();
                 break;
+            case BACKPACK_POPUP:
+                getFragmentManager().beginTransaction()
+                        .setCustomAnimations(R.animator.slide_up, R.animator.slide_down)
+                        .remove(backpackPopupFragment)
+                        .commit();
+                popupBackgroundBlurView.animate().alpha(0).setDuration(500).setStartDelay(100);
+                backpackButton.animate().alpha(1.0f).setDuration(200).setStartDelay(400);
+                menuState = MenuState.BACKPACK;
+                backpackPopupFragment = null;
         }
     };
 
@@ -710,6 +730,21 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         mapboxMap.moveCamera(CameraUpdateFactory.tiltTo(tilt));
     }
     // endregion
+
+    //region Backpack Delegate
+    @Override
+    public void didTapBackpackItem(int itemID, int quantity) {
+        if (backpackPopupFragment != null) return;
+        inventoryPopupLayout.bringToFront();
+        backpackButton.animate().alpha(0).setDuration(200).setStartDelay(100);
+        backpackPopupFragment = BackpackPopupFragment.newInstance(itemID, quantity);
+        getFragmentManager().beginTransaction()
+                .setCustomAnimations(R.animator.slide_up, R.animator.slide_down)
+                .add(R.id.mapPopupLayout, backpackPopupFragment).commit();
+        menuState = MenuState.BACKPACK_POPUP;
+        popupBackgroundBlurView.animate().alpha(1).setDuration(500).setStartDelay(100);
+    }
+    //endregion
 
     // region Mapbox overrides
     @Override

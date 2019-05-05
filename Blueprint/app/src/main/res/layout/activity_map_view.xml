@@ -99,4 +99,26 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <FrameLayout
+        android:id="@+id/backpackContents"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </FrameLayout>
+
+    <View
+        android:id="@+id/popupBackgroundBlur"
+        android:background="@color/brandPrimaryDark80"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <FrameLayout
+        android:id="@+id/mapPopupLayout"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/blurView"
+        app:layout_constraintStart_toStartOf="@+id/blurView"
+        app:layout_constraintTop_toTopOf="parent"></FrameLayout>
+
+
 </android.support.constraint.ConstraintLayout>

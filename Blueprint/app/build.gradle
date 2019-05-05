@@ -39,7 +39,6 @@ repositories {
 
 dependencies {
     def appCenterSdkVersion = '1.11.4'
-
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     //noinspection GradleCompatible
     implementation 'com.android.support:appcompat-v7:28.0.0'
@@ -61,6 +60,8 @@ dependencies {
     implementation 'com.github.warkiz.widget:indicatorseekbar:2.1.2'
     implementation "com.microsoft.appcenter:appcenter-analytics:${appCenterSdkVersion}"
     implementation "com.microsoft.appcenter:appcenter-crashes:${appCenterSdkVersion}"
+    implementation 'org.rajawali3d:rajawali:1.1.970@aar'
+
     testImplementation 'org.mockito:mockito-core:1.10.19'
 }
 
