@@ -9,11 +9,11 @@ import android.widget.TextView;
 
 import com.manhattan.blueprint.R;
 
-public class BlueprintViewHolder extends RecyclerView.ViewHolder {
+public class WikiItemViewHolder extends RecyclerView.ViewHolder {
     public TextView title;
     public ImageView image;
 
-    public BlueprintViewHolder(@NonNull View itemView) {
+    public WikiItemViewHolder(@NonNull View itemView) {
         super(itemView);
         this.title = itemView.findViewById(R.id.blueprintTemplateTitle);
         this.image = itemView.findViewById(R.id.blueprintTemplateImage);

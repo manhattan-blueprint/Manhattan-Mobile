@@ -4,21 +4,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.manhattan.blueprint.Model.ItemSchema;
+import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.R;
-import com.manhattan.blueprint.View.Adapter.BlueprintCategoryAdapter;
 import com.manhattan.blueprint.View.Adapter.ItemClickListener;
-import com.manhattan.blueprint.View.Adapter.OtherCategoryAdapter;
-import com.manhattan.blueprint.View.Adapter.PrimaryCategoryAdapter;
+import com.manhattan.blueprint.View.Adapter.WikiItemAdapter;
 import com.manhattan.blueprint.View.BlueprintDetailFragment;
-import com.manhattan.blueprint.View.ViewHolder.BlueprintViewHolder;
+import com.manhattan.blueprint.View.ViewHolder.WikiItemViewHolder;
+
+import java.util.ArrayList;
 
 public class BlueprintActivity extends AppCompatActivity implements ItemClickListener {
-    private RecyclerView primaryResourceRecycler;
-    private RecyclerView blueprintRecycler;
-    private RecyclerView otherRecycler;
+    private RecyclerView itemRecycler;
 
     private View blurView;
     private BlueprintDetailFragment detailFragment;
@@ -28,21 +28,53 @@ public class BlueprintActivity extends AppCompatActivity implements ItemClickLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blueprint);
 
-        primaryResourceRecycler = findViewById(R.id.primaryResourceRecyclerView);
-        blueprintRecycler = findViewById(R.id.blueprintRecyclerView);
-        otherRecycler = findViewById(R.id.otherRecyclerView);
+        itemRecycler = findViewById(R.id.itemRecycler);
         blurView = findViewById(R.id.blueprintBlurView);
 
-        // Configure recyclers
-        primaryResourceRecycler.setLayoutManager(new GridLayoutManager(this, 4));
-        blueprintRecycler.setLayoutManager(new GridLayoutManager(this, 4));
-        otherRecycler.setLayoutManager(new GridLayoutManager(this, 4));
+        ArrayList<ItemSchema.Item> primaryItems = new ArrayList<>();
+        ArrayList<ItemSchema.Item> blueprintItems = new ArrayList<>();
+        ArrayList<ItemSchema.Item> otherItems = new ArrayList<>();
 
-        primaryResourceRecycler.setAdapter(new PrimaryCategoryAdapter(this, this));
-        blueprintRecycler.setAdapter(new BlueprintCategoryAdapter(this, this));
-        otherRecycler.setAdapter(new OtherCategoryAdapter(this, this));
+        ItemManager.getInstance(this).getItems().forEach(item -> {
+            switch (item.getItemType()) {
+                case PrimaryResource:
+                    primaryItems.add(item);
+                    break;
+
+                case BlueprintCraftedComponent:
+                case BlueprintCraftedMachine:
+                    blueprintItems.add(item);
+                    break;
+
+                case MachineCraftedComponent:
+                case Intangible:
+                    otherItems.add(item);
+                    break;
+            }
+        });
+
+
+        WikiItemAdapter adapter = new WikiItemAdapter(this, primaryItems, blueprintItems, otherItems, this);
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 4);
+        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int i) {
+                return adapter.isHeader(i) ? layoutManager.getSpanCount() : 1;
+            }
+        });
+        itemRecycler.setLayoutManager(layoutManager);
+        itemRecycler.setAdapter(adapter);
+
 
         blurView.setAlpha(0);
+        blurView.setOnTouchListener((v, event) -> {
+            if (detailFragment != null) {
+                onBackPressed();
+                v.performClick();
+                return true;
+            }
+            return false;
+        });
     }
 
 
@@ -63,7 +95,7 @@ public class BlueprintActivity extends AppCompatActivity implements ItemClickLis
     }
 
     @Override
-    public void didTap(BlueprintViewHolder viewHolder, ItemSchema.Item item) {
+    public void didTap(ItemSchema.Item item) {
         if (detailFragment != null) return;
         blurView.animate().alpha(1).setDuration(1000L);
 

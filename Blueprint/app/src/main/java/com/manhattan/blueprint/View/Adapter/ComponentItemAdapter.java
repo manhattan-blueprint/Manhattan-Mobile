@@ -12,11 +12,9 @@ import com.manhattan.blueprint.Model.ItemSchema;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.SpriteManager;
-import com.manhattan.blueprint.View.ViewHolder.BlueprintViewHolder;
 import com.manhattan.blueprint.View.ViewHolder.RecipeItemViewHolder;
 
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 public class ComponentItemAdapter extends RecyclerView.Adapter<RecipeItemViewHolder>  {
     private Context context;
