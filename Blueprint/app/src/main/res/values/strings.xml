@@ -53,4 +53,6 @@
     <!-- A password between 5 and 16 characters in length,
          which must contain at least 1 number, lowercase and uppercase character -->
     <string name="password_regex">(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{5,16}</string>
+
+    <string name="inventory_popup_quantity">Quantity %d</string>
 </resources>
