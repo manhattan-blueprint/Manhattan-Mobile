@@ -1,0 +1,20 @@
+newmtl Diamond_OreSG2
+illum 4
+Kd 0.38 0.38 0.38
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl Diamond_OreSG3
+illum 4
+Kd 0.12 0.44 0.55
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+Ns 18.00
+newmtl pSphere31SG1
+illum 4
+Kd 0.49 0.21 0.16
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00

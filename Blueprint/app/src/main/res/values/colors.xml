@@ -8,9 +8,9 @@
     <color name="brandAccent">#eb5b5c</color>
     <color name="brandOffWhite">#f5f5f5</color>
 
-    <color name="colorPrimary">#6f74dd</color>
-    <color name="colorPrimaryDark">#3949ab</color>
-    <color name="colorAccent">#00227b</color>
+    <color name="colorPrimary">#3477a8</color>
+    <color name="colorPrimaryDark">#092642</color>
+    <color name="colorAccent">#eb5b5c</color>
 
     <color name="onboardingVideoTint">#7A3477A8</color>
     <color name="mapBlur">#99050517</color>

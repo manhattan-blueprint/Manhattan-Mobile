@@ -52,7 +52,6 @@ public class OnboardingActivity extends FragmentActivity {
     private LoginFragment loginFragment;
     private BlueprintAPI api;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +61,13 @@ public class OnboardingActivity extends FragmentActivity {
         pager.setAdapter(new ScreenSlidePagerAdapter(getSupportFragmentManager()));
         api = new BlueprintAPI(this);
 
+        locationPermissionManager = new PermissionManager(LOCATION_PERMISSION, Manifest.permission.ACCESS_FINE_LOCATION);
+        cameraPermissionManager = new PermissionManager(CAMERA_PERMISSION, Manifest.permission.CAMERA);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         videoView = findViewById(R.id.video_view);
         String videoPath = "android.resource://" + getPackageName() + "/" + R.raw.hex;
         videoView.setVideoPath(videoPath);
@@ -72,11 +78,7 @@ public class OnboardingActivity extends FragmentActivity {
             mp.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
         });
 
-        locationPermissionManager = new PermissionManager(LOCATION_PERMISSION, Manifest.permission.ACCESS_FINE_LOCATION);
-        cameraPermissionManager = new PermissionManager(CAMERA_PERMISSION, Manifest.permission.CAMERA);
     }
-
-
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
         public ScreenSlidePagerAdapter(FragmentManager fm) {

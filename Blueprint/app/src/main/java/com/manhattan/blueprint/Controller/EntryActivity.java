@@ -9,7 +9,6 @@ import com.manhattan.blueprint.R;
 
 public class EntryActivity extends AppCompatActivity {
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
