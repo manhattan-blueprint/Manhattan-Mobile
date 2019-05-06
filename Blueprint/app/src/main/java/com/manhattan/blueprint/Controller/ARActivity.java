@@ -37,11 +37,13 @@ import com.google.ar.sceneform.ux.TransformableNode;
 
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.InventoryItem;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
+import com.manhattan.blueprint.Model.Session;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.ArMathUtils;
 import com.manhattan.blueprint.Utils.MediaUtils;
@@ -202,8 +204,23 @@ public class ARActivity extends AppCompatActivity {
     }
 
     private void playTutorial() {
-        infoMessage.setVisibility(View.INVISIBLE);
-        progressBarTutorial();
+        BlueprintDAO dao = BlueprintDAO.getInstance(this);
+        dao.getSession().ifPresent(session -> {
+            if (session.isTutorialEnabled()) {
+                infoMessage.setVisibility(View.INVISIBLE);
+                progressBarTutorial();
+
+                // disable after first play
+                dao.setSession(new Session(
+                        session.getUsername(),
+                        session.getAccountType(),
+                        session.getHololensIP(),
+                        session.isHololensConnected(),
+                        false));
+            } else {
+                infoMessage.setText(getString(R.string.start_when_ready));
+            }
+        });
     }
 
     private void progressBarTutorial() {

@@ -55,7 +55,8 @@ public class SettingsActivity extends AppCompatActivity {
             dao.setSession(new Session(session.getUsername(),
                     session.getAccountType(),
                     hololensIP.getText().toString(),
-                    session.isHololensConnected()));
+                    session.isHololensConnected(),
+                    session.isTutorialEnabled()));
             this.runOnUiThread(this::finish);
         });
     }
@@ -63,10 +64,12 @@ public class SettingsActivity extends AppCompatActivity {
     private void onToggleClickListener(View view) {
         BlueprintDAO dao = BlueprintDAO.getInstance(this);
         dao.getSession().ifPresent(session -> {
-            dao.setSession(new Session(session.getUsername(),
+            dao.setSession(new Session(
+                               session.getUsername(),
                                session.getAccountType(),
                                hololensIP.getText().toString(),
-                               !session.isHololensConnected()));
+                               !session.isHololensConnected(),
+                               session.isTutorialEnabled()));
             if (dao.getSession().get().isHololensConnected()) {
                 toggleHololens.setTextColor(toggleOnColor);
             } else {
