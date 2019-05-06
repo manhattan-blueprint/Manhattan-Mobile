@@ -412,6 +412,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         }
         markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
 
+        boolean closeEnough = LocationUtils.distanceBetween(marker.getPosition(), currentLocation) <= MAX_COLLECT_DISTANCE;
+
         Resource resource = markerResourceMap.get(marker);
         InfoWindow infoWindow = marker.showInfoWindow(mapboxMap, mapView);
         ViewUtils.getChildren(infoWindow.getView()).forEach(x -> {
@@ -425,6 +427,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 AppCompatTextView text = (AppCompatTextView) x;
                 text.setTypeface(ResourcesCompat.getFont(this, R.font.helveticaneue_medium));
                 text.setTextColor(getColor(R.color.white));
+                if (!closeEnough) {
+                    text.setText("Too far away, get closer!");
+                }
             }
         });
         infoWindow.update();
@@ -442,7 +447,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     .setNegativeButton(getString(R.string.negative_response), null)
                     .show();
 
-        } else if (LocationUtils.distanceBetween(marker.getPosition(), currentLocation) <= MAX_COLLECT_DISTANCE) {
+        } else if (closeEnough) {
             BlueprintDAO.getInstance(this).getSession().ifPresent(session -> {
                 isPlayingMinigame = true;
                 if (session.isHololensConnected()) {
