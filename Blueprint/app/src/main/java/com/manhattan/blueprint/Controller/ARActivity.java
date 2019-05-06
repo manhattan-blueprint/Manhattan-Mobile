@@ -11,9 +11,9 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -228,13 +228,13 @@ public class ARActivity extends AppCompatActivity {
                 .setPoint(0f, 0f)
                 .setShape(new RoundedRectangle(-100f, 0f, 2000f ,135f))
                 .setDescription(getString(R.string.progress_bar_tutorial))
-                .setAnimation(new LinearInterpolator())
+                .setAnimation(new AccelerateInterpolator())
                 .build();
 
         Spotlight.with(this)
                 .setOverlayColor(R.color.background)
                 .setDuration(1000L)
-                .setAnimation(new LinearInterpolator())
+                .setAnimation(new AccelerateInterpolator())
                 .setTargets(simpleTarget)
                 .setClosedOnTouchedOutside(true)
                 .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
@@ -254,13 +254,13 @@ public class ARActivity extends AppCompatActivity {
                 .setPoint(0f, 100f)
                 .setShape(new RoundedRectangle(345f, 150f, 390f ,115f))
                 .setDescription(getString(R.string.timer_tutorial))
-                .setAnimation(new LinearInterpolator())
+                .setAnimation(new AccelerateInterpolator())
                 .build();
 
         Spotlight.with(this)
                 .setOverlayColor(R.color.background)
                 .setDuration(1000L)
-                .setAnimation(new LinearInterpolator())
+                .setAnimation(new AccelerateInterpolator())
                 .setTargets(simpleTarget)
                 .setClosedOnTouchedOutside(true)
                 .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
@@ -280,13 +280,13 @@ public class ARActivity extends AppCompatActivity {
                 .setPoint(0f, 800f)
                 .setShape(new RoundedRectangle(-100f, 760f, 2000f ,400f))
                 .setDescription(getString(R.string.swiping_tutorial))
-                .setAnimation(new LinearInterpolator())
+                .setAnimation(new AccelerateInterpolator())
                 .build();
 
         Spotlight.with(this)
                 .setOverlayColor(R.color.background)
                 .setDuration(1000L)
-                .setAnimation(new LinearInterpolator())
+                .setAnimation(new AccelerateInterpolator())
                 .setTargets(simpleTarget)
                 .setClosedOnTouchedOutside(true)
                 .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
