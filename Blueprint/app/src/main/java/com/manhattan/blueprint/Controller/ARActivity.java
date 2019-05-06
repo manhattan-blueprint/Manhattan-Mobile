@@ -210,17 +210,8 @@ public class ARActivity extends AppCompatActivity {
         SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, 0f)
                 .setShape(new RoundedRectangle(-100f, 0f, 2000f ,135f))
-                .setDescription("Explain progress bar")
+                .setDescription(getString(R.string.progress_bar_tutorial))
                 .setAnimation(new LinearInterpolator())
-                .setOnSpotlightStartedListener(new OnTargetStateChangedListener<SimpleTarget>() {
-                    @Override
-                    public void onStarted(SimpleTarget target) {
-                    }
-
-                    @Override
-                    public void onEnded(SimpleTarget target) {
-                    }
-                })
                 .build();
 
         Spotlight.with(this)
@@ -231,8 +222,7 @@ public class ARActivity extends AppCompatActivity {
                 .setClosedOnTouchedOutside(true)
                 .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
                     @Override
-                    public void onStarted() {
-                    }
+                    public void onStarted() { }
 
                     @Override
                     public void onEnded() {
@@ -246,17 +236,8 @@ public class ARActivity extends AppCompatActivity {
         SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, 100f)
                 .setShape(new RoundedRectangle(345f, 150f, 390f ,115f))
-                .setDescription("Explain timer")
+                .setDescription(getString(R.string.timer_tutorial))
                 .setAnimation(new LinearInterpolator())
-                .setOnSpotlightStartedListener(new OnTargetStateChangedListener<SimpleTarget>() {
-                    @Override
-                    public void onStarted(SimpleTarget target) {
-                    }
-
-                    @Override
-                    public void onEnded(SimpleTarget target) {
-                    }
-                })
                 .build();
 
         Spotlight.with(this)
@@ -267,8 +248,7 @@ public class ARActivity extends AppCompatActivity {
                 .setClosedOnTouchedOutside(true)
                 .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
                     @Override
-                    public void onStarted() {
-                    }
+                    public void onStarted() { }
 
                     @Override
                     public void onEnded() {
@@ -282,17 +262,8 @@ public class ARActivity extends AppCompatActivity {
         SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, 800f)
                 .setShape(new RoundedRectangle(-100f, 760f, 2000f ,400f))
-                .setDescription("Explain swiping")
+                .setDescription(getString(R.string.swiping_tutorial))
                 .setAnimation(new LinearInterpolator())
-                .setOnSpotlightStartedListener(new OnTargetStateChangedListener<SimpleTarget>() {
-                    @Override
-                    public void onStarted(SimpleTarget target) {
-                    }
-
-                    @Override
-                    public void onEnded(SimpleTarget target) {
-                    }
-                })
                 .build();
 
         Spotlight.with(this)
@@ -303,11 +274,12 @@ public class ARActivity extends AppCompatActivity {
                 .setClosedOnTouchedOutside(true)
                 .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
                     @Override
-                    public void onStarted() {
-                    }
+                    public void onStarted() { }
 
                     @Override
                     public void onEnded() {
+                        infoMessage.setVisibility(View.VISIBLE);
+                        infoMessage.setText(getString(R.string.start_when_ready));
                     }
                 })
                 .start();
@@ -531,6 +503,7 @@ public class ARActivity extends AppCompatActivity {
                 }
             }.start();
             timerOn = true;
+            infoMessage.setVisibility(View.INVISIBLE);
             swipeIndicator.setVisibility(View.INVISIBLE);
             swipeIndicator.clearAnimation();
         }

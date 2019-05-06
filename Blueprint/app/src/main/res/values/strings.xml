@@ -30,7 +30,12 @@
     <string name="plane_discovery_instruction">Slowly look around on the ground for the resource</string>
     <string name="place_resource_instruction">Keep the resource centered and swipe within the box to collect it</string>
     <string name="resource_collection_instruction">Collect the resource by swiping inside the white frame</string>
+    <string name="start_when_ready">Start collecting the resource when you\'re ready!</string>
     <string name="resource_visible_again">Swipe to collect the resource!</string>
+
+    <string name="progress_bar_tutorial">As you collect resources, the progress bar will move to the right</string>
+    <string name="timer_tutorial">You have a limited time to collect as many resources as you can</string>
+    <string name="swiping_tutorial">Collect resources by swiping inside the white frame. Make sure to keep the resource centred and swipe across the full length of the box!</string>
 
     <string name="positive_response">OK</string>
     <string name="negative_response">No thanks</string>
