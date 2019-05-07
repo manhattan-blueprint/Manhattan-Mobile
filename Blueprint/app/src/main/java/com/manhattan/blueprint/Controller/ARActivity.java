@@ -250,9 +250,11 @@ public class ARActivity extends AppCompatActivity {
     }
 
     private void timerTutorial() {
+        int screenWidth = ViewUtils.getScreenWidth( ARActivity.this);
+
         SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, 100f)
-                .setShape(new RoundedRectangle(345f, 150f, 390f ,115f))
+                .setShape(new RoundedRectangle(  (screenWidth) / 2.0f - 200f, 150f, 390f ,115f))
                 .setDescription(getString(R.string.timer_tutorial))
                 .setAnimation(new AccelerateInterpolator())
                 .build();
@@ -276,9 +278,12 @@ public class ARActivity extends AppCompatActivity {
     }
 
     public void swipingTutorial() {
+        int screenHeight = ViewUtils.getScreenHeight(ARActivity.this);
+        int screenWidth = ViewUtils.getScreenWidth( ARActivity.this);
+
         SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, 800f)
-                .setShape(new RoundedRectangle(-100f, 760f, 2000f ,400f))
+                .setShape(new RoundedRectangle(-100f, (screenHeight - boxView.getWidth() + 50f) / 2.0f, 2000f ,(screenWidth / 3.5f) + 100f))
                 .setDescription(getString(R.string.swiping_tutorial))
                 .setAnimation(new AccelerateInterpolator())
                 .build();
