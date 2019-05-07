@@ -1,0 +1,25 @@
+{
+  materials: [
+    {
+      name: 'DefaultMaterial',
+      parameters: [
+        {
+          unused: 0,
+        },
+      ],
+      source: 'sampledata/sceneform_face_mesh_occluder_material.mat',
+    },
+  ],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+    ],
+    collision: {},
+    file: 'sampledata/sceneform_face_mesh_occluder.obj',
+    name: 'sceneform_face_mesh_occluder',
+    recenter: 'root',
+  },
+  version: '0.54:2',
+}

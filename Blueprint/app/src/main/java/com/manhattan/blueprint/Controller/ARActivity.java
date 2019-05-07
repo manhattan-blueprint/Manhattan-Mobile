@@ -294,7 +294,7 @@ public class ARActivity extends AppCompatActivity {
                         getResources().getString(R.string.collection_failure_title),
                         Toast.LENGTH_LONG).show();
                 finish();
-                System.exit(0);
+                // System.exit(0);
             }, 2000);
             return;
         }
@@ -320,7 +320,7 @@ public class ARActivity extends AppCompatActivity {
                     String successMsg = String.format(getString(R.string.collection_success), quantity, itemName);
                     Toast.makeText(ARActivity.this, successMsg, Toast.LENGTH_LONG).show();
                     finish();
-                    System.exit(0);
+                    // System.exit(0);
                 }, 1500);
             }
 
@@ -330,7 +330,7 @@ public class ARActivity extends AppCompatActivity {
                         (dialog, which) -> {
                         dialog.dismiss();
                         finish();
-                        System.exit(0);
+                        // System.exit(0);
                 });
             }
         });
