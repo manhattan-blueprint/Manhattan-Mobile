@@ -12,8 +12,10 @@
     <color name="colorPrimaryDark">#092642</color>
     <color name="colorAccent">#eb5b5c</color>
 
-    <color name="onboardingVideoTint">#7A3477A8</color>
+    <color name="onboarding_video_tint">#7A3477A8</color>
     <color name="mapBlur">#99050517</color>
+
+    <color name="blueprintBlur">#CC000000</color>
 
     <color name="minigame_outline_fail">#BAFF0000</color>
     <color name="minigame_outline_success">#BA00FF00</color>
@@ -31,7 +33,6 @@
     <color name="timer_background">#70000000</color>
     <color name="adjust_color">#BBf5f5f5</color>
 
-    <color name="onboarding_video_tint">#7A3477A8</color>
 
     <color name="white">#FFFFFF</color>
     <color name="ivory">#FFFFF0</color>

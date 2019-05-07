@@ -2,7 +2,6 @@ package com.manhattan.blueprint.Model.Managers;
 
 import android.content.Context;
 
-import com.manhattan.blueprint.Controller.MapViewActivity;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.DAO.Maybe;
@@ -11,12 +10,11 @@ import com.manhattan.blueprint.Model.ItemSchema;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ItemManager {
     private static ItemManager manager;
-    private HashMap<Integer, String> itemMap;
-    private HashMap<String, Integer> reverseItemMap;
+    private HashMap<Integer, ItemSchema.Item> itemMap;
     private BlueprintAPI api;
 
     public static ItemManager getInstance(Context context) {
@@ -28,7 +26,6 @@ public class ItemManager {
 
     private ItemManager(Context context) {
         this.itemMap = new HashMap<>();
-        this.reverseItemMap = new HashMap<>();
         this.api = new BlueprintAPI(context);
     }
 
@@ -36,12 +33,10 @@ public class ItemManager {
        api.getSchema(new APICallback<ItemSchema>() {
            @Override
            public void success(ItemSchema response) {
-               // Capitalize the first letter of each name
-               response.items.forEach(item -> {
-                  String firstCapitalized = item.getName().substring(0, 1).toUpperCase() + item.getName().substring(1);
-                  itemMap.put(item.getItemID(), firstCapitalized);
-                  reverseItemMap.put(firstCapitalized, item.getItemID());
-               });
+               // Add to item map, removing electricity
+               response.items.stream()
+                       .filter(x -> x.getItemID() != 32)
+                       .forEach(item -> itemMap.put(item.getItemID(), item));
                completion.success(null);
            }
 
@@ -53,15 +48,28 @@ public class ItemManager {
     }
 
     public Maybe<String> getName(int id) {
-        return itemMap.containsKey(id) ? Maybe.of(itemMap.get(id)) : Maybe.empty();
+        return itemMap.containsKey(id) ? Maybe.of(itemMap.get(id).getName()) : Maybe.empty();
     }
 
     public Maybe<Integer> getId(String name) {
-        return reverseItemMap.containsKey(name) ? Maybe.of(reverseItemMap.get(name)) : Maybe.empty();
+        for (Map.Entry<Integer, ItemSchema.Item> entry : itemMap.entrySet()) {
+            if (entry.getValue().getName().equals(name)) {
+                return Maybe.of(entry.getKey());
+            }
+        }
+        return Maybe.empty();
+    }
+
+    public Maybe<ItemSchema.Item> getItem(int id) {
+        return itemMap.containsKey(id) ? Maybe.of(itemMap.get(id)) : Maybe.empty();
+    }
+
+    public Collection<ItemSchema.Item> getItems() {
+       return itemMap.values();
     }
 
     public Collection<String> getNames() {
-        return itemMap.values();
+        return itemMap.values().stream().map(ItemSchema.Item::getName).collect(Collectors.toList());
     }
 
 }

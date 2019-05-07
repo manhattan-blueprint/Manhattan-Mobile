@@ -6,4 +6,3 @@
     android:propertyName="translationY"
     android:valueType="floatType"
     android:duration="900" />
-

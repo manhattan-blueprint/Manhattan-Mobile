@@ -1,5 +1,6 @@
 package com.manhattan.blueprint.Utils;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +13,8 @@ import com.manhattan.blueprint.Model.DAO.Consumer;
 import com.manhattan.blueprint.R;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class NetworkUtils {
     private static boolean isNetworkConnected(Context context) {
@@ -26,7 +29,7 @@ public class NetworkUtils {
                 wifiState == NetworkInfo.State.CONNECTING;
     }
 
-    public static class CheckNetworkConnectionThread extends Thread {
+    private static class CheckNetworkConnectionThread extends Thread {
         private boolean insideDialog;
         private Context context;
         private Consumer<Void> consumer;
@@ -51,5 +54,30 @@ public class NetworkUtils {
                 consumer.consume(null);
             }
         }
+    }
+
+    public static void configureNetworkChecker(Activity activity, long refreshTimeMs) {
+        // Periodically check network status
+        CheckNetworkConnectionThread connectionThread = new CheckNetworkConnectionThread(activity);
+        connectionThread.setCallback(value ->
+                activity.runOnUiThread(() -> {
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(activity);
+                    alertDialog.setTitle(activity.getString(R.string.no_network_title));
+                    alertDialog.setMessage(activity.getString(R.string.no_network_description));
+                    alertDialog.setPositiveButton(
+                            activity.getString(R.string.no_network_positive_response),
+                            (dialog, which) -> {
+                                activity.startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                                dialog.dismiss();
+                                connectionThread.canContinue(true);
+                            });
+                    alertDialog.setNegativeButton(activity.getString(R.string.negative_response), (dialog, which) -> {
+                        dialog.cancel();
+                        connectionThread.canContinue(true);
+                    });
+                    alertDialog.show();
+                }));
+        Executors.newScheduledThreadPool(2).scheduleWithFixedDelay(
+                connectionThread, 0, refreshTimeMs, TimeUnit.MILLISECONDS);
     }
 }

@@ -44,7 +44,6 @@ public class BackpackView {
     private float cellWidth;
     private float centerX;
     private float centerY;
-    private Bitmap bitmap;
 
     private ArrayList<AnimatableLayout> layerOne;
     private ArrayList<AnimatableLayout> layerTwo;
@@ -58,7 +57,6 @@ public class BackpackView {
         this.centerX = viewGroup.getWidth() / 2 - cellWidth / 2;
         this.centerY = viewGroup.getHeight() / 2 - cellHeight / 2;
         this.context = context;
-        this.bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.sprite_default);
         this.popups = new ArrayList<>();
         this.delegate = delegate;
 

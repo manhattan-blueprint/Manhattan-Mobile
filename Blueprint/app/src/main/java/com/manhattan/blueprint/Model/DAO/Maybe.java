@@ -50,9 +50,16 @@ public final class Maybe<T> {
 
     // If value is present, unwrap the result, apply the function, and wrap back in a maybe
     // If value isn't present, do nothing
-    public <S> Maybe<S> bind(Function<? super T, ? extends S> f) {
+    public <S> Maybe<S> map(Function<? super T, ? extends S> f) {
         if (isPresent()) {
             return Maybe.of(f.apply(value));
+        }
+        return Maybe.empty();
+    }
+
+    public <S> Maybe<S> bind(Function<? super T, ? extends Maybe<S>> f) {
+        if (isPresent()) {
+            return f.apply(value);
         }
         return Maybe.empty();
     }
