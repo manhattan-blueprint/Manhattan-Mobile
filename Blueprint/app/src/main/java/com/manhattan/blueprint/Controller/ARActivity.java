@@ -283,7 +283,7 @@ public class ARActivity extends AppCompatActivity {
         int screenWidth = ViewUtils.getScreenWidth( ARActivity.this);
 
         SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
-                .setPoint(0f, 800f)
+                .setPoint(0f, screenHeight / 2.0f + boxView.getWidth() + 570f)
                 .setShape(new RoundedRectangle(-100f, (screenHeight - boxView.getWidth() + 50f) / 2.0f, 2000f ,(screenWidth / 3.5f) + 100f))
                 .setDescription(getString(R.string.swiping_tutorial))
                 .setAnimation(new LinearInterpolator())
