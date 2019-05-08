@@ -2,15 +2,19 @@ package com.manhattan.blueprint.Controller;
 
 import android.Manifest;
 import android.graphics.drawable.GradientDrawable;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.CountDownTimer;
 import android.os.Handler;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,15 +38,23 @@ import com.google.ar.sceneform.ux.TransformableNode;
 
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
+import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.InventoryItem;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
+import com.manhattan.blueprint.Model.Session;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.ArMathUtils;
+import com.manhattan.blueprint.Utils.MediaUtils;
 import com.manhattan.blueprint.Utils.SpriteManager;
 import com.manhattan.blueprint.Utils.ViewUtils;
+import com.manhattan.blueprint.View.RoundedRectangle;
+import com.takusemba.spotlight.OnSpotlightStateChangedListener;
+import com.takusemba.spotlight.OnTargetStateChangedListener;
+import com.takusemba.spotlight.Spotlight;
+import com.takusemba.spotlight.target.SimpleTarget;
 import com.warkiz.widget.IndicatorSeekBar;
 
 import java.util.ArrayList;
@@ -64,22 +76,25 @@ public class ARActivity extends AppCompatActivity {
     private AnchorNode anchorNode;
     private Anchor anchor;
 
-    private Snackbar arSnackbarMessage;
-    private TextView snackbarTextView;
+    private TextView infoMessage;
     private TextView countdownIndicator;
-    private FrameLayout snackbarView;
     private GradientDrawable drawable;
     private IndicatorSeekBar progressBar;
     private View boxView;
     private View adjustIndicator;
+    private View swipeIndicator;
+    private Animation swipeAnimation;
     private CountDownTimer countDownTimer;
+    private MediaUtils mediaUtils;
+    private MediaPlayer backgroundMusic;
+    private MediaPlayer soundEffectsPlayer;
 
     private float prevX, prevY = 0; // previous coords
     private float initX, initY = 0; // initial  coords
     private float currX, currY = 0; // current  coords
     private float rotation;
     private int maxAngleError = 42;
-    private float minDistance = 0.65f;
+    private float minDistance = 0.60f;
     private long countdown; // seconds
     private boolean swipeFailed = true;
     private boolean minigameReady = true;
@@ -113,9 +128,18 @@ public class ARActivity extends AppCompatActivity {
         rotation = boxView.getRotation();
         countdownIndicator = (TextView) findViewById(R.id.CounterIndicator);
         countdownIndicator.bringToFront();
+        infoMessage = (TextView) findViewById(R.id.InfoMessages);
+        infoMessage.setText(getString(R.string.plane_discovery_instruction));
+        infoMessage.bringToFront();
         adjustIndicator = (View) findViewById(R.id.AdjustIndicator);
         adjustIndicator.bringToFront();
         adjustIndicator.setVisibility(View.INVISIBLE);
+        swipeIndicator = (View) findViewById(R.id.swipeIndicator);
+
+        // Configure audio
+        backgroundMusic = MediaPlayer.create(getApplicationContext(), R.raw.minigame);
+        backgroundMusic.setLooping(true);
+        mediaUtils = new MediaUtils(backgroundMusic);
 
         String jsonResource = (String) getIntent().getExtras().get("resource");
         Gson gson = new GsonBuilder().create();
@@ -141,12 +165,18 @@ public class ARActivity extends AppCompatActivity {
         progressBar.bringToFront();
         progressBar.setMax(swipesToCollect);
         progressBar.setTickCount((swipesToCollect / 2) + 1);
+        progressBar.setTickMarksDrawable(getDrawable(SpriteManager.getSpriteByID(resourceToCollect.getId())));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (arFragment != null) return;
+        backgroundMusic.setVolume(0,0);
+        backgroundMusic.start();
+        mediaUtils.fadeIn();
+        if (arFragment != null) {
+            return;
+        }
         // Ensure latest version of ARCore is installed
         try {
             switch (ArCoreApk.getInstance().requestInstall(this, !userRequestedARInstall)) {
@@ -168,6 +198,116 @@ public class ARActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mediaUtils.fadeOut(value -> backgroundMusic.pause());
+    }
+
+    private void playTutorial() {
+        BlueprintDAO dao = BlueprintDAO.getInstance(this);
+        dao.getSession().ifPresent(session -> {
+            if (session.isTutorialEnabled()) {
+                infoMessage.setVisibility(View.INVISIBLE);
+                progressBarTutorial();
+
+                // disable after first play
+                dao.setSession(new Session(
+                        session.getUsername(),
+                        session.getAccountType(),
+                        session.getHololensIP(),
+                        session.isHololensConnected(),
+                        false));
+            } else {
+                infoMessage.setVisibility(View.INVISIBLE);
+            }
+        });
+    }
+
+    private void progressBarTutorial() {
+        SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
+                .setPoint(0f, 0f)
+                .setShape(new RoundedRectangle(-100f, 0f, 2000f ,135f))
+                .setDescription(getString(R.string.progress_bar_tutorial))
+                .setAnimation(new LinearInterpolator())
+                .build();
+
+        Spotlight.with(this)
+                .setOverlayColor(R.color.background)
+                .setDuration(500L)
+                .setAnimation(new LinearInterpolator())
+                .setTargets(simpleTarget)
+                .setClosedOnTouchedOutside(true)
+                .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
+                    @Override
+                    public void onStarted() { }
+
+                    @Override
+                    public void onEnded() {
+                        timerTutorial();
+                    }
+                })
+                .start();
+    }
+
+    private void timerTutorial() {
+        int screenWidth = ViewUtils.getScreenWidth( ARActivity.this);
+
+        SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
+                .setPoint(0f, 100f)
+                .setShape(new RoundedRectangle(  (screenWidth) / 2.0f - 200f, 150f, 390f ,115f))
+                .setDescription(getString(R.string.timer_tutorial))
+                .setAnimation(new LinearInterpolator())
+                .build();
+
+        Spotlight.with(this)
+                .setOverlayColor(R.color.background)
+                .setDuration(500L)
+                .setAnimation(new LinearInterpolator())
+                .setTargets(simpleTarget)
+                .setClosedOnTouchedOutside(true)
+                .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
+                    @Override
+                    public void onStarted() { }
+
+                    @Override
+                    public void onEnded() {
+                        swipingTutorial();
+                    }
+                })
+                .start();
+    }
+
+    public void swipingTutorial() {
+        int screenHeight = ViewUtils.getScreenHeight(ARActivity.this);
+        int screenWidth = ViewUtils.getScreenWidth( ARActivity.this);
+
+        SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
+                .setPoint(0f, screenHeight / 2.0f + boxView.getWidth() + 570f)
+                .setShape(new RoundedRectangle(-100f, (screenHeight - boxView.getWidth() + 50f) / 2.0f, 2000f ,(screenWidth / 3.5f) + 100f))
+                .setDescription(getString(R.string.swiping_tutorial))
+                .setAnimation(new LinearInterpolator())
+                .build();
+
+        Spotlight.with(this)
+                .setOverlayColor(R.color.background)
+                .setDuration(500L)
+                .setAnimation(new LinearInterpolator())
+                .setTargets(simpleTarget)
+                .setClosedOnTouchedOutside(true)
+                .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
+                    @Override
+                    public void onStarted() { }
+
+                    @Override
+                    public void onEnded() {
+                        infoMessage.setVisibility(View.VISIBLE);
+                        infoMessage.setText(getString(R.string.start_when_ready));
+                    }
+                })
+                .start();
+    }
+
     private void startAr() {
         // Build renderable object
         ModelRenderable.builder()
@@ -180,9 +320,8 @@ public class ARActivity extends AppCompatActivity {
         // Start AR:
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById((R.id.ux_fragment));
         Scene arScene = arFragment.getArSceneView().getScene();
-        arScene.addOnUpdateListener(this::onSceneUpdate);
-        arScene.setOnTouchListener(this::onSceneTouch);
-        createSnackbar();
+        arScene.addOnUpdateListener(ARActivity.this::onSceneUpdate);
+        arScene.setOnTouchListener(ARActivity.this::onSceneTouch);
     }
 
     public void onSceneUpdate(FrameTime frameTime) {
@@ -197,13 +336,18 @@ public class ARActivity extends AppCompatActivity {
                                         topLeft, topRight, bottomLeft, bottomRight,
                                         boxView.getWidth(), boxView.getHeight())) {
                 swipeFailed = true;
-                setSnackbar(getString(R.string.resource_out_of_view_failed));
                 boxView.setVisibility(View.INVISIBLE);
+                swipeIndicator.setVisibility(View.INVISIBLE);
+                swipeIndicator.clearAnimation();
                 adjustIndicator.setVisibility(View.VISIBLE);
             } else if (boxView.getVisibility() == View.INVISIBLE) {
                 boxView.setVisibility(View.VISIBLE);
+                boxView.bringToFront();
                 adjustIndicator.setVisibility(View.INVISIBLE);
-                setSnackbar(getString(R.string.resource_visible_again));
+                if (!timerOn) {
+                    swipeIndicator.setVisibility(View.VISIBLE);
+                    swipeIndicator.startAnimation(swipeAnimation);
+                }
             }
         }
 
@@ -221,22 +365,22 @@ public class ARActivity extends AppCompatActivity {
                 TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
                 transformableNode.getScaleController().setMaxScale(100000f);
                 transformableNode.getScaleController().setMinScale(0.0001f);
-                transformableNode.setLocalScale(new Vector3(8f, 8f, 8f));
+                transformableNode.setLocalScale(new Vector3(16f, 16f, 16f));
                 transformableNode.setParent(anchorNode);
                 transformableNode.setRenderable(resourceModel);
                 transformableNode.select();
                 transformableNode.getTranslationController().setEnabled(false);
+                transformableNode.setOnTouchListener(this::onNodeTouch);
 
                 // Remove plane renderer
                 arFragment.getArSceneView().getPlaneRenderer().setEnabled(false);
-                arSnackbarMessage.setText(getString(R.string.resource_collection_instruction));
+                boxView.bringToFront();
+                swipeIndicator.bringToFront();
+                swipeAnimation = AnimationUtils.loadAnimation(this, R.anim.swipe_animation);
+                swipeIndicator.startAnimation(swipeAnimation);
                 itemWasPlaced = true;
+                playTutorial();
             }
-
-            arSnackbarMessage.setText(getString(R.string.resource_collection_instruction));
-            boxView.bringToFront();
-            planeWasDetected = true;
-            break;
         }
     }
 
@@ -269,7 +413,6 @@ public class ARActivity extends AppCompatActivity {
     }
 
     private void onSuccessfulSwipe() {
-        setSnackbar(getResources().getString(R.string.successful_swipe));
         int progress = progressBar.getProgress() + 1;
         progressBar.setProgress(progress);
 
@@ -289,9 +432,8 @@ public class ARActivity extends AppCompatActivity {
             countdownIndicator.setTextColor(getResources().getColor(R.color.red));
             final Handler handler = new Handler();
             handler.postDelayed(() -> {
-                setSnackbar(getString(R.string.minigame_collected_none));
                 Toast.makeText(ARActivity.this,
-                        getResources().getString(R.string.collection_failure_title),
+                        getString(R.string.minigame_collected_none),
                         Toast.LENGTH_LONG).show();
                 finish();
                 System.exit(0);
@@ -307,11 +449,9 @@ public class ARActivity extends AppCompatActivity {
             public void success(Void response) {
                 if (collectedAll) {
                     countdownIndicator.setTextColor(getResources().getColor(R.color.green));
-                    setSnackbar(getString(R.string.minigame_collected_all));
                 } else {
                     countdownIndicator.setText("0.0 s");
                     countdownIndicator.setTextColor(getResources().getColor(R.color.red));
-                    setSnackbar(getString(R.string.minigame_timeout));
                 }
                 final Handler handler = new Handler();
                 handler.postDelayed(() -> {
@@ -336,20 +476,6 @@ public class ARActivity extends AppCompatActivity {
         });
     }
 
-    private void createSnackbar() {
-        arSnackbarMessage = Snackbar.make(findViewById(R.id.ARview), getString(R.string.plane_discovery_instruction), Snackbar.LENGTH_INDEFINITE);
-        snackbarTextView = (TextView) (arSnackbarMessage.getView()).findViewById(android.support.design.R.id.snackbar_text);
-        snackbarView = (FrameLayout) arSnackbarMessage.getView();
-        snackbarTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-        snackbarTextView.setTextSize(17);
-        snackbarView.setAlpha(0.50f);
-        arSnackbarMessage.show();
-    }
-
-    private void setSnackbar(String msg) {
-        arSnackbarMessage.setText(msg);
-    }
-
     // Store the (x,y) coordinates of each corner of the "gesture box"
     private void getCorners() {
         boxView.getLocationOnScreen(topLeft);
@@ -364,98 +490,111 @@ public class ARActivity extends AppCompatActivity {
         bottomRight[1] = (int) (bottomLeft[1] + boxView.getWidth() * Math.sin(rotation * Math.PI / 180));
     }
 
+    private boolean onNodeTouch(HitTestResult hitTestResult, MotionEvent nodeMotionEvent) {
+        return onSceneTouch(hitTestResult, nodeMotionEvent);
+    }
+
     private boolean onSceneTouch(HitTestResult hitTestResult, MotionEvent sceneMotionEvent) {
         if (!itemWasPlaced || gameOver) {
             return false;
         }
-        double diff;
         switch (sceneMotionEvent.getAction()) {
             case ACTION_UP:
-                if (swipeFailed || !minigameReady) {
-                    break;
-                }
-                currX = sceneMotionEvent.getX();
-                currY = sceneMotionEvent.getY();
-                if (ArMathUtils.outOfBounds(new int[]{(int) currX, (int) currY},
-                                            topLeft, topRight, bottomLeft, bottomRight,
-                                            boxView.getWidth(), boxView.getHeight())) {
-                    swipeFailed = true;
-                    setSnackbar(getString(R.string.out_of_bounds_failed));
-                    newMinigame(false, true);
-                    return true;
-                }
-                double dist = Math.sqrt((currX - initX) * (currX - initX) + (currY - initY) * (currY - initY));
-                if (dist < minDistance * boxView.getHeight()) {
-                    swipeFailed = true;
-                    setSnackbar(getString(R.string.swipe_too_short_failed));
-                    newMinigame(false, true);
-                    return true;
-                }
-                onSuccessfulSwipe();
-                newMinigame(true, true);
-                break;
+                return motionEnded(sceneMotionEvent);
 
             case ACTION_DOWN:
-                if (!minigameReady) {
-                    break;
-                }
-                if (!timerOn) {
-                    countDownTimer = new CountDownTimer(countdown * 1000, 100) {
-                        public void onTick(long millisUntilFinished) {
-                            String text = String.format("%.1f s", (float) millisUntilFinished / 1000);
-                            countdownIndicator.setText(text);
-                        }
-
-                        public void onFinish() {
-                            if (!gameOver) {
-                                finishMinigame(false);
-                            }
-                        }
-                    }.start();
-                    timerOn = true;
-                }
-
-                swipeFailed = false;
-                getCorners();
-                initX = sceneMotionEvent.getX();
-                initY = sceneMotionEvent.getY();
-                prevX = initX;
-                prevY = initY;
-                if (ArMathUtils.outOfBounds(new int[]{(int) initX, (int) initY},
-                                            topLeft, topRight, bottomLeft, bottomRight,
-                                            boxView.getWidth(), boxView.getHeight())) {
-                    swipeFailed = true;
-                    setSnackbar(getString(R.string.out_of_bounds_failed));
-                    newMinigame(false, true);
-                    return true;
-                }
-                break;
+                return motionStarted(sceneMotionEvent);
 
             case ACTION_MOVE:
-                if (swipeFailed || !minigameReady) {
-                    break;
-                }
-                currX = sceneMotionEvent.getX();
-                currY = sceneMotionEvent.getY();
-                diff = ArMathUtils.getAngleError(currX, currY, prevX, prevY, rotation);
-                if (ArMathUtils.outOfBounds(new int[]{(int) currX, (int) currY},
-                                            topLeft, topRight, bottomLeft, bottomRight,
-                                            boxView.getWidth(), boxView.getHeight())) {
-                    swipeFailed = true;
-                    setSnackbar(getString(R.string.out_of_bounds_failed));
-                    newMinigame(false, true);
-                    return true;
-                }
-                if (diff > maxAngleError) {
-                    swipeFailed = true;
-                    setSnackbar(getString(R.string.out_of_bounds_failed));
-                    newMinigame(false, true);
-                    return true;
-                }
-                prevX = currX;
-                prevY = currY;
-                break;
+                return swipeMotion(sceneMotionEvent);
         }
+        return true;
+    }
+
+    private boolean motionStarted(MotionEvent sceneMotionEvent) {
+        if (!minigameReady) {
+            return false;
+        }
+        if (!timerOn) {
+            countDownTimer = new CountDownTimer(countdown * 1000, 100) {
+                public void onTick(long millisUntilFinished) {
+                    String text = String.format("%.1f s", (float) millisUntilFinished / 1000);
+                    countdownIndicator.setText(text);
+                }
+
+                public void onFinish() {
+                    if (!gameOver) {
+                        finishMinigame(false);
+                    }
+                }
+            }.start();
+            timerOn = true;
+            infoMessage.setVisibility(View.INVISIBLE);
+            swipeIndicator.setVisibility(View.INVISIBLE);
+            swipeIndicator.clearAnimation();
+        }
+
+        MediaUtils.playSoundEffect(R.raw.hummus, soundEffectsPlayer, getApplicationContext());
+        swipeFailed = false;
+        getCorners();
+        initX = sceneMotionEvent.getX();
+        initY = sceneMotionEvent.getY();
+        prevX = initX;
+        prevY = initY;
+        if (ArMathUtils.outOfBounds(new int[]{(int) initX, (int) initY},
+                topLeft, topRight, bottomLeft, bottomRight,
+                boxView.getWidth(), boxView.getHeight())) {
+            swipeFailed = true;
+            newMinigame(false, true);
+        }
+        return true;
+    }
+
+    private boolean swipeMotion(MotionEvent sceneMotionEvent) {
+        if (swipeFailed || !minigameReady) {
+            return false;
+        }
+        currX = sceneMotionEvent.getX();
+        currY = sceneMotionEvent.getY();
+        double diff = ArMathUtils.getAngleError(currX, currY, prevX, prevY, rotation);
+        if (ArMathUtils.outOfBounds(new int[]{(int) currX, (int) currY},
+                topLeft, topRight, bottomLeft, bottomRight,
+                boxView.getWidth(), boxView.getHeight())) {
+            swipeFailed = true;
+            newMinigame(false, true);
+            return true;
+        }
+        if (diff > maxAngleError) {
+            swipeFailed = true;
+            newMinigame(false, true);
+            return true;
+        }
+        prevX = currX;
+        prevY = currY;
+        return true;
+    }
+
+    private boolean motionEnded(MotionEvent sceneMotionEvent) {
+        if (swipeFailed || !minigameReady) {
+            return false;
+        }
+        currX = sceneMotionEvent.getX();
+        currY = sceneMotionEvent.getY();
+        if (ArMathUtils.outOfBounds(new int[]{(int) currX, (int) currY},
+                topLeft, topRight, bottomLeft, bottomRight,
+                boxView.getWidth(), boxView.getHeight())) {
+            swipeFailed = true;
+            newMinigame(false, true);
+            return true;
+        }
+        double dist = Math.sqrt((currX - initX) * (currX - initX) + (currY - initY) * (currY - initY));
+        if (dist < minDistance * boxView.getHeight()) {
+            swipeFailed = true;
+            newMinigame(false, true);
+            return true;
+        }
+        onSuccessfulSwipe();
+        newMinigame(true, true);
         return true;
     }
 }

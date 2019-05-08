@@ -99,4 +99,21 @@ public class SpriteManager {
         modelsMap.put(10, "model_10.sfb");
         return modelsMap;
     }
+
+    public static int getSpriteByID(int resID) {
+        switch(resID) {
+            case 1:  return R.drawable.centred_sprite_1;
+            case 2:  return R.drawable.centred_sprite_2;
+            case 3:  return R.drawable.centred_sprite_3;
+            case 4:  return R.drawable.centred_sprite_4;
+            case 5:  return R.drawable.centred_sprite_5;
+            case 6:  return R.drawable.centred_sprite_6;
+            case 7:  return R.drawable.centred_sprite_7;
+            case 8:  return R.drawable.centred_sprite_8;
+            case 9:  return R.drawable.centred_sprite_9;
+            case 10: return R.drawable.centred_sprite_10;
+            default: return R.drawable.sprite_default;
+        }
+
+    }
 }

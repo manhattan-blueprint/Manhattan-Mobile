@@ -15,18 +15,42 @@
         android:layout_height="20dp"
         android:foreground="@drawable/ar_gesture" />
 
+    <View
+        android:id="@+id/swipeIndicator"
+        android:rotation="90"
+        android:layout_gravity="center"
+        android:layout_width="80dp"
+        android:layout_height="35dp"
+        android:foreground="@drawable/ic_swipe_arrow"
+        />
+
     <TextView
         android:id="@+id/CounterIndicator"
-        android:layout_width="100dp"
-        android:layout_height="30dp"
-        android:layout_marginTop="45dp"
+        android:layout_width="140dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="50dp"
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
         android:textColor="@android:color/white"
-        android:textSize="19sp"
+        android:textSize="24sp"
         android:textStyle="normal"
         android:background="@drawable/timer_background"
         style="@style/B2_Bold"/>
+
+    <TextView
+        android:id="@+id/InfoMessages"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp"
+        android:paddingBottom="28dp"
+        android:layout_gravity="bottom"
+        android:gravity="bottom"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textAlignment="center"
+        style="@style/H1"
+        android:background="#00000000" />
 
     <View
         android:id="@+id/AdjustIndicator"
@@ -52,9 +76,9 @@
         app:isb_user_seekable="false"
         app:isb_seek_smoothly="true"
         app:isb_thumb_drawable="@drawable/ic_progress_icon"
-        app:isb_thumb_size="28dp"
+        app:isb_thumb_size="50dp"
         app:isb_show_tick_marks_type="oval"
-        app:isb_tick_marks_size="7dp"
+        app:isb_tick_marks_size="25dp"
         app:isb_track_progress_color="@color/progress_bar_left"
         app:isb_track_progress_size="4dp"
         app:isb_track_background_color="@color/progress_bar_right"
