@@ -2,7 +2,7 @@ package com.manhattan.blueprint.Model.DAO;
 
 import android.content.Context;
 
-import com.manhattan.blueprint.Model.Session;
+import com.manhattan.blueprint.Model.GameSession;
 import com.manhattan.blueprint.Model.TokenPair;
 
 import io.realm.Realm;
@@ -45,25 +45,25 @@ public class BlueprintDAO implements DAO {
             realm.where(TokenPair.class).findAll().deleteAllFromRealm());
     }
 
-    // MARK: - Session
+    // MARK: - GameSession
     @Override
-    public void setSession(Session session) {
+    public void setSession(GameSession session) {
         Realm.getDefaultInstance().executeTransaction(realm -> {
             // Delete all current instances
-            realm.where(Session.class).findAll().deleteAllFromRealm();
+            realm.where(GameSession.class).findAll().deleteAllFromRealm();
             realm.copyToRealm(session);
         });
     }
 
     @Override
-    public Maybe<Session> getSession() {
-        return Maybe.of(Realm.getDefaultInstance().where(Session.class).findFirst());
+    public Maybe<GameSession> getSession() {
+        return Maybe.of(Realm.getDefaultInstance().where(GameSession.class).findFirst());
     }
 
     @Override
     public void clearSession() {
         Realm.getDefaultInstance().executeTransaction(realm ->
-                realm.where(Session.class).findAll().deleteAllFromRealm());
+                realm.where(GameSession.class).findAll().deleteAllFromRealm());
     }
 }
 

@@ -2,8 +2,7 @@ package com.manhattan.blueprint;
 
 import com.manhattan.blueprint.Model.DAO.DAO;
 import com.manhattan.blueprint.Model.DAO.Maybe;
-import com.manhattan.blueprint.Model.MockData;
-import com.manhattan.blueprint.Model.Session;
+import com.manhattan.blueprint.Model.GameSession;
 import com.manhattan.blueprint.Model.TokenPair;
 
 // Mock DAO implementation
@@ -27,12 +26,12 @@ public class MockDAO implements DAO {
     }
 
     @Override
-    public void setSession(Session session) {
+    public void setSession(GameSession session) {
 
     }
 
     @Override
-    public Maybe<Session> getSession() {
+    public Maybe<GameSession> getSession() {
         return null;
     }
 

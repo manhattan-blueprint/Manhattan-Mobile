@@ -13,7 +13,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
-import com.manhattan.blueprint.Model.Session;
+import com.manhattan.blueprint.Model.GameSession;
 import com.manhattan.blueprint.R;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -60,7 +60,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void onHololensToggleChangeListener(CompoundButton compoundButton, boolean hololensConnected) {
         BlueprintDAO dao = BlueprintDAO.getInstance(this);
         dao.getSession().ifPresent(session -> {
-            dao.setSession(new Session(
+            dao.setSession(new GameSession(
                     session.getUsername(),
                     session.getAccountType(),
                     hololensIP.getText().toString(),
@@ -73,7 +73,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void onTutorialToggleChangeListener(CompoundButton compoundButton, boolean tutorialEnabled) {
         BlueprintDAO dao = BlueprintDAO.getInstance(this);
         dao.getSession().ifPresent(session -> {
-            dao.setSession(new Session(
+            dao.setSession(new GameSession(
                     session.getUsername(),
                     session.getAccountType(),
                     hololensIP.getText().toString(),
@@ -88,7 +88,7 @@ public class SettingsActivity extends AppCompatActivity {
         super.onBackPressed();
         BlueprintDAO dao = BlueprintDAO.getInstance(this);
         dao.getSession().ifPresent(session -> {
-            dao.setSession(new Session(
+            dao.setSession(new GameSession(
                     session.getUsername(),
                     session.getAccountType(),
                     hololensIP.getText().toString(),

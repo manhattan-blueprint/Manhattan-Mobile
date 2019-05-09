@@ -5,14 +5,14 @@ import io.realm.RealmObject;
 
 // Can't store enums in Realm, so defer to storing a description instead
 // https://stackoverflow.com/questions/37997766/enums-support-with-realm
-public class Session extends RealmObject {
+public class GameSession extends RealmObject {
     public  String hololensIP;
     private String username;
     private String accountTypeDescription;
     private boolean hololensConnected;
     private boolean tutorialEnabled;
 
-    public Session() {
+    public GameSession() {
         this.username = null;
         this.accountTypeDescription = null;
         this.hololensIP = null;
@@ -20,7 +20,7 @@ public class Session extends RealmObject {
         this.tutorialEnabled = true;
     }
 
-    public Session(String username, AccountType accountType) {
+    public GameSession(String username, AccountType accountType) {
         this.username = username;
         this.accountTypeDescription = accountType.toString();
         this.hololensIP = null;
@@ -28,7 +28,7 @@ public class Session extends RealmObject {
         this.tutorialEnabled = true;
     }
 
-    public Session(String username, AccountType accountType, String hololensIP, boolean hololensConnected, boolean tutorialEnabled) {
+    public GameSession(String username, AccountType accountType, String hololensIP, boolean hololensConnected, boolean tutorialEnabled) {
         this.username = username;
         this.accountTypeDescription = accountType.toString();
         this.hololensIP = hololensIP;

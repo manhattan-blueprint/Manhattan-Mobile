@@ -16,6 +16,9 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.ar.core.Config;
+import com.google.ar.core.Session;
+
 import com.google.gson.Gson;
 import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
@@ -59,6 +62,7 @@ import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnticipateInterpolator;
@@ -122,6 +126,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private boolean inDeveloperMode = false;
     private boolean isPlayingMinigame = false;
     private MenuState menuState = MenuState.CLOSED;
+    private boolean deviceSupportsAR;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -209,10 +214,20 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             }
         });
 
+        // Check ARcore availability
+        deviceSupportsAR = false;
+        try {
+            Session arCoreSession = new Session(this);
+            Config config = new Config(arCoreSession);
+            deviceSupportsAR = arCoreSession.isSupported(config);
+            arCoreSession.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         hololensClient = new HololensClient(getApplicationContext());
         hololensCounter = 0;
         hololensClient.run();
-
     }
 
     @Override
@@ -428,12 +443,18 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                         hololensClient.addItem(resource.getId(), resource.getQuantity(), hololensCounter++);
                     }
                 } else {
-                    // Go to AR View
-                    Intent intentAR = new Intent(MapViewActivity.this, MinigameActivity.class);
+                    Intent intentMinigame;
+                    if (deviceSupportsAR) {
+                        // Start AR Minigame
+                        intentMinigame = new Intent(MapViewActivity.this, ARMinigameActivity.class);
+                    } else {
+                        // Start non-AR Minigame
+                        intentMinigame = new Intent(MapViewActivity.this, MinigameActivity.class);
+                    }
                     Bundle resourceToCollect = new Bundle();
                     resourceToCollect.putString("resource", (new Gson()).toJson(resource));
-                    intentAR.putExtras(resourceToCollect);
-                    startActivity(intentAR);
+                    intentMinigame.putExtras(resourceToCollect);
+                    startActivity(intentMinigame);
                 }
             }).ifNotPresent(v -> ViewUtils.showError(MapViewActivity.this,
                                         getResources().getString(R.string.session_error_title),

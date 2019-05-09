@@ -38,12 +38,12 @@ import com.google.ar.sceneform.ux.TransformableNode;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
+import com.manhattan.blueprint.Model.GameSession;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.InventoryItem;
 import com.manhattan.blueprint.Model.Managers.ItemManager;
 import com.manhattan.blueprint.Model.Managers.PermissionManager;
 import com.manhattan.blueprint.Model.Resource;
-import com.manhattan.blueprint.Model.Session;
 import com.manhattan.blueprint.R;
 import com.manhattan.blueprint.Utils.ArMathUtils;
 import com.manhattan.blueprint.Utils.MediaUtils;
@@ -210,7 +210,7 @@ public class ARMinigameActivity extends AppCompatActivity {
                 progressBarTutorial();
 
                 // disable after first play
-                dao.setSession(new Session(
+                dao.setSession(new GameSession(
                         session.getUsername(),
                         session.getAccountType(),
                         session.getHololensIP(),
