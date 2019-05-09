@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/ARview"
+    tools:context=".Controller.ARMinigameActivity">
+
+    <View
+        android:id="@+id/Minigame"
+        android:rotation="90"
+        android:layout_gravity="center"
+        android:layout_width="10dp"
+        android:layout_height="20dp"
+        android:foreground="@drawable/ar_gesture" />
+
+    <View
+        android:id="@+id/swipeIndicator"
+        android:rotation="90"
+        android:layout_gravity="center"
+        android:layout_width="80dp"
+        android:layout_height="35dp"
+        android:foreground="@drawable/ic_swipe_arrow"
+        />
+
+    <TextView
+        android:id="@+id/CounterIndicator"
+        android:layout_width="140dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="50dp"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:textStyle="normal"
+        android:background="@drawable/timer_background"
+        style="@style/B2_Bold"/>
+
+    <TextView
+        android:id="@+id/InfoMessages"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp"
+        android:paddingBottom="28dp"
+        android:layout_gravity="bottom"
+        android:gravity="bottom"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textAlignment="center"
+        style="@style/H1"
+        android:background="#00000000" />
+
+    <View
+        android:id="@+id/AdjustIndicator"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_gravity="center"
+        android:foreground="@drawable/ic_adjust_camera" />
+
+    <fragment
+        android:id="@+id/ux_fragment"
+        android:name="com.google.ar.sceneform.ux.ArFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <com.warkiz.widget.IndicatorSeekBar
+        android:id="@+id/ProgressBar"
+        android:layout_marginTop="7dp"
+        android:layout_width="match_parent"
+        android:paddingStart="22dp"
+        android:paddingEnd="22dp"
+        android:layout_height="100dp"
+        app:isb_min="0"
+        app:isb_user_seekable="false"
+        app:isb_seek_smoothly="true"
+        app:isb_thumb_drawable="@drawable/ic_progress_icon"
+        app:isb_thumb_size="50dp"
+        app:isb_show_tick_marks_type="oval"
+        app:isb_tick_marks_size="25dp"
+        app:isb_track_progress_color="@color/progress_bar_left"
+        app:isb_track_progress_size="4dp"
+        app:isb_track_background_color="@color/progress_bar_right"
+        app:isb_track_background_size="1.7dp"
+        app:isb_tick_marks_color="@drawable/ic_tick_marks_selector"
+        />
+</FrameLayout>

@@ -31,7 +31,10 @@
             android:name=".Controller.OnboardingActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".Controller.ARActivity"
+            android:name=".Controller.ARMinigameActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Controller.MinigameActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".Controller.SettingsActivity"

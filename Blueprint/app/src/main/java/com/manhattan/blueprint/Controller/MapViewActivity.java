@@ -429,7 +429,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     }
                 } else {
                     // Go to AR View
-                    Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
+                    Intent intentAR = new Intent(MapViewActivity.this, MinigameActivity.class);
                     Bundle resourceToCollect = new Bundle();
                     resourceToCollect.putString("resource", (new Gson()).toJson(resource));
                     intentAR.putExtras(resourceToCollect);

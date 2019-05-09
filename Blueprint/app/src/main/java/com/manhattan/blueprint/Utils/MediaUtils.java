@@ -2,9 +2,7 @@ package com.manhattan.blueprint.Utils;
 
 import android.content.Context;
 import android.media.MediaPlayer;
-import android.provider.MediaStore;
 
-import com.manhattan.blueprint.Controller.ARActivity;
 import com.manhattan.blueprint.Model.DAO.Consumer;
 
 import java.util.Timer;
