@@ -8,12 +8,6 @@
     tools:context=".Controller.ARMinigameActivity">
 
     <View
-        android:id="@+id/minigameBackground"
-        android:foreground="@color/blue"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent" />
-
-    <View
         android:id="@+id/Minigame"
         android:rotation="90"
         android:layout_gravity="center"
@@ -22,13 +16,24 @@
         android:foreground="@drawable/ar_gesture" />
 
     <View
+        android:id="@+id/minigameBackground"
+        android:background="@color/cadet_blue"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent" />
+
+    <RelativeLayout
+        android:id="@+id/model_minigame"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_gravity="center"/>
+
+    <View
         android:id="@+id/swipeIndicator"
         android:rotation="90"
         android:layout_gravity="center"
         android:layout_width="80dp"
         android:layout_height="35dp"
-        android:foreground="@drawable/ic_swipe_arrow"
-        />
+        android:foreground="@drawable/ic_swipe_arrow" />
 
     <TextView
         android:id="@+id/CounterIndicator"

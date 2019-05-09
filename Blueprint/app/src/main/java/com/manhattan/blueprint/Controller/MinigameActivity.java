@@ -1,10 +1,12 @@
 package com.manhattan.blueprint.Controller;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -16,6 +18,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,11 +38,15 @@ import com.manhattan.blueprint.Utils.ArMathUtils;
 import com.manhattan.blueprint.Utils.MediaUtils;
 import com.manhattan.blueprint.Utils.SpriteManager;
 import com.manhattan.blueprint.Utils.ViewUtils;
+import com.manhattan.blueprint.View.ModelRenderer;
 import com.manhattan.blueprint.View.RoundedRectangle;
 import com.takusemba.spotlight.OnSpotlightStateChangedListener;
 import com.takusemba.spotlight.Spotlight;
 import com.takusemba.spotlight.target.SimpleTarget;
 import com.warkiz.widget.IndicatorSeekBar;
+
+import org.rajawali3d.view.ISurface;
+import org.rajawali3d.view.SurfaceView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -143,6 +150,21 @@ public class MinigameActivity extends AppCompatActivity {
         progressBar.setMax(swipesToCollect);
         progressBar.setTickCount((swipesToCollect / 2) + 1);
         progressBar.setTickMarksDrawable(getDrawable(SpriteManager.getSpriteByID(resourceToCollect.getId())));
+
+        SurfaceView surface = new SurfaceView(MinigameActivity.this);
+        ModelRenderer renderer = new ModelRenderer(
+                MinigameActivity.this,
+                resourceToCollect.getId(),
+                Color.TRANSPARENT,
+                0.1f);
+        surface.setFrameRate(60.0);
+        surface.setRenderMode(ISurface.RENDERMODE_CONTINUOUSLY);
+        surface.setTransparent(true);
+        surface.setSurfaceRenderer(renderer);
+
+        View view = (View) findViewById(R.id.ARview);
+        RelativeLayout layout = view.findViewById(R.id.model_minigame);
+        layout.addView(surface);
     }
 
     @Override

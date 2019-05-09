@@ -1,8 +1,8 @@
 package com.manhattan.blueprint.View;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.MotionEvent;
+import android.view.Surface;
 
 import com.manhattan.blueprint.Model.DAO.Maybe;
 import com.manhattan.blueprint.R;
@@ -13,16 +13,22 @@ import org.rajawali3d.loader.LoaderOBJ;
 import org.rajawali3d.loader.ParsingException;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.renderer.Renderer;
+import org.rajawali3d.scene.Scene;
+import org.rajawali3d.view.SurfaceView;
 
 public class ModelRenderer extends Renderer {
     private Context context;
+    private float rotationSpeed;
+    private int backgroundColor;
     private int modelID;
     private Object3D model;
 
-    public ModelRenderer(Context context, int modelID) {
+    public ModelRenderer(Context context, int modelID, int backgroundColor, float rotationSpeed) {
         super(context);
         this.context = context;
         this.modelID = modelID;
+        this.backgroundColor = backgroundColor;
+        this.rotationSpeed = rotationSpeed;
         setFrameRate(60);
     }
 
@@ -53,14 +59,13 @@ public class ModelRenderer extends Renderer {
         }
 
         getCurrentCamera().setY(getCurrentCamera().getY() + 0.5f);
-        getCurrentScene().setBackgroundColor(context.getColor(R.color.brandPrimary));
+        getCurrentScene().setBackgroundColor(backgroundColor);
     }
-
 
     @Override
     public void onRender(final long elapsedTime, final double deltaTime) {
         super.onRender(elapsedTime, deltaTime);
-        model.rotate(Vector3.Axis.Y, 0.5f);
+        model.rotate(Vector3.Axis.Y, rotationSpeed);
     }
 
     @Override
