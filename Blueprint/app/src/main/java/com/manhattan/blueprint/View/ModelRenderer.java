@@ -23,11 +23,10 @@ public class ModelRenderer extends Renderer {
     private int modelID;
     private Object3D model;
 
-    public ModelRenderer(Context context, int modelID, int backgroundColor, float rotationSpeed) {
+    public ModelRenderer(Context context, int modelID, float rotationSpeed) {
         super(context);
         this.context = context;
         this.modelID = modelID;
-        this.backgroundColor = backgroundColor;
         this.rotationSpeed = rotationSpeed;
         setFrameRate(60);
     }
@@ -59,7 +58,7 @@ public class ModelRenderer extends Renderer {
         }
 
         getCurrentCamera().setY(getCurrentCamera().getY() + 0.5f);
-        getCurrentScene().setBackgroundColor(backgroundColor);
+        getCurrentScene().setBackgroundColor(context.getColor(R.color.brandPrimary));
     }
 
     @Override

@@ -155,16 +155,15 @@ public class MinigameActivity extends AppCompatActivity {
         ModelRenderer renderer = new ModelRenderer(
                 MinigameActivity.this,
                 resourceToCollect.getId(),
-                Color.TRANSPARENT,
                 0.1f);
         surface.setFrameRate(60.0);
         surface.setRenderMode(ISurface.RENDERMODE_CONTINUOUSLY);
-        surface.setTransparent(true);
         surface.setSurfaceRenderer(renderer);
 
         View view = (View) findViewById(R.id.ARview);
         RelativeLayout layout = view.findViewById(R.id.model_minigame);
         layout.addView(surface);
+        layout.bringToFront();
     }
 
     @Override

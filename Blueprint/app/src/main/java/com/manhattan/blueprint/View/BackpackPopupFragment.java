@@ -55,7 +55,7 @@ public class BackpackPopupFragment extends Fragment {
             surface.setFrameRate(60.0);
             surface.setRenderMode(ISurface.RENDERMODE_CONTINUOUSLY);
 
-            ModelRenderer renderer = new ModelRenderer(getContext(), modelID, getContext().getColor(R.color.brandPrimary), 0.5f);
+            ModelRenderer renderer = new ModelRenderer(getContext(), modelID, 0.5f);
             surface.setSurfaceRenderer(renderer);
             layout.addView(surface);
         } else {
