@@ -154,6 +154,7 @@ public class MinigameActivity extends AppCompatActivity {
         SurfaceView surface = new SurfaceView(MinigameActivity.this);
         ModelRenderer renderer = new ModelRenderer(
                 MinigameActivity.this,
+                ModelRenderer.ResourceType.RAW,
                 resourceToCollect.getId(),
                 0.1f);
         surface.setFrameRate(60.0);

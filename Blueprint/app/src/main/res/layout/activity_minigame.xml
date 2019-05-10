@@ -10,7 +10,7 @@
     <RelativeLayout
         android:id="@+id/model_minigame"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="400dp"
         android:layout_gravity="center"/>
 
     <View

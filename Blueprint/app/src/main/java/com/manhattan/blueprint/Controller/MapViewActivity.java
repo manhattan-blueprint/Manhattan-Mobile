@@ -219,7 +219,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         try {
             Session arCoreSession = new Session(this);
             Config config = new Config(arCoreSession);
-            deviceSupportsAR = arCoreSession.isSupported(config);
+            deviceSupportsAR = false; //arCoreSession.isSupported(config);
             arCoreSession.close();
         } catch (Exception e) {
             e.printStackTrace();
