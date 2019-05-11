@@ -85,7 +85,6 @@ public class ARMinigameActivity extends AppCompatActivity {
     private CountDownTimer countDownTimer;
     private MediaUtils mediaUtils;
     private MediaPlayer backgroundMusic;
-    private MediaPlayer soundEffectsPlayer;
 
     private float prevX, prevY = 0; // previous coords
     private float initX, initY = 0; // initial  coords
@@ -531,7 +530,7 @@ public class ARMinigameActivity extends AppCompatActivity {
             swipeIndicator.clearAnimation();
         }
 
-        MediaUtils.playSoundEffect(R.raw.hummus, soundEffectsPlayer, getApplicationContext());
+        MediaUtils.playSoundEffect(R.raw.hummus, getApplicationContext());
         swipeFailed = false;
         getCorners();
         initX = sceneMotionEvent.getX();
