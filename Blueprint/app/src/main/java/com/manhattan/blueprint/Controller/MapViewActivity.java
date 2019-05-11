@@ -506,6 +506,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void transitionMenuClosedToOpen() {
+        updateBackpack();
         float developerY = menuButton.getY() - (developerButton.getLayoutParams().height * 2) - 175;
         float settingsBlueprintY = menuButton.getY() - (settingsButton.getLayoutParams().height / 2.f) - 100;
         float screenWidth = ViewUtils.getScreenWidth(this);
