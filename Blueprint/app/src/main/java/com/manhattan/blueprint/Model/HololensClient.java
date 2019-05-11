@@ -1,7 +1,6 @@
 package com.manhattan.blueprint.Model;
 
 import android.content.Context;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.manhattan.blueprint.Model.API.APICallback;
@@ -24,12 +23,21 @@ public class HololensClient {
     private String serverAddress;
     private int    port;
     private ArrayList<String> buffer;
+    private boolean playingMinigame;
     private BlueprintAPI api;
 
     public HololensClient(Context ctx) {
         this.ctx = ctx;
         this.buffer = new ArrayList<>();
         this.api= new BlueprintAPI(ctx);
+    }
+
+    public boolean isPlayingMinigame() {
+        return this.playingMinigame;
+    }
+
+    public void setPlayingMinigame(boolean b) {
+        this.playingMinigame = b;
     }
 
     public boolean setIP(String ipAddress) {
@@ -39,7 +47,7 @@ public class HololensClient {
         try {
             this.setSocket(ipAddress, 9050);
         } catch (Exception e) {
-            Log.e("hololens", e.getMessage());
+            e.printStackTrace();
             return false;
         }
         return true;
@@ -51,7 +59,7 @@ public class HololensClient {
             try {
                 this.sendBuffer();
             } catch (Exception e) {
-                Log.e("hololens", e.getMessage());
+                e.printStackTrace();
             }
         }, 0, connectionRefreshDelay, TimeUnit.SECONDS);
     }
@@ -100,6 +108,7 @@ public class HololensClient {
      */
     private void sendBuffer() {
 
+        playingMinigame = true;
         int idx = 0;
         while (!buffer.isEmpty()) {
             String item = buffer.get(idx);
@@ -141,5 +150,6 @@ public class HololensClient {
                 idx = (idx + 1) % buffer.size();
             }
         }
+        playingMinigame = false;
     }
 }

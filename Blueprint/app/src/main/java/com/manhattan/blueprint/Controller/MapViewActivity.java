@@ -120,7 +120,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private LatLng currentLocation = new LatLng(51.449946, -2.599858);
     private Marker currentLocationMarker;
     private boolean inDeveloperMode = false;
-    private boolean isPlayingMinigame = false;
     private MenuState menuState = MenuState.CLOSED;
 
     @Override
@@ -230,7 +229,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             mapView.onResume();
         }
 
-        isPlayingMinigame = false;
+        hololensClient.setPlayingMinigame(false);
 
         updateBackpack();
 
@@ -247,7 +246,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         mediaUtils.fadeOut(value -> mediaPlayer.pause());
     }
 
-    private void updateBackpack(){
+    private void updateBackpack() {
         // Reload inventory
         if (blueprintAPI == null) return;
         blueprintAPI.makeRequest(blueprintAPI.inventoryService.fetchInventory(), new APICallback<Inventory>() {
@@ -379,7 +378,8 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     // region OnMarkerClickListener
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
-        if (isPlayingMinigame || marker.equals(currentLocationMarker)) {
+        if (hololensClient.isPlayingMinigame() || marker.equals(currentLocationMarker)) {
+            marker.hideInfoWindow();
             return false;
         }
         markerResourceMap.forEach((m, r) -> m.hideInfoWindow());
@@ -421,7 +421,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
 
         } else if (closeEnough) {
             BlueprintDAO.getInstance(this).getSession().ifPresent(session -> {
-                isPlayingMinigame = true;
                 if (session.isHololensConnected()) {
                     // Connect to Hololens
                     if (hololensClient.setIP(session.hololensIP)) {
