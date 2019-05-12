@@ -240,6 +240,22 @@ public class ARMinigameActivity extends AppCompatActivity {
         mediaUtils.fadeOut(value -> backgroundMusic.pause());
     }
 
+    @Override
+    public void onBackPressed() {
+        gameOver = true;
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+        }
+        countdownIndicator.setText("0.0 s");
+        countdownIndicator.setTextColor(getResources().getColor(R.color.red));
+        boxView.setVisibility(View.INVISIBLE);
+        Toast.makeText(ARMinigameActivity.this,
+                getString(R.string.minigame_collected_none),
+                Toast.LENGTH_LONG).show();
+        finish();
+        super.onBackPressed();
+    }
+
     private void playTutorial() {
         BlueprintDAO dao = BlueprintDAO.getInstance(this);
         dao.getSession().ifPresent(session -> {
@@ -253,7 +269,8 @@ public class ARMinigameActivity extends AppCompatActivity {
                         session.getAccountType(),
                         session.getHololensIP(),
                         session.isHololensConnected(),
-                        false));
+                        false,
+                        session.getMinigames()));
             } else {
                 infoMessage.setVisibility(View.INVISIBLE);
             }
@@ -461,6 +478,16 @@ public class ARMinigameActivity extends AppCompatActivity {
     }
 
     private void finishMinigame(boolean collectedAll) {
+        BlueprintDAO dao = BlueprintDAO.getInstance(ARMinigameActivity.this);
+        dao.getSession().ifPresent(session -> {
+            dao.setSession(new GameSession(
+                    session.getUsername(),
+                    session.getAccountType(),
+                    session.getHololensIP(),
+                    session.isHololensConnected(),
+                    session.isTutorialEnabled(),
+                    session.getMinigames() + 1));
+        });
         gameOver = true;
         countDownTimer.cancel();
         boxView.setVisibility(View.INVISIBLE);
@@ -468,13 +495,17 @@ public class ARMinigameActivity extends AppCompatActivity {
         if (quantity == 0) {
             countdownIndicator.setText("0.0 s");
             countdownIndicator.setTextColor(getResources().getColor(R.color.red));
+            Toast.makeText(ARMinigameActivity.this,
+                    getString(R.string.minigame_collected_none),
+                    Toast.LENGTH_LONG).show();
             final Handler handler = new Handler();
             handler.postDelayed(() -> {
-                Toast.makeText(ARMinigameActivity.this,
-                        getString(R.string.minigame_collected_none),
-                        Toast.LENGTH_LONG).show();
                 finish();
-                System.exit(0);
+                dao.getSession().ifPresent(session -> {
+                    if (session.getMinigames() % 5 == 0) {
+                        System.exit(0);
+                    }
+                });
             }, 2000);
             return;
         }
@@ -491,15 +522,19 @@ public class ARMinigameActivity extends AppCompatActivity {
                     countdownIndicator.setText("0.0 s");
                     countdownIndicator.setTextColor(getResources().getColor(R.color.red));
                 }
+                // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
+                String itemName = ItemManager.getInstance(ARMinigameActivity.this).getName(resourceToCollect.getId()).withDefault("items");
+                String successMsg = String.format(getString(R.string.collection_success), quantity, itemName);
+                Toast.makeText(ARMinigameActivity.this, successMsg, Toast.LENGTH_LONG).show();
                 final Handler handler = new Handler();
                 handler.postDelayed(() -> {
-                    // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
-                    String itemName = ItemManager.getInstance(ARMinigameActivity.this).getName(resourceToCollect.getId()).withDefault("items");
-                    String successMsg = String.format(getString(R.string.collection_success), quantity, itemName);
-                    Toast.makeText(ARMinigameActivity.this, successMsg, Toast.LENGTH_LONG).show();
                     finish();
-                    System.exit(0);
-                }, 1500);
+                    dao.getSession().ifPresent(session -> {
+                        if (session.getMinigames() % 5 == 0) {
+                            System.exit(0);
+                        }
+                    });
+                }, 2000);
             }
 
             @Override
@@ -510,7 +545,11 @@ public class ARMinigameActivity extends AppCompatActivity {
                         (dialog, which) -> {
                             dialog.dismiss();
                             finish();
-                            System.exit(0);
+                            dao.getSession().ifPresent(session -> {
+                                if (session.getMinigames() % 5 == 0) {
+                                    System.exit(0);
+                                }
+                            });
                         });
             }
         });

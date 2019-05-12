@@ -216,6 +216,22 @@ public class MinigameActivity extends AppCompatActivity {
         mediaUtils.fadeOut(value -> backgroundMusic.pause());
     }
 
+    @Override
+    public void onBackPressed() {
+        gameOver = true;
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+        }
+        countdownIndicator.setText("0.0 s");
+        countdownIndicator.setTextColor(getResources().getColor(R.color.red));
+        boxView.setVisibility(View.INVISIBLE);
+        Toast.makeText(MinigameActivity.this,
+                getString(R.string.minigame_collected_none),
+                Toast.LENGTH_LONG).show();
+        finish();
+        super.onBackPressed();
+    }
+
     private void playTutorial() {
         BlueprintDAO dao = BlueprintDAO.getInstance(this);
         dao.getSession().ifPresent(session -> {
@@ -229,7 +245,8 @@ public class MinigameActivity extends AppCompatActivity {
                         session.getAccountType(),
                         session.getHololensIP(),
                         session.isHololensConnected(),
-                        false));
+                        false,
+                        session.getMinigames()));
             } else {
                 infoMessage.setVisibility(View.INVISIBLE);
             }
@@ -397,11 +414,11 @@ public class MinigameActivity extends AppCompatActivity {
         if (quantity == 0) {
             countdownIndicator.setText("0.0 s");
             countdownIndicator.setTextColor(getResources().getColor(R.color.red));
+            Toast.makeText(MinigameActivity.this,
+                    getString(R.string.minigame_collected_none),
+                    Toast.LENGTH_LONG).show();
             final Handler handler = new Handler();
             handler.postDelayed(() -> {
-                Toast.makeText(MinigameActivity.this,
-                        getString(R.string.minigame_collected_none),
-                        Toast.LENGTH_LONG).show();
                 finish();
             }, 2000);
             return;
@@ -419,14 +436,14 @@ public class MinigameActivity extends AppCompatActivity {
                     countdownIndicator.setText("0.0 s");
                     countdownIndicator.setTextColor(getResources().getColor(R.color.red));
                 }
+                // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
+                String itemName = ItemManager.getInstance(MinigameActivity.this).getName(resourceToCollect.getId()).withDefault("items");
+                String successMsg = String.format(getString(R.string.collection_success), quantity, itemName);
+                Toast.makeText(MinigameActivity.this, successMsg, Toast.LENGTH_LONG).show();
                 final Handler handler = new Handler();
                 handler.postDelayed(() -> {
-                    // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
-                    String itemName = ItemManager.getInstance(MinigameActivity.this).getName(resourceToCollect.getId()).withDefault("items");
-                    String successMsg = String.format(getString(R.string.collection_success), quantity, itemName);
-                    Toast.makeText(MinigameActivity.this, successMsg, Toast.LENGTH_LONG).show();
                     finish();
-                }, 1500);
+                }, 2000);
             }
 
             @Override
