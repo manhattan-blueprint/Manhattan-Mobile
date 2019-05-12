@@ -240,6 +240,22 @@ public class ARMinigameActivity extends AppCompatActivity {
         mediaUtils.fadeOut(value -> backgroundMusic.pause());
     }
 
+    @Override
+    public void onBackPressed() {
+        gameOver = true;
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+        }
+        countdownIndicator.setText("0.0 s");
+        countdownIndicator.setTextColor(getResources().getColor(R.color.red));
+        boxView.setVisibility(View.INVISIBLE);
+        Toast.makeText(ARMinigameActivity.this,
+                getString(R.string.minigame_collected_none),
+                Toast.LENGTH_LONG).show();
+        finish();
+        super.onBackPressed();
+    }
+
     private void playTutorial() {
         BlueprintDAO dao = BlueprintDAO.getInstance(this);
         dao.getSession().ifPresent(session -> {
