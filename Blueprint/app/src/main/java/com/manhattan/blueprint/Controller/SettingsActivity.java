@@ -65,7 +65,8 @@ public class SettingsActivity extends AppCompatActivity {
                     session.getAccountType(),
                     hololensIP.getText().toString(),
                     hololensConnected,
-                    session.isTutorialEnabled()));
+                    session.isTutorialEnabled(),
+                    session.getMinigames()));
             toggleHololens.setChecked(dao.getSession().get().isHololensConnected());
         });
     }
@@ -78,7 +79,8 @@ public class SettingsActivity extends AppCompatActivity {
                     session.getAccountType(),
                     hololensIP.getText().toString(),
                     session.isHololensConnected(),
-                    tutorialEnabled));
+                    tutorialEnabled,
+                    session.getMinigames()));
             toggleTutorial.setChecked(dao.getSession().get().isTutorialEnabled());
         });
     }
@@ -93,7 +95,8 @@ public class SettingsActivity extends AppCompatActivity {
                     session.getAccountType(),
                     hololensIP.getText().toString(),
                     session.isHololensConnected(),
-                    session.isTutorialEnabled()));
+                    session.isTutorialEnabled(),
+                    session.getMinigames()));
             this.runOnUiThread(this::finish);
         });
         overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
