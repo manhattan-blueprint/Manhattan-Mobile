@@ -121,7 +121,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private BackpackPopupFragment backpackPopupFragment;
 
     // Default to VR lab
-    private LatLng currentLocation = new LatLng(51.449946, -2.599858);
+    private LatLng currentLocation = new LatLng(51.4560, -2.6030);
     private Marker currentLocationMarker;
     private boolean inDeveloperMode = false;
     private MenuState menuState = MenuState.CLOSED;
