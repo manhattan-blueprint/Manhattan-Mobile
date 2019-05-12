@@ -169,6 +169,11 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         loginManager = new LoginManager(this);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
+        // Configure audio
+        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.map);
+        mediaPlayer.setLooping(true);
+        mediaUtils = new MediaUtils(mediaPlayer);
+
         // If haven't logged in yet, or have revoked location, redirect
         PermissionManager locationManager = new PermissionManager(0, Manifest.permission.ACCESS_FINE_LOCATION);
         if (!locationManager.hasPermission(this)) {
@@ -193,11 +198,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         blurView.animate().alpha(0);
         closeButton.animate().scaleX(0).scaleY(0);
         popupBackgroundBlurView.animate().alpha(0);
-
-        // Configure audio
-        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.map);
-        mediaPlayer.setLooping(true);
-        mediaUtils = new MediaUtils(mediaPlayer);
 
         // Load data required
         blueprintAPI = new BlueprintAPI(this);
@@ -259,6 +259,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     protected void onPause() {
         super.onPause();
         mapView.onPause();
+        if (mediaPlayer == null) {
+            return;
+        }
         mediaUtils.fadeOut(value -> mediaPlayer.pause());
     }
 
