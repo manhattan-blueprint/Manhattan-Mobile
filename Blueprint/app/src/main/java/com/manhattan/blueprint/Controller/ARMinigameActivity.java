@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
@@ -222,9 +223,9 @@ public class ARMinigameActivity extends AppCompatActivity {
     }
 
     private void progressBarTutorial() {
-        SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
+        SimpleTarget progressTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, 0f)
-                .setShape(new RoundedRectangle(-100f, 0f, 2000f ,135f))
+                .setShape(new RoundedRectangle(-100f, 0f, 2000f ,120f))
                 .setDescription(getString(R.string.progress_bar_tutorial))
                 .setAnimation(new LinearInterpolator())
                 .build();
@@ -233,7 +234,7 @@ public class ARMinigameActivity extends AppCompatActivity {
                 .setOverlayColor(R.color.background)
                 .setDuration(500L)
                 .setAnimation(new LinearInterpolator())
-                .setTargets(simpleTarget)
+                .setTargets(progressTarget)
                 .setClosedOnTouchedOutside(true)
                 .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
                     @Override
@@ -249,10 +250,13 @@ public class ARMinigameActivity extends AppCompatActivity {
 
     private void timerTutorial() {
         int screenWidth = ViewUtils.getScreenWidth( ARMinigameActivity.this);
+        int timerWidth = countdownIndicator.getLayoutParams().width;
+        int timerHeight = countdownIndicator.getLayoutParams().height;
+        int timerTop = ((ViewGroup.MarginLayoutParams) countdownIndicator.getLayoutParams()).topMargin;
 
-        SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
+        SimpleTarget timerTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, 100f)
-                .setShape(new RoundedRectangle(  (screenWidth) / 2.0f - 200f, 150f, 390f ,115f))
+                .setShape(new RoundedRectangle(  (screenWidth - timerWidth) / 2.0f, timerTop, timerWidth ,timerHeight))
                 .setDescription(getString(R.string.timer_tutorial))
                 .setAnimation(new LinearInterpolator())
                 .build();
@@ -261,7 +265,7 @@ public class ARMinigameActivity extends AppCompatActivity {
                 .setOverlayColor(R.color.background)
                 .setDuration(500L)
                 .setAnimation(new LinearInterpolator())
-                .setTargets(simpleTarget)
+                .setTargets(timerTarget)
                 .setClosedOnTouchedOutside(true)
                 .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
                     @Override
@@ -277,11 +281,11 @@ public class ARMinigameActivity extends AppCompatActivity {
 
     public void swipingTutorial() {
         int screenHeight = ViewUtils.getScreenHeight(ARMinigameActivity.this);
-        int screenWidth = ViewUtils.getScreenWidth( ARMinigameActivity.this);
+        int swipeWidth = boxView.getLayoutParams().width;
 
-        SimpleTarget simpleTarget = new SimpleTarget.Builder(this)
+        SimpleTarget swipeTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, screenHeight / 2.0f + boxView.getWidth() + 570f)
-                .setShape(new RoundedRectangle(-100f, (screenHeight - boxView.getWidth() + 50f) / 2.0f, 2000f ,(screenWidth / 3.5f) + 100f))
+                .setShape(new RoundedRectangle(-100f, (screenHeight - swipeWidth + ((ViewGroup.MarginLayoutParams) countdownIndicator.getLayoutParams()).topMargin) / 2.0f, 2000f, (swipeWidth)))
                 .setDescription(getString(R.string.swiping_tutorial))
                 .setAnimation(new LinearInterpolator())
                 .build();
@@ -290,7 +294,7 @@ public class ARMinigameActivity extends AppCompatActivity {
                 .setOverlayColor(R.color.background)
                 .setDuration(500L)
                 .setAnimation(new LinearInterpolator())
-                .setTargets(simpleTarget)
+                .setTargets(swipeTarget)
                 .setClosedOnTouchedOutside(true)
                 .setOnSpotlightStateListener(new OnSpotlightStateChangedListener() {
                     @Override
@@ -304,7 +308,6 @@ public class ARMinigameActivity extends AppCompatActivity {
                 })
                 .start();
     }
-
     private void startAr() {
         // Build renderable object
         ModelRenderable.builder()
@@ -462,12 +465,14 @@ public class ARMinigameActivity extends AppCompatActivity {
 
             @Override
             public void failure(int code, String error) {
-                ViewUtils.createDialog(ARMinigameActivity.this, getString(R.string.collection_failure_title), error,
+                ViewUtils.createDialog(ARMinigameActivity.this,
+                        getString(R.string.collection_failure_title),
+                        error,
                         (dialog, which) -> {
-                        dialog.dismiss();
-                        finish();
-                        System.exit(0);
-                });
+                            dialog.dismiss();
+                            finish();
+                            System.exit(0);
+                        });
             }
         });
     }
