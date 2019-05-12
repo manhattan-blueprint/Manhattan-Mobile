@@ -270,7 +270,8 @@ public class ARMinigameActivity extends AppCompatActivity {
                         session.getHololensIP(),
                         session.isHololensConnected(),
                         false,
-                        session.getMinigames()));
+                        session.getMinigames(),
+                        session.isHelpEnabled()));
             } else {
                 infoMessage.setVisibility(View.INVISIBLE);
             }
@@ -486,7 +487,8 @@ public class ARMinigameActivity extends AppCompatActivity {
                     session.getHololensIP(),
                     session.isHololensConnected(),
                     session.isTutorialEnabled(),
-                    session.getMinigames() + 1));
+                    session.getMinigames() + 1,
+                    session.isHelpEnabled()));
         });
         gameOver = true;
         countDownTimer.cancel();

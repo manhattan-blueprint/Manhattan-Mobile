@@ -24,6 +24,7 @@ import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
+import com.manhattan.blueprint.Model.GameSession;
 import com.manhattan.blueprint.Model.HololensClient;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.Location;
@@ -257,14 +258,33 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         mediaPlayer.start();
         mediaUtils.fadeIn();
 
-        helpPopupFragment = new HelpPopupFragment(v -> getFragmentManager().beginTransaction()
+        BlueprintDAO dao = BlueprintDAO.getInstance(this);
+        helpPopupFragment = new HelpPopupFragment(v -> {
+            dao.getSession().ifPresent(session -> {
+                dao.setSession(new GameSession(
+                        session.getUsername(),
+                        session.getAccountType(),
+                        session.getHololensIP(),
+                        session.isHololensConnected(),
+                        session.isTutorialEnabled(),
+                        session.getMinigames(),
+                        false));
+            });
+
+            getFragmentManager().beginTransaction()
                 .setCustomAnimations(R.animator.slide_up, R.animator.slide_down)
                 .remove(helpPopupFragment)
-                .commit());
-        
-        getFragmentManager().beginTransaction()
-                .setCustomAnimations(R.animator.slide_up, R.animator.slide_down)
-                .add(R.id.mapPopupLayout, helpPopupFragment).commit();
+                .commit();
+        });
+
+        dao.getSession().ifPresent(session -> {
+            if (session.isHelpEnabled()) {
+                getFragmentManager().beginTransaction()
+                        .setCustomAnimations(R.animator.slide_up, R.animator.slide_down)
+                        .add(R.id.mapPopupLayout, helpPopupFragment).commit();
+            }
+        });
+
     }
 
     @Override
