@@ -2,9 +2,7 @@ package com.manhattan.blueprint.Utils;
 
 import android.content.Context;
 import android.media.MediaPlayer;
-import android.provider.MediaStore;
 
-import com.manhattan.blueprint.Controller.ARActivity;
 import com.manhattan.blueprint.Model.DAO.Consumer;
 
 import java.util.Timer;
@@ -68,14 +66,12 @@ public class MediaUtils {
         timer.schedule(timerTask, interval, interval);
     }
 
-    public static void playSoundEffect(int soundEffect, MediaPlayer mp, Context ctx) {
-        if (mp != null) {
-            mp.stop();
-            mp.release();
-        }
-        mp = MediaPlayer.create(ctx, soundEffect);
-        if (mp != null) {
-            mp.start();
-        }
+    public static void playSoundEffect(int soundEffect, Context ctx) {
+        MediaPlayer mediaPlayer = MediaPlayer.create(ctx, soundEffect);
+        mediaPlayer.setOnCompletionListener(player -> {
+            player.stop();
+            player.release();
+        });
+        mediaPlayer.start();
     }
 }

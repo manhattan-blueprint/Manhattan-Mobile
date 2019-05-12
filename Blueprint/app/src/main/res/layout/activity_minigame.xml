@@ -5,7 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/ARview"
-    tools:context=".Controller.ARActivity">
+    tools:context=".Controller.ARMinigameActivity">
+
+    <RelativeLayout
+        android:id="@+id/model_minigame"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_gravity="center"/>
 
     <View
         android:id="@+id/Minigame"
@@ -16,13 +22,18 @@
         android:foreground="@drawable/ar_gesture" />
 
     <View
+        android:id="@+id/minigameBackground"
+        android:background="@color/brandPrimary"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent" />
+
+    <View
         android:id="@+id/swipeIndicator"
         android:rotation="90"
         android:layout_gravity="center"
         android:layout_width="80dp"
         android:layout_height="35dp"
-        android:foreground="@drawable/ic_swipe_arrow"
-        />
+        android:foreground="@drawable/ic_swipe_arrow" />
 
     <TextView
         android:id="@+id/CounterIndicator"
@@ -51,19 +62,6 @@
         android:textAlignment="center"
         style="@style/H1"
         android:background="#00000000" />
-
-    <View
-        android:id="@+id/AdjustIndicator"
-        android:layout_width="38dp"
-        android:layout_height="38dp"
-        android:layout_gravity="center"
-        android:foreground="@drawable/ic_adjust_camera" />
-
-    <fragment
-        android:id="@+id/ux_fragment"
-        android:name="com.google.ar.sceneform.ux.ArFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
 
     <com.warkiz.widget.IndicatorSeekBar
         android:id="@+id/ProgressBar"

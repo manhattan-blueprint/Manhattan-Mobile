@@ -16,6 +16,9 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.ar.core.Config;
+import com.google.ar.core.Session;
+
 import com.google.gson.Gson;
 import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
@@ -59,6 +62,7 @@ import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnticipateInterpolator;
@@ -121,6 +125,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private Marker currentLocationMarker;
     private boolean inDeveloperMode = false;
     private MenuState menuState = MenuState.CLOSED;
+    private boolean deviceSupportsAR;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,6 +168,11 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         loginManager = new LoginManager(this);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
+        // Configure audio
+        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.map);
+        mediaPlayer.setLooping(true);
+        mediaUtils = new MediaUtils(mediaPlayer);
+
         // If haven't logged in yet, or have revoked location, redirect
         PermissionManager locationManager = new PermissionManager(0, Manifest.permission.ACCESS_FINE_LOCATION);
         if (!locationManager.hasPermission(this)) {
@@ -188,11 +198,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         closeButton.animate().scaleX(0).scaleY(0);
         popupBackgroundBlurView.animate().alpha(0);
 
-        // Configure audio
-        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.map);
-        mediaPlayer.setLooping(true);
-        mediaUtils = new MediaUtils(mediaPlayer);
-
         // Load data required
         blueprintAPI = new BlueprintAPI(this);
         itemManager = ItemManager.getInstance(this);
@@ -208,10 +213,20 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             }
         });
 
+        // Check ARcore availability
+        deviceSupportsAR = false;
+        try {
+            Session arCoreSession = new Session(this);
+            Config config = new Config(arCoreSession);
+            deviceSupportsAR = arCoreSession.isSupported(config);
+            arCoreSession.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         hololensClient = new HololensClient(getApplicationContext());
         hololensCounter = 0;
         hololensClient.run();
-
     }
 
     @Override
@@ -243,6 +258,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     protected void onPause() {
         super.onPause();
         mapView.onPause();
+        if (mediaPlayer == null) {
+            return;
+        }
         mediaUtils.fadeOut(value -> mediaPlayer.pause());
     }
 
@@ -427,12 +445,18 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                         hololensClient.addItem(resource.getId(), resource.getQuantity(), hololensCounter++);
                     }
                 } else {
-                    // Go to AR View
-                    Intent intentAR = new Intent(MapViewActivity.this, ARActivity.class);
+                    Intent intentMinigame;
+                    if (deviceSupportsAR) {
+                        // Start AR Minigame
+                        intentMinigame = new Intent(MapViewActivity.this, ARMinigameActivity.class);
+                    } else {
+                        // Start non-AR Minigame
+                        intentMinigame = new Intent(MapViewActivity.this, MinigameActivity.class);
+                    }
                     Bundle resourceToCollect = new Bundle();
                     resourceToCollect.putString("resource", (new Gson()).toJson(resource));
-                    intentAR.putExtras(resourceToCollect);
-                    startActivity(intentAR);
+                    intentMinigame.putExtras(resourceToCollect);
+                    startActivity(intentMinigame);
                 }
             }).ifNotPresent(v -> ViewUtils.showError(MapViewActivity.this,
                                         getResources().getString(R.string.session_error_title),
