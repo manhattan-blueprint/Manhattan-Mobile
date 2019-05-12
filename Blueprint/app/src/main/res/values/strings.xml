@@ -46,7 +46,7 @@
     <string name="minigame_timeout">Time\'s out!</string>
     <string name="successful_swipe">Well done, keep going!</string>
     <string name="minigame_collected_all">Well done, you collected all the resources!</string>
-    <string name="minigame_collected_none">Sorry, you didn\'t get any resources …</string>
+    <string name="minigame_collected_none">Failed to collect any resources</string>
 
     <string name="developer_delete_resource">Are you sure you want to delete %d %s?</string>
 

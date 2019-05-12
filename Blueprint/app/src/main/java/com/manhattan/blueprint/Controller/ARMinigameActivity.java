@@ -495,11 +495,11 @@ public class ARMinigameActivity extends AppCompatActivity {
         if (quantity == 0) {
             countdownIndicator.setText("0.0 s");
             countdownIndicator.setTextColor(getResources().getColor(R.color.red));
+            Toast.makeText(ARMinigameActivity.this,
+                    getString(R.string.minigame_collected_none),
+                    Toast.LENGTH_LONG).show();
             final Handler handler = new Handler();
             handler.postDelayed(() -> {
-                Toast.makeText(ARMinigameActivity.this,
-                        getString(R.string.minigame_collected_none),
-                        Toast.LENGTH_LONG).show();
                 finish();
                 dao.getSession().ifPresent(session -> {
                     if (session.getMinigames() % 5 == 0) {
@@ -522,19 +522,19 @@ public class ARMinigameActivity extends AppCompatActivity {
                     countdownIndicator.setText("0.0 s");
                     countdownIndicator.setTextColor(getResources().getColor(R.color.red));
                 }
+                // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
+                String itemName = ItemManager.getInstance(ARMinigameActivity.this).getName(resourceToCollect.getId()).withDefault("items");
+                String successMsg = String.format(getString(R.string.collection_success), quantity, itemName);
+                Toast.makeText(ARMinigameActivity.this, successMsg, Toast.LENGTH_LONG).show();
                 final Handler handler = new Handler();
                 handler.postDelayed(() -> {
-                    // Show success with "You collected 5 wood", defaulting to "You collected 5 items"
-                    String itemName = ItemManager.getInstance(ARMinigameActivity.this).getName(resourceToCollect.getId()).withDefault("items");
-                    String successMsg = String.format(getString(R.string.collection_success), quantity, itemName);
-                    Toast.makeText(ARMinigameActivity.this, successMsg, Toast.LENGTH_LONG).show();
                     finish();
                     dao.getSession().ifPresent(session -> {
                         if (session.getMinigames() % 5 == 0) {
                             System.exit(0);
                         }
                     });
-                }, 1500);
+                }, 2000);
             }
 
             @Override
