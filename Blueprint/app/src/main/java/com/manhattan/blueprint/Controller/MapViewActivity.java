@@ -244,7 +244,9 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             mapView.onResume();
         }
 
-        hololensClient.setPlayingMinigame(false);
+        if (hololensClient != null) {
+            hololensClient.setPlayingMinigame(false);
+        }
 
         updateBackpack();
 

@@ -578,7 +578,6 @@ public class ARMinigameActivity extends AppCompatActivity {
         Random rand = new Random();
         int index = rand.nextInt(totalSounds);
         MediaUtils.playSoundEffect(soundEffectsList[index], getApplicationContext());
-        MediaUtils.playSoundEffect(R.raw.hummus, getApplicationContext());
         swipeFailed = false;
         getCorners();
         initX = sceneMotionEvent.getX();
