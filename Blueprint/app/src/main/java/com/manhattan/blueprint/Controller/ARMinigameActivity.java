@@ -269,7 +269,8 @@ public class ARMinigameActivity extends AppCompatActivity {
                         session.getAccountType(),
                         session.getHololensIP(),
                         session.isHololensConnected(),
-                        false));
+                        false,
+                        session.getMinigames()));
             } else {
                 infoMessage.setVisibility(View.INVISIBLE);
             }
@@ -477,6 +478,16 @@ public class ARMinigameActivity extends AppCompatActivity {
     }
 
     private void finishMinigame(boolean collectedAll) {
+        BlueprintDAO dao = BlueprintDAO.getInstance(ARMinigameActivity.this);
+        dao.getSession().ifPresent(session -> {
+            dao.setSession(new GameSession(
+                    session.getUsername(),
+                    session.getAccountType(),
+                    session.getHololensIP(),
+                    session.isHololensConnected(),
+                    session.isTutorialEnabled(),
+                    session.getMinigames() + 1));
+        });
         gameOver = true;
         countDownTimer.cancel();
         boxView.setVisibility(View.INVISIBLE);
@@ -490,7 +501,11 @@ public class ARMinigameActivity extends AppCompatActivity {
                         getString(R.string.minigame_collected_none),
                         Toast.LENGTH_LONG).show();
                 finish();
-                System.exit(0);
+                dao.getSession().ifPresent(session -> {
+                    if (session.getMinigames() % 5 == 0) {
+                        System.exit(0);
+                    }
+                });
             }, 2000);
             return;
         }
@@ -514,7 +529,11 @@ public class ARMinigameActivity extends AppCompatActivity {
                     String successMsg = String.format(getString(R.string.collection_success), quantity, itemName);
                     Toast.makeText(ARMinigameActivity.this, successMsg, Toast.LENGTH_LONG).show();
                     finish();
-                    System.exit(0);
+                    dao.getSession().ifPresent(session -> {
+                        if (session.getMinigames() % 5 == 0) {
+                            System.exit(0);
+                        }
+                    });
                 }, 1500);
             }
 
@@ -526,7 +545,11 @@ public class ARMinigameActivity extends AppCompatActivity {
                         (dialog, which) -> {
                             dialog.dismiss();
                             finish();
-                            System.exit(0);
+                            dao.getSession().ifPresent(session -> {
+                                if (session.getMinigames() % 5 == 0) {
+                                    System.exit(0);
+                                }
+                            });
                         });
             }
         });

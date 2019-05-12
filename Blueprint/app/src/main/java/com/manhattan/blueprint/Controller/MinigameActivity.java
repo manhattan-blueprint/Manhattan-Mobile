@@ -245,7 +245,8 @@ public class MinigameActivity extends AppCompatActivity {
                         session.getAccountType(),
                         session.getHololensIP(),
                         session.isHololensConnected(),
-                        false));
+                        false,
+                        session.getMinigames()));
             } else {
                 infoMessage.setVisibility(View.INVISIBLE);
             }
