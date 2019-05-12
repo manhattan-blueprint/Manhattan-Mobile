@@ -51,7 +51,7 @@ public class ViewUtils {
 
     public static int getScreenHeight(Context context) {
         DisplayMetrics displayMetrics = new DisplayMetrics();
-        ((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        ((Activity)context).getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
         return displayMetrics.heightPixels;
     }
 

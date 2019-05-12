@@ -17,7 +17,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -111,6 +110,7 @@ public class MinigameActivity extends AppCompatActivity {
         setContentView(R.layout.activity_minigame);
 
         boxView = (View) findViewById(R.id.Minigame);
+        mainView = (View) findViewById(R.id.minigameBackground);
         drawable = (GradientDrawable) getResources().getDrawable(R.drawable.ar_gesture);
         drawable.setStroke(10, getResources().getColor(R.color.minigame_outline_neutral));
         drawable.setColor(getResources().getColor(R.color.minigame_fill_neutral));
@@ -266,7 +266,7 @@ public class MinigameActivity extends AppCompatActivity {
 
         SimpleTarget swipeTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, screenHeight / 2.0f + boxView.getWidth() + 570f)
-                .setShape(new RoundedRectangle(-100f, (screenHeight - swipeWidth + ((ViewGroup.MarginLayoutParams) countdownIndicator.getLayoutParams()).topMargin - offset) / 2.0f, 2000f, (swipeWidth + offset)))
+                .setShape(new RoundedRectangle(-100f, (screenHeight - swipeWidth - offset) / 2.0f, 2000f, (swipeWidth + offset)))
                 .setDescription(getString(R.string.swiping_tutorial))
                 .setAnimation(new LinearInterpolator())
                 .build();
@@ -300,7 +300,6 @@ public class MinigameActivity extends AppCompatActivity {
         swipeIndicator.startAnimation(swipeAnimation);
         playTutorial();
 
-        mainView = (View) findViewById(R.id.minigameBackground);
         mainView.setOnTouchListener((v, sceneMotionEvent) -> {
             if (gameOver) {
                 return false;
