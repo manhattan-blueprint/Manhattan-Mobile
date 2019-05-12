@@ -12,6 +12,7 @@ public class GameSession extends RealmObject {
     private boolean hololensConnected;
     private boolean tutorialEnabled;
     private int minigames;
+    private boolean helpEnabled;
 
     public GameSession() {
         this.username = null;
@@ -29,15 +30,17 @@ public class GameSession extends RealmObject {
         this.hololensConnected = false;
         this.tutorialEnabled = true;
         this.minigames = 0;
+        this.helpEnabled = true;
     }
 
-    public GameSession(String username, AccountType accountType, String hololensIP, boolean hololensConnected, boolean tutorialEnabled, int minigames) {
+    public GameSession(String username, AccountType accountType, String hololensIP, boolean hololensConnected, boolean tutorialEnabled, int minigames, boolean helpEnabled) {
         this.username = username;
         this.accountTypeDescription = accountType.toString();
         this.hololensIP = hololensIP;
         this.hololensConnected = hololensConnected;
         this.tutorialEnabled = tutorialEnabled;
         this.minigames = minigames;
+        this.helpEnabled = helpEnabled;
     }
 
     public String getUsername() {
@@ -62,5 +65,9 @@ public class GameSession extends RealmObject {
 
     public int getMinigames() {
         return this.minigames;
+    }
+
+    public boolean isHelpEnabled() {
+        return helpEnabled;
     }
 }

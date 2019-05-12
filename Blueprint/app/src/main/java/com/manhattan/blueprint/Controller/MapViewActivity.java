@@ -24,6 +24,7 @@ import com.manhattan.blueprint.BuildConfig;
 import com.manhattan.blueprint.Model.API.APICallback;
 import com.manhattan.blueprint.Model.API.BlueprintAPI;
 import com.manhattan.blueprint.Model.DAO.BlueprintDAO;
+import com.manhattan.blueprint.Model.GameSession;
 import com.manhattan.blueprint.Model.HololensClient;
 import com.manhattan.blueprint.Model.Inventory;
 import com.manhattan.blueprint.Model.Location;
@@ -39,6 +40,7 @@ import com.manhattan.blueprint.Utils.NetworkUtils;
 import com.manhattan.blueprint.Utils.SpriteManager;
 import com.manhattan.blueprint.Utils.ViewUtils;
 import com.manhattan.blueprint.View.BackpackView;
+import com.manhattan.blueprint.View.HelpPopupFragment;
 import com.manhattan.blueprint.View.MapGestureListener;
 import com.manhattan.blueprint.View.BackpackPopupFragment;
 import com.mapbox.android.gestures.AndroidGesturesManager;
@@ -119,6 +121,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
     private HashMap<Marker, Resource> markerResourceMap = new HashMap<>();
     private LatLng lastResourceLocation;
     private BackpackPopupFragment backpackPopupFragment;
+    private HelpPopupFragment helpPopupFragment;
 
     // Default to VR lab
     private LatLng currentLocation = new LatLng(51.4560, -2.6030);
@@ -254,6 +257,34 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
         mediaPlayer.setVolume(0,0);
         mediaPlayer.start();
         mediaUtils.fadeIn();
+
+        BlueprintDAO dao = BlueprintDAO.getInstance(this);
+        helpPopupFragment = new HelpPopupFragment(v -> {
+            dao.getSession().ifPresent(session -> {
+                dao.setSession(new GameSession(
+                        session.getUsername(),
+                        session.getAccountType(),
+                        session.getHololensIP(),
+                        session.isHololensConnected(),
+                        session.isTutorialEnabled(),
+                        session.getMinigames(),
+                        false));
+            });
+
+            getFragmentManager().beginTransaction()
+                .setCustomAnimations(R.animator.slide_up, R.animator.slide_down)
+                .remove(helpPopupFragment)
+                .commit();
+        });
+
+        dao.getSession().ifPresent(session -> {
+            if (session.isHelpEnabled()) {
+                getFragmentManager().beginTransaction()
+                        .setCustomAnimations(R.animator.slide_up, R.animator.slide_down)
+                        .add(R.id.mapPopupLayout, helpPopupFragment).commit();
+            }
+        });
+
     }
 
     @Override
