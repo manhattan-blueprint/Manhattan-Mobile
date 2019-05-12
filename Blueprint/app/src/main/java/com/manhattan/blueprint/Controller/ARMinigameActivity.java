@@ -282,10 +282,11 @@ public class ARMinigameActivity extends AppCompatActivity {
     public void swipingTutorial() {
         int screenHeight = ViewUtils.getScreenHeight(ARMinigameActivity.this);
         int swipeWidth = boxView.getLayoutParams().width;
+        int offset = 100;
 
         SimpleTarget swipeTarget = new SimpleTarget.Builder(this)
                 .setPoint(0f, screenHeight / 2.0f + boxView.getWidth() + 570f)
-                .setShape(new RoundedRectangle(-100f, (screenHeight - swipeWidth + ((ViewGroup.MarginLayoutParams) countdownIndicator.getLayoutParams()).topMargin) / 2.0f, 2000f, (swipeWidth)))
+                .setShape(new RoundedRectangle(-100f, (screenHeight - swipeWidth + ((ViewGroup.MarginLayoutParams) countdownIndicator.getLayoutParams()).topMargin - offset) / 2.0f, 2000f, (swipeWidth + offset)))
                 .setDescription(getString(R.string.swiping_tutorial))
                 .setAnimation(new LinearInterpolator())
                 .build();
