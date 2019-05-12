@@ -72,6 +72,8 @@ public class ARMinigameActivity extends AppCompatActivity {
     private ModelRenderable resourceModel;
     private HashMap<Integer, String> modelsMap;
     private Resource resourceToCollect;
+    private int[] soundEffectsList;
+    private int totalSounds;
     private AnchorNode anchorNode;
     private Anchor anchor;
 
@@ -134,14 +136,50 @@ public class ARMinigameActivity extends AppCompatActivity {
         adjustIndicator.setVisibility(View.INVISIBLE);
         swipeIndicator = (View) findViewById(R.id.swipeIndicator);
 
+        String jsonResource = (String) getIntent().getExtras().get("resource");
+        Gson gson = new GsonBuilder().create();
+        resourceToCollect = gson.fromJson(jsonResource, Resource.class);
+
         // Configure audio
         backgroundMusic = MediaPlayer.create(getApplicationContext(), R.raw.minigame);
         backgroundMusic.setLooping(true);
         mediaUtils = new MediaUtils(backgroundMusic);
 
-        String jsonResource = (String) getIntent().getExtras().get("resource");
-        Gson gson = new GsonBuilder().create();
-        resourceToCollect = gson.fromJson(jsonResource, Resource.class);
+        int resId = resourceToCollect.getId();
+        if (resId == 2 || resId == 4 || resId == 5 || resId == 7 || resId == 9 || resId == 10) {
+            totalSounds = 7;
+            soundEffectsList = new int[totalSounds];
+            soundEffectsList[0] = R.raw.mine_1;
+            soundEffectsList[1] = R.raw.mine_2;
+            soundEffectsList[2] = R.raw.mine_2;
+            soundEffectsList[3] = R.raw.mine_3;
+            soundEffectsList[4] = R.raw.mine_4;
+            soundEffectsList[5] = R.raw.mine_5;
+            soundEffectsList[6] = R.raw.mine_6;
+        } else if (resId == 1 || resId == 6) {
+            totalSounds = 9;
+            soundEffectsList = new int[totalSounds];
+            soundEffectsList[0] = R.raw.wood_chop_1;
+            soundEffectsList[1] = R.raw.wood_chop_2;
+            soundEffectsList[2] = R.raw.wood_chop_3;
+            soundEffectsList[3] = R.raw.wood_chop_4;
+            soundEffectsList[4] = R.raw.wood_chop_5;
+            soundEffectsList[5] = R.raw.wood_chop_6;
+            soundEffectsList[6] = R.raw.wood_chop_7;
+            soundEffectsList[7] = R.raw.wood_chop_8;
+            soundEffectsList[8] = R.raw.wood_chop_9;
+        } else if (resId == 3 || resId == 8) {
+            totalSounds = 8;
+            soundEffectsList = new int[totalSounds];
+            soundEffectsList[0] = R.raw.shovel_1;
+            soundEffectsList[1] = R.raw.shovel_2;
+            soundEffectsList[2] = R.raw.shovel_3;
+            soundEffectsList[3] = R.raw.shovel_4;
+            soundEffectsList[4] = R.raw.shovel_5;
+            soundEffectsList[5] = R.raw.shovel_6;
+            soundEffectsList[6] = R.raw.shovel_7;
+            soundEffectsList[7] = R.raw.shovel_8;
+        }
 
         PermissionManager cameraPermissionManager = new PermissionManager(0, Manifest.permission.CAMERA);
         if (!cameraPermissionManager.hasPermission(this)) {
@@ -536,6 +574,10 @@ public class ARMinigameActivity extends AppCompatActivity {
             swipeIndicator.clearAnimation();
         }
 
+        // Play a random sound from the list
+        Random rand = new Random();
+        int index = rand.nextInt(totalSounds);
+        MediaUtils.playSoundEffect(soundEffectsList[index], getApplicationContext());
         MediaUtils.playSoundEffect(R.raw.hummus, getApplicationContext());
         swipeFailed = false;
         getCorners();
