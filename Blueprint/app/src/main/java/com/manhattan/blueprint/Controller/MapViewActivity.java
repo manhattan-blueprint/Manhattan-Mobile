@@ -225,7 +225,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     session.isHololensConnected(),
                     session.isTutorialEnabled(),
                     0,
-                    false));
+                    session.isHelpEnabled()));
         });
 
         // Check ARcore availability
