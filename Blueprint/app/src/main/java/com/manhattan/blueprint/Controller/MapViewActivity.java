@@ -259,10 +259,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
             mapView.onResume();
         }
 
-        if (hololensClient != null) {
-            hololensClient.setPlayingMinigame(false);
-        }
-
         updateBackpack();
 
         if (mediaPlayer == null) return;
@@ -296,7 +292,6 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                         .add(R.id.mapPopupLayout, helpPopupFragment).commit();
             }
         });
-
     }
 
     @Override
@@ -488,6 +483,7 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                     // Connect to Hololens
                     if (hololensClient.setIP(session.hololensIP)) {
                         hololensClient.addItem(resource.getId(), resource.getQuantity(), hololensCounter++);
+                        hololensClient.setPlayingMinigame(true);
                     }
                 } else {
                     Intent intentMinigame;
