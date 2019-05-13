@@ -215,6 +215,18 @@ public class MapViewActivity extends AppCompatActivity implements OnMapReadyCall
                 ViewUtils.showError(MapViewActivity.this, "Whoops! Could not fetch resource schema", error);
             }
         });
+        
+        BlueprintDAO dao = BlueprintDAO.getInstance(this);
+        dao.getSession().ifPresent(session -> {
+            dao.setSession(new GameSession(
+                    session.getUsername(),
+                    session.getAccountType(),
+                    session.getHololensIP(),
+                    session.isHololensConnected(),
+                    session.isTutorialEnabled(),
+                    0,
+                    false));
+        });
 
         // Check ARcore availability
         deviceSupportsAR = false;
