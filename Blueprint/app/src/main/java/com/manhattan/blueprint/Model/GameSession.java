@@ -31,6 +31,7 @@ public class GameSession extends RealmObject {
         this.tutorialEnabled = true;
         this.minigames = 0;
         this.helpEnabled = true;
+
     }
 
     public GameSession(String username, AccountType accountType, String hololensIP, boolean hololensConnected, boolean tutorialEnabled, int minigames, boolean helpEnabled) {
